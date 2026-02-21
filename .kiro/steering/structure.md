@@ -3,7 +3,7 @@
 ## Directory Organization
 
 ```
-shramik-setu/
+shram-setu/
 ├── .kiro/
 │   ├── specs/           # Feature specifications
 │   └── steering/        # Project steering documents
@@ -94,7 +94,7 @@ WebSocket events for real-time features: attendance, notifications, job updates
 - Unit tests co-located with source files using `.test.ts` suffix
 - Property tests in `tests/property/` with references to design document properties
 - Integration tests in `tests/integration/` covering end-to-end flows
-- Each property test must include tag: `Feature: shramik-setu, Property {number}: {description}`
+- Each property test must include tag: `Feature: shram-setu, Property {number}: {description}`
 
 ## Offline Storage
 

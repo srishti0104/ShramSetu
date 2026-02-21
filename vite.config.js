@@ -19,8 +19,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Shramik-Setu',
-        short_name: 'Shramik-Setu',
+        name: 'Shram-Setu',
+        short_name: 'Shram-Setu',
         description: 'Voice-first PWA empowering India\'s blue-collar workforce',
         theme_color: '#1976d2',
         background_color: '#ffffff',
@@ -51,7 +51,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.shramik-setu\.com\/api\/v1\/(jobs|ledger|attendance)/,
+            urlPattern: /^https:\/\/api\.shram-setu\.com\/api\/v1\/(jobs|ledger|attendance)/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -65,7 +65,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/api\.shramik-setu\.com\/api\/v1\/trust-profile/,
+            urlPattern: /^https:\/\/api\.shram-setu\.com\/api\/v1\/trust-profile/,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'profile-cache',

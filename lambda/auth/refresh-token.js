@@ -62,7 +62,7 @@ async function getUserById(userId) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-users',
+  //   TableName: 'shram-setu-users',
   //   Key: { userId }
   // };
   // const result = await dynamodb.get(params).promise();
@@ -86,8 +86,8 @@ function generateAccessToken(user) {
   
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: '1h',
-    issuer: 'shramik-setu',
-    audience: 'shramik-setu-app'
+    issuer: 'shram-setu',
+    audience: 'shram-setu-app'
   });
 }
 
@@ -104,8 +104,8 @@ function generateRefreshToken(user) {
   
   return jwt.sign(payload, JWT_REFRESH_SECRET, {
     expiresIn: '30d',
-    issuer: 'shramik-setu',
-    audience: 'shramik-setu-app'
+    issuer: 'shram-setu',
+    audience: 'shram-setu-app'
   });
 }
 
@@ -146,8 +146,8 @@ export async function handler(event) {
     let decoded;
     try {
       decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET, {
-        issuer: 'shramik-setu',
-        audience: 'shramik-setu-app'
+        issuer: 'shram-setu',
+        audience: 'shram-setu-app'
       });
     } catch (error) {
       return {
@@ -289,3 +289,4 @@ export async function handler(event) {
     };
   }
 }
+

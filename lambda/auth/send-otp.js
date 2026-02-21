@@ -46,11 +46,11 @@ async function storeOTPInRedis(phoneNumber, otp, ttlSeconds = 60) {
 async function sendSMS(phoneNumber, otp) {
   // MOCK: In production, this will use AWS SNS
   console.log(`[MOCK SMS] Sending OTP to ${phoneNumber}: ${otp}`);
-  console.log(`SMS Content: Your Shramik-Setu verification code is ${otp}. Valid for 60 seconds. Do not share this code.`);
+  console.log(`SMS Content: Your shram-Setu verification code is ${otp}. Valid for 60 seconds. Do not share this code.`);
   
   // Mock implementation - in production:
   // const params = {
-  //   Message: `Your Shramik-Setu verification code is ${otp}. Valid for 60 seconds. Do not share this code.`,
+  //   Message: `Your shram-Setu verification code is ${otp}. Valid for 60 seconds. Do not share this code.`,
   //   PhoneNumber: phoneNumber,
   //   MessageAttributes: {
   //     'AWS.SNS.SMS.SMSType': {
@@ -222,3 +222,4 @@ export async function handler(event) {
     };
   }
 }
+

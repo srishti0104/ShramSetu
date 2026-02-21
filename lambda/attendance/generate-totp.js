@@ -220,3 +220,4 @@ exports.getCurrentTimeStep = getCurrentTimeStep;
 exports.getExpirationInfo = getExpirationInfo;
 exports.TOTP_WINDOW = TOTP_WINDOW;
 exports.TOTP_VALIDITY = TOTP_VALIDITY;
+

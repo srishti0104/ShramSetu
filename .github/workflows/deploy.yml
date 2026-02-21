@@ -1,4 +1,4 @@
-name: Deploy Shramik-Setu
+name: Deploy Shram-Setu
 
 on:
   push:
@@ -115,7 +115,7 @@ jobs:
 
       - name: Deploy frontend to S3
         run: |
-          aws s3 sync dist/ s3://shramik-setu-frontend-dev --delete
+          aws s3 sync dist/ s3://shram-setu-frontend-dev --delete
 
       - name: Invalidate CloudFront cache
         run: |
@@ -162,7 +162,7 @@ jobs:
 
       - name: Deploy frontend to S3
         run: |
-          aws s3 sync dist/ s3://shramik-setu-frontend-prod --delete
+          aws s3 sync dist/ s3://shram-setu-frontend-prod --delete
 
       - name: Invalidate CloudFront cache
         run: |

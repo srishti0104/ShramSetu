@@ -200,3 +200,4 @@ const TOTPDisplay = ({ sessionId, contractorId, onError }) => {
 };
 
 export default TOTPDisplay;
+

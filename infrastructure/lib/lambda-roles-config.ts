@@ -1,11 +1,11 @@
 /**
- * AWS Lambda Execution Roles Configuration for Shramik-Setu
+ * AWS Lambda Execution Roles Configuration for shram-Setu
  */
 
 export const LambdaRolesConfig = {
   // Base Lambda Execution Role
   baseLambdaRole: {
-    roleName: 'ShramikSetuLambdaExecutionRole',
+    roleName: 'shramSetuLambdaExecutionRole',
     description: 'Base execution role for all Lambda functions',
     
     // AWS Managed Policies
@@ -33,7 +33,7 @@ export const LambdaRolesConfig = {
   customPolicies: {
     // DynamoDB Access Policy
     dynamodbAccess: {
-      policyName: 'ShramikSetuDynamoDBAccess',
+      policyName: 'shramSetuDynamoDBAccess',
       description: 'Access to DynamoDB tables',
       statements: [
         {
@@ -49,17 +49,17 @@ export const LambdaRolesConfig = {
             'dynamodb:BatchWriteItem',
           ],
           Resource: [
-            'arn:aws:dynamodb:*:*:table/shramik-setu-users',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-users/index/*',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-jobs',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-jobs/index/*',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-ratings',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-ratings/index/*',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-sync-operations',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-attendance',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-attendance/index/*',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-grievances',
-            'arn:aws:dynamodb:*:*:table/shramik-setu-grievances/index/*',
+            'arn:aws:dynamodb:*:*:table/shram-setu-users',
+            'arn:aws:dynamodb:*:*:table/shram-setu-users/index/*',
+            'arn:aws:dynamodb:*:*:table/shram-setu-jobs',
+            'arn:aws:dynamodb:*:*:table/shram-setu-jobs/index/*',
+            'arn:aws:dynamodb:*:*:table/shram-setu-ratings',
+            'arn:aws:dynamodb:*:*:table/shram-setu-ratings/index/*',
+            'arn:aws:dynamodb:*:*:table/shram-setu-sync-operations',
+            'arn:aws:dynamodb:*:*:table/shram-setu-attendance',
+            'arn:aws:dynamodb:*:*:table/shram-setu-attendance/index/*',
+            'arn:aws:dynamodb:*:*:table/shram-setu-grievances',
+            'arn:aws:dynamodb:*:*:table/shram-setu-grievances/index/*',
           ],
         },
         {
@@ -72,7 +72,7 @@ export const LambdaRolesConfig = {
 
     // S3 Access Policy
     s3Access: {
-      policyName: 'ShramikSetuS3Access',
+      policyName: 'shramSetuS3Access',
       description: 'Access to S3 buckets',
       statements: [
         {
@@ -85,10 +85,10 @@ export const LambdaRolesConfig = {
             's3:GetObjectVersion',
           ],
           Resource: [
-            'arn:aws:s3:::shramik-setu-audio-*',
-            'arn:aws:s3:::shramik-setu-audio-*/*',
-            'arn:aws:s3:::shramik-setu-documents-*',
-            'arn:aws:s3:::shramik-setu-documents-*/*',
+            'arn:aws:s3:::shram-setu-audio-*',
+            'arn:aws:s3:::shram-setu-audio-*/*',
+            'arn:aws:s3:::shram-setu-documents-*',
+            'arn:aws:s3:::shram-setu-documents-*/*',
           ],
         },
         {
@@ -101,7 +101,7 @@ export const LambdaRolesConfig = {
 
     // RDS Access Policy
     rdsAccess: {
-      policyName: 'ShramikSetuRDSAccess',
+      policyName: 'shramSetuRDSAccess',
       description: 'Access to RDS PostgreSQL',
       statements: [
         {
@@ -109,14 +109,14 @@ export const LambdaRolesConfig = {
           Action: [
             'rds-db:connect',
           ],
-          Resource: 'arn:aws:rds-db:*:*:dbuser:*/shramik_setu_user',
+          Resource: 'arn:aws:rds-db:*:*:dbuser:*/shram_setu_user',
         },
       ],
     },
 
     // ElastiCache Access Policy
     elasticacheAccess: {
-      policyName: 'ShramikSetuElastiCacheAccess',
+      policyName: 'shramSetuElastiCacheAccess',
       description: 'Access to ElastiCache Redis',
       statements: [
         {
@@ -132,7 +132,7 @@ export const LambdaRolesConfig = {
 
     // KMS Access Policy
     kmsAccess: {
-      policyName: 'ShramikSetuKMSAccess',
+      policyName: 'shramSetuKMSAccess',
       description: 'Access to KMS encryption keys',
       statements: [
         {
@@ -159,7 +159,7 @@ export const LambdaRolesConfig = {
 
     // AWS AI/ML Services Access Policy
     aiServicesAccess: {
-      policyName: 'ShramikSetuAIServicesAccess',
+      policyName: 'shramSetuAIServicesAccess',
       description: 'Access to AWS AI/ML services',
       statements: [
         {
@@ -216,7 +216,7 @@ export const LambdaRolesConfig = {
 
     // Secrets Manager Access Policy
     secretsManagerAccess: {
-      policyName: 'ShramikSetuSecretsManagerAccess',
+      policyName: 'shramSetuSecretsManagerAccess',
       description: 'Access to Secrets Manager',
       statements: [
         {
@@ -225,14 +225,14 @@ export const LambdaRolesConfig = {
             'secretsmanager:GetSecretValue',
             'secretsmanager:DescribeSecret',
           ],
-          Resource: 'arn:aws:secretsmanager:*:*:secret:shramik-setu/*',
+          Resource: 'arn:aws:secretsmanager:*:*:secret:shram-setu/*',
         },
       ],
     },
 
     // SNS/SES Access Policy (for notifications)
     notificationAccess: {
-      policyName: 'ShramikSetuNotificationAccess',
+      policyName: 'shramSetuNotificationAccess',
       description: 'Access to SNS and SES for notifications',
       statements: [
         {
@@ -242,7 +242,7 @@ export const LambdaRolesConfig = {
             'sns:Subscribe',
             'sns:Unsubscribe',
           ],
-          Resource: 'arn:aws:sns:*:*:shramik-setu-*',
+          Resource: 'arn:aws:sns:*:*:shram-setu-*',
         },
         {
           Effect: 'Allow',
@@ -257,7 +257,7 @@ export const LambdaRolesConfig = {
 
     // EventBridge Access Policy
     eventBridgeAccess: {
-      policyName: 'ShramikSetuEventBridgeAccess',
+      policyName: 'shramSetuEventBridgeAccess',
       description: 'Access to EventBridge',
       statements: [
         {
@@ -265,14 +265,14 @@ export const LambdaRolesConfig = {
           Action: [
             'events:PutEvents',
           ],
-          Resource: 'arn:aws:events:*:*:event-bus/shramik-setu-*',
+          Resource: 'arn:aws:events:*:*:event-bus/shram-setu-*',
         },
       ],
     },
 
     // API Gateway Management Access (for WebSocket)
     apiGatewayManagement: {
-      policyName: 'ShramikSetuAPIGatewayManagement',
+      policyName: 'shramSetuAPIGatewayManagement',
       description: 'Access to API Gateway Management API',
       statements: [
         {
@@ -288,7 +288,7 @@ export const LambdaRolesConfig = {
 
     // X-Ray Tracing Policy
     xrayAccess: {
-      policyName: 'ShramikSetuXRayAccess',
+      policyName: 'shramSetuXRayAccess',
       description: 'Access to X-Ray for distributed tracing',
       statements: [
         {
@@ -354,19 +354,19 @@ export const LambdaRolesConfig = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
     },
     database: {
-      USERS_TABLE: 'shramik-setu-users',
-      JOBS_TABLE: 'shramik-setu-jobs',
-      RATINGS_TABLE: 'shramik-setu-ratings',
-      SYNC_TABLE: 'shramik-setu-sync-operations',
-      ATTENDANCE_TABLE: 'shramik-setu-attendance',
-      GRIEVANCES_TABLE: 'shramik-setu-grievances',
+      USERS_TABLE: 'shram-setu-users',
+      JOBS_TABLE: 'shram-setu-jobs',
+      RATINGS_TABLE: 'shram-setu-ratings',
+      SYNC_TABLE: 'shram-setu-sync-operations',
+      ATTENDANCE_TABLE: 'shram-setu-attendance',
+      GRIEVANCES_TABLE: 'shram-setu-grievances',
       RDS_ENDPOINT: '${RDS_ENDPOINT}',
-      RDS_DATABASE: 'shramik_setu_ledger',
+      RDS_DATABASE: 'shram_setu_ledger',
       REDIS_ENDPOINT: '${REDIS_ENDPOINT}',
     },
     storage: {
-      AUDIO_BUCKET: 'shramik-setu-audio-${ACCOUNT_ID}',
-      DOCUMENT_BUCKET: 'shramik-setu-documents-${ACCOUNT_ID}',
+      AUDIO_BUCKET: 'shram-setu-audio-${ACCOUNT_ID}',
+      DOCUMENT_BUCKET: 'shram-setu-documents-${ACCOUNT_ID}',
     },
     security: {
       KMS_KEY_ID: '${KMS_KEY_ID}',
@@ -389,3 +389,4 @@ export const LambdaRolesConfig = {
     },
   },
 };
+

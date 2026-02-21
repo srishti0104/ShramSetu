@@ -73,3 +73,4 @@ export default function LanguageSelector({ selectedLanguage, onLanguageSelect, c
     </div>
   );
 }
+
