@@ -1,9 +1,9 @@
 <<<<<<< HEAD
-# Design Document: Shramik-Setu
+# Design Document: Shram-Setu
 
 ## Overview
 
-Shramik-Setu is a voice-first Progressive Web Application designed to empower India's blue-collar workforce through accessible technology. The platform addresses critical challenges faced by daily wage workers and contractors: job discovery, wage compliance, attendance tracking, and labor rights enforcement.
+Shram-Setu is a voice-first Progressive Web Application designed to empower India's blue-collar workforce through accessible technology. The platform addresses critical challenges faced by daily wage workers and contractors: job discovery, wage compliance, attendance tracking, and labor rights enforcement.
 
 ### Core Design Principles
 
@@ -1768,13 +1768,13 @@ The testing strategy employs both unit tests and property-based tests as complem
 **Configuration**:
 - Minimum 100 iterations per property test (due to randomization)
 - Each property test must reference its design document property
-- Tag format: `Feature: shramik-setu, Property {number}: {property_text}`
+- Tag format: `Feature: Shram-setu, Property {number}: {property_text}`
 
 **Example Property Test**:
 ```typescript
 import fc from 'fast-check';
 
-// Feature: shramik-setu, Property 24: TOTP generation properties
+// Feature: Shram-setu, Property 24: TOTP generation properties
 describe('TOTP Attendance', () => {
   it('should generate 6-digit unique codes valid for 5 minutes', () => {
     fc.assert(
@@ -1982,11 +1982,11 @@ const transactionGen = fc.record({
 - Test result reporting and trending
 
 =======
-# Design Document: Shramik-Setu
+# Design Document: Shram-Setu
 
 ## Overview
 
-Shramik-Setu is a voice-first Progressive Web Application designed to empower India's blue-collar workforce through accessible technology. The platform addresses critical challenges faced by daily wage workers and contractors: job discovery, wage compliance, attendance tracking, and labor rights enforcement.
+Shram-Setu is a voice-first Progressive Web Application designed to empower India's blue-collar workforce through accessible technology. The platform addresses critical challenges faced by daily wage workers and contractors: job discovery, wage compliance, attendance tracking, and labor rights enforcement.
 
 ### Core Design Principles
 
@@ -3751,13 +3751,13 @@ The testing strategy employs both unit tests and property-based tests as complem
 **Configuration**:
 - Minimum 100 iterations per property test (due to randomization)
 - Each property test must reference its design document property
-- Tag format: `Feature: shramik-setu, Property {number}: {property_text}`
+- Tag format: `Feature: Shram-setu, Property {number}: {property_text}`
 
 **Example Property Test**:
 ```typescript
 import fc from 'fast-check';
 
-// Feature: shramik-setu, Property 24: TOTP generation properties
+// Feature: Shram-setu, Property 24: TOTP generation properties
 describe('TOTP Attendance', () => {
   it('should generate 6-digit unique codes valid for 5 minutes', () => {
     fc.assert(
@@ -3965,3 +3965,4 @@ const transactionGen = fc.record({
 - Test result reporting and trending
 
 >>>>>>> 42a6dc85c7112ca619cb0bfac70e1e1e1d2c55eb
+

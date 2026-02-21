@@ -1,4 +1,4 @@
--- Shramik-Setu PostgreSQL Database Initialization Script
+-- shram-Setu PostgreSQL Database Initialization Script
 -- This script creates the financial ledger tables with ACID compliance
 
 -- Enable UUID extension
@@ -116,10 +116,11 @@ INSERT INTO minimum_wage_rates (state, industry, skill_level, daily_rate, hourly
 ON CONFLICT DO NOTHING;
 
 -- Grant permissions (adjust username as needed)
--- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO shramik_setu_user;
--- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO shramik_setu_user;
+-- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO shram_setu_user;
+-- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO shram_setu_user;
 
 COMMENT ON TABLE transactions IS 'Stores all financial transactions between workers and contractors';
 COMMENT ON TABLE wage_calculations IS 'Stores calculated wage summaries for workers';
 COMMENT ON TABLE compliance_checks IS 'Stores compliance validation results against labor laws';
 COMMENT ON TABLE minimum_wage_rates IS 'Stores state-wise minimum wage rates as per Minimum Wage Act 1948';
+

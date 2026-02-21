@@ -273,3 +273,4 @@ exports.handler = async (event) => {
 exports.generateTOTP = generateTOTP;
 exports.validateTOTPCode = validateTOTPCode;
 exports.getCurrentTimeStep = getCurrentTimeStep;
+

@@ -1,5 +1,5 @@
 /**
- * User Type Definitions for Shramik-Setu
+ * User Type Definitions for Shram-Setu
  * 
  * Note: Using JSDoc for type hints in JavaScript
  */
@@ -90,3 +90,4 @@
 
 // Export empty object for module system
 export {};
+

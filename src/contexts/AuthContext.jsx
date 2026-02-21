@@ -37,9 +37,9 @@ const AuthContext = createContext(/** @type {AuthContextValue | undefined} */ (u
 
 // Storage keys
 const STORAGE_KEYS = {
-  ACCESS_TOKEN: 'shramik_setu_access_token',
-  REFRESH_TOKEN: 'shramik_setu_refresh_token',
-  USER: 'shramik_setu_user'
+  ACCESS_TOKEN: 'shram_setu_access_token',
+  REFRESH_TOKEN: 'shram_setu_refresh_token',
+  USER: 'shram_setu_user'
 };
 
 /**
@@ -372,3 +372,4 @@ export function useAuth() {
   }
   return context;
 }
+

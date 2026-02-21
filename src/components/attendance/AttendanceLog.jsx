@@ -240,3 +240,4 @@ const AttendanceLog = ({ sessionId, workerId, filters }) => {
 };
 
 export default AttendanceLog;
+

@@ -84,8 +84,8 @@ export async function handler(event) {
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET, {
-        issuer: 'shramik-setu',
-        audience: 'shramik-setu-app'
+        issuer: 'shram-setu',
+        audience: 'shram-setu-app'
       });
     } catch (error) {
       console.log('[AUTHORIZER] Token verification failed:', error.message);
@@ -144,8 +144,8 @@ export async function requestAuthorizer(event) {
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET, {
-        issuer: 'shramik-setu',
-        audience: 'shramik-setu-app'
+        issuer: 'shram-setu',
+        audience: 'shram-setu-app'
       });
     } catch (error) {
       return {
@@ -175,3 +175,4 @@ export async function requestAuthorizer(event) {
     };
   }
 }
+

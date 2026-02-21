@@ -79,7 +79,7 @@ export default function RoleSelection({ onRoleSelect, selectedRole, className = 
       <h2 className="role-selection__title">Choose Your Role</h2>
       
       <p className="role-selection__description">
-        Select how you want to use Shramik-Setu
+        Select how you want to use Shram-Setu
       </p>
 
       <div className="role-selection__options" role="radiogroup" aria-label="User role selection">
@@ -131,3 +131,4 @@ export default function RoleSelection({ onRoleSelect, selectedRole, className = 
     </div>
   );
 }
+

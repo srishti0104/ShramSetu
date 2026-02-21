@@ -1,15 +1,15 @@
-# 🛠️ Shramik-Setu
+# 🛠️ Shram-Setu
 
 **श्रमिक सेतु** - A voice-first Progressive Web Application empowering India's blue-collar workforce through accessible technology.
 
-![Shramik-Setu](https://img.shields.io/badge/Status-Prototype-orange)
+![Shram-Setu](https://img.shields.io/badge/Status-Prototype-orange)
 ![React](https://img.shields.io/badge/React-19-blue)
 ![PWA](https://img.shields.io/badge/PWA-Ready-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ## 🌟 Overview
 
-Shramik-Setu addresses critical challenges faced by daily wage workers and contractors in India: job discovery, wage compliance, attendance tracking, and labor rights enforcement through a voice-first, offline-capable platform.
+Shram-Setu addresses critical challenges faced by daily wage workers and contractors in India: job discovery, wage compliance, attendance tracking, and labor rights enforcement through a voice-first, offline-capable platform.
 
 ## 🎯 Target Users
 
@@ -38,8 +38,8 @@ Shramik-Setu addresses critical challenges faced by daily wage workers and contr
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/shramik-setu.git
-cd shramik-setu
+git clone https://github.com/srishti0104/ShramSetu.git
+cd ShramSetu
 
 # Install dependencies
 npm install
@@ -76,7 +76,7 @@ Open [http://localhost:5173](http://localhost:5173) to view the app.
 ## 📁 Project Structure
 
 ```
-shramik-setu/
+Shram-setu/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── voice/          # Voice interface

@@ -1,6 +1,6 @@
-# Shramik-Setu Infrastructure
+# shram-Setu Infrastructure
 
-AWS CDK infrastructure for the Shramik-Setu platform.
+AWS CDK infrastructure for the shram-Setu platform.
 
 ## Prerequisites
 
@@ -93,3 +93,4 @@ After deployment, the stack outputs the following values:
 - Point-in-time recovery for DynamoDB
 - Multi-AZ deployment for RDS
 - Versioning enabled for S3 buckets
+

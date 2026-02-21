@@ -10,26 +10,26 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
-export class ShramikSetuStack extends cdk.Stack {
+export class shramSetuStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     // KMS Key for encryption
-    const encryptionKey = new kms.Key(this, 'ShramikSetuEncryptionKey', {
-      description: 'Encryption key for Shramik-Setu sensitive data',
+    const encryptionKey = new kms.Key(this, 'shramSetuEncryptionKey', {
+      description: 'Encryption key for shram-Setu sensitive data',
       enableKeyRotation: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
     // VPC for RDS and ElastiCache
-    const vpc = new ec2.Vpc(this, 'ShramikSetuVPC', {
+    const vpc = new ec2.Vpc(this, 'shramSetuVPC', {
       maxAzs: 2,
       natGateways: 1,
     });
 
     // S3 Buckets
     const audioBucket = new s3.Bucket(this, 'AudioBucket', {
-      bucketName: `shramik-setu-audio-${this.account}`,
+      bucketName: `shram-setu-audio-${this.account}`,
       encryption: s3.BucketEncryption.KMS,
       encryptionKey: encryptionKey,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -48,7 +48,7 @@ export class ShramikSetuStack extends cdk.Stack {
     });
 
     const documentBucket = new s3.Bucket(this, 'DocumentBucket', {
-      bucketName: `shramik-setu-documents-${this.account}`,
+      bucketName: `shram-setu-documents-${this.account}`,
       encryption: s3.BucketEncryption.KMS,
       encryptionKey: encryptionKey,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -57,7 +57,7 @@ export class ShramikSetuStack extends cdk.Stack {
 
     // DynamoDB Tables
     const usersTable = new dynamodb.Table(this, 'UsersTable', {
-      tableName: 'shramik-setu-users',
+      tableName: 'shram-setu-users',
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
@@ -72,7 +72,7 @@ export class ShramikSetuStack extends cdk.Stack {
     });
 
     const jobsTable = new dynamodb.Table(this, 'JobsTable', {
-      tableName: 'shramik-setu-jobs',
+      tableName: 'shram-setu-jobs',
       partitionKey: { name: 'jobId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
@@ -88,7 +88,7 @@ export class ShramikSetuStack extends cdk.Stack {
     });
 
     const ratingsTable = new dynamodb.Table(this, 'RatingsTable', {
-      tableName: 'shramik-setu-ratings',
+      tableName: 'shram-setu-ratings',
       partitionKey: { name: 'ratingId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       encryption: dynamodb.TableEncryption.CUSTOMER_MANAGED,
@@ -103,7 +103,7 @@ export class ShramikSetuStack extends cdk.Stack {
     });
 
     const syncOperationsTable = new dynamodb.Table(this, 'SyncOperationsTable', {
-      tableName: 'shramik-setu-sync-operations',
+      tableName: 'shram-setu-sync-operations',
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'timestamp', type: dynamodb.AttributeType.NUMBER },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -113,7 +113,7 @@ export class ShramikSetuStack extends cdk.Stack {
     });
 
     const attendanceTable = new dynamodb.Table(this, 'AttendanceTable', {
-      tableName: 'shramik-setu-attendance',
+      tableName: 'shram-setu-attendance',
       partitionKey: { name: 'sessionId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'recordId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -139,7 +139,7 @@ export class ShramikSetuStack extends cdk.Stack {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
       securityGroups: [dbSecurityGroup],
-      databaseName: 'shramik_setu_ledger',
+      databaseName: 'shram_setu_ledger',
       storageEncrypted: true,
       storageEncryptionKey: encryptionKey,
       backupRetention: cdk.Duration.days(7),
@@ -211,9 +211,9 @@ export class ShramikSetuStack extends cdk.Stack {
     }));
 
     // API Gateway
-    const api = new apigateway.RestApi(this, 'ShramikSetuAPI', {
-      restApiName: 'Shramik-Setu API',
-      description: 'API for Shramik-Setu platform',
+    const api = new apigateway.RestApi(this, 'shramSetuAPI', {
+      restApiName: 'shram-Setu API',
+      description: 'API for shram-Setu platform',
       deployOptions: {
         stageName: 'v1',
         throttlingRateLimit: 1000,
@@ -264,3 +264,4 @@ export class ShramikSetuStack extends cdk.Stack {
     });
   }
 }
+

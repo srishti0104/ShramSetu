@@ -1,6 +1,6 @@
 # Product Overview
 
-Shramik-Setu is a voice-first Progressive Web Application empowering India's blue-collar workforce through accessible technology. The platform addresses critical challenges faced by daily wage workers and contractors: job discovery, wage compliance, attendance tracking, and labor rights enforcement.
+Shram-Setu is a voice-first Progressive Web Application empowering India's blue-collar workforce through accessible technology. The platform addresses critical challenges faced by daily wage workers and contractors: job discovery, wage compliance, attendance tracking, and labor rights enforcement.
 
 ## Target Users
 

@@ -70,7 +70,7 @@ async function searchJobsInDB(searchCriteria) {
   
   // MOCK: In production, query DynamoDB with GSI
   // const params = {
-  //   TableName: 'shramik-setu-jobs',
+  //   TableName: 'shram-setu-jobs',
   //   IndexName: 'city-status-index',
   //   KeyConditionExpression: 'city = :city AND #status = :status',
   //   FilterExpression: 'contains(skills, :skill)',
@@ -277,7 +277,7 @@ async function calculateTravelTime(from, to) {
   // MOCK: In production, use Amazon Location Service
   // const location = new AWS.Location();
   // const params = {
-  //   CalculatorName: 'ShramikSetuRouteCalculator',
+  //   CalculatorName: 'shramSetuRouteCalculator',
   //   DeparturePosition: [from.lon, from.lat],
   //   DestinationPosition: [to.lon, to.lat],
   //   TravelMode: 'Walking'
@@ -483,3 +483,4 @@ export async function handler(event) {
     };
   }
 }
+

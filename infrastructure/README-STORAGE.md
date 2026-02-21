@@ -2,7 +2,7 @@
 
 ## S3 Buckets
 
-### 1. Audio Bucket (`shramik-setu-audio`)
+### 1. Audio Bucket (`shram-setu-audio`)
 
 **Purpose**: Store voice recordings for grievances and voice commands
 
@@ -17,7 +17,7 @@
 
 **Folder Structure**:
 ```
-shramik-setu-audio/
+shram-setu-audio/
 ├── grievances/
 │   └── {userId}/
 │       └── {grievanceId}/
@@ -35,7 +35,7 @@ shramik-setu-audio/
 **Allowed File Types**: .mp3, .wav, .m4a, .ogg, .webm
 **Max File Size**: 10MB
 
-### 2. Document Bucket (`shramik-setu-documents`)
+### 2. Document Bucket (`shram-setu-documents`)
 
 **Purpose**: Store payslip images, receipts, and verification documents
 
@@ -49,7 +49,7 @@ shramik-setu-audio/
 
 **Folder Structure**:
 ```
-shramik-setu-documents/
+shram-setu-documents/
 ├── payslips/
 │   └── {workerId}/
 │       └── {year}/
@@ -298,3 +298,5 @@ await redis.connect();
 - Encryption at rest
 - AUTH token required
 - Security group restrictions
+
+

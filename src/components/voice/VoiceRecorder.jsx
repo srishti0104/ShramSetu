@@ -35,9 +35,9 @@ const MOCK_RESPONSES = {
     action: 'file_grievance'
   },
   'default': {
-    transcription: 'नमस्ते, मैं श्रमिक सेतु का उपयोग करना चाहता हूं',
-    translation: 'Hello, I want to use Shramik Setu',
-    response: 'Welcome to Shramik Setu! I can help you with: finding jobs, marking attendance, checking payments, or filing complaints. What would you like to do?',
+    transcription: 'नमस्ते, मैं श्रम सेतु का उपयोग करना चाहता हूं',
+    translation: 'Hello, I want to use Shram Setu',
+    response: 'Welcome to Shram Setu! I can help you with: finding jobs, marking attendance, checking payments, or filing complaints. What would you like to do?',
     action: 'welcome'
   }
 };
@@ -431,3 +431,4 @@ export default function VoiceRecorder({
     </div>
   );
 }
+
