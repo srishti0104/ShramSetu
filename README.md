@@ -1,6 +1,6 @@
 # 🛠️ Shram-Setu
 
-**श्रमिक सेतु** - A voice-first Progressive Web Application empowering India's blue-collar workforce through accessible technology.
+**श्रम सेतु** - A voice-first Progressive Web Application empowering India's blue-collar workforce through accessible technology.
 
 ![Shram-Setu](https://img.shields.io/badge/Status-Prototype-orange)
 ![React](https://img.shields.io/badge/React-19-blue)
