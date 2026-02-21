@@ -74,7 +74,7 @@ async function getCachedEshramData(eshramNumber) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-eshram-cache',
+  //   TableName: 'shram-setu-eshram-cache',
   //   Key: { eshramNumber }
   // };
   // const result = await dynamodb.get(params).promise();
@@ -96,7 +96,7 @@ async function cacheEshramData(eshramNumber, data, ttlDays = 30) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-eshram-cache',
+  //   TableName: 'shram-setu-eshram-cache',
   //   Item: {
   //     eshramNumber,
   //     data,
@@ -290,3 +290,4 @@ export async function handler(event) {
     };
   }
 }
+

@@ -2,7 +2,7 @@
 
 ## REST API Endpoints
 
-Base URL: `https://api.shramik-setu.com/v1`
+Base URL: `https://api.shram-setu.com/v1`
 
 ### Authentication Endpoints
 - `POST /auth/send-otp` - Send OTP to mobile number
@@ -66,7 +66,7 @@ Base URL: `https://api.shramik-setu.com/v1`
 
 ## WebSocket API
 
-Connection URL: `wss://ws.shramik-setu.com`
+Connection URL: `wss://ws.shram-setu.com`
 
 ### Routes
 - `$connect` - Establish connection
@@ -85,7 +85,7 @@ Connection URL: `wss://ws.shramik-setu.com`
 ## Lambda Execution Roles
 
 ### Base Role
-All Lambda functions inherit from `ShramikSetuLambdaExecutionRole` with:
+All Lambda functions inherit from `shramSetuLambdaExecutionRole` with:
 - CloudWatch Logs access
 - VPC access (for RDS and Redis)
 - X-Ray tracing
@@ -130,3 +130,5 @@ Standard error format:
   }
 }
 ```
+
+

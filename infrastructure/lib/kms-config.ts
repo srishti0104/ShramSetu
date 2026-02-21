@@ -1,12 +1,12 @@
 /**
- * AWS KMS Configuration for Shramik-Setu
+ * AWS KMS Configuration for shram-Setu
  */
 
 export const KMSConfig = {
   // Master encryption key
   masterKey: {
-    alias: 'alias/shramik-setu-master-key',
-    description: 'Master encryption key for Shramik-Setu platform',
+    alias: 'alias/shram-setu-master-key',
+    description: 'Master encryption key for shram-Setu platform',
     enableKeyRotation: true,
     rotationPeriod: 365, // days
     removalPolicy: 'RETAIN', // Never delete in production
@@ -99,17 +99,17 @@ export const KMSConfig = {
     dynamodb: {
       enabled: true,
       keyType: 'CUSTOMER_MANAGED',
-      keyAlias: 'alias/shramik-setu-master-key',
+      keyAlias: 'alias/shram-setu-master-key',
     },
     rds: {
       enabled: true,
       keyType: 'CUSTOMER_MANAGED',
-      keyAlias: 'alias/shramik-setu-master-key',
+      keyAlias: 'alias/shram-setu-master-key',
     },
     s3: {
       enabled: true,
       keyType: 'CUSTOMER_MANAGED',
-      keyAlias: 'alias/shramik-setu-master-key',
+      keyAlias: 'alias/shram-setu-master-key',
       bucketKeyEnabled: true, // Reduce KMS costs
     },
     elasticache: {
@@ -119,7 +119,7 @@ export const KMSConfig = {
     cloudwatchLogs: {
       enabled: true,
       keyType: 'CUSTOMER_MANAGED',
-      keyAlias: 'alias/shramik-setu-master-key',
+      keyAlias: 'alias/shram-setu-master-key',
     },
   },
 
@@ -145,11 +145,11 @@ export const KMSConfig = {
   // Key grants for services
   keyGrants: {
     lambda: {
-      grantee: 'arn:aws:iam::${ACCOUNT_ID}:role/ShramikSetuLambdaExecutionRole',
+      grantee: 'arn:aws:iam::${ACCOUNT_ID}:role/shramSetuLambdaExecutionRole',
       operations: ['Decrypt', 'Encrypt', 'GenerateDataKey', 'DescribeKey'],
     },
     s3: {
-      grantee: 'arn:aws:iam::${ACCOUNT_ID}:role/ShramikSetuLambdaExecutionRole',
+      grantee: 'arn:aws:iam::${ACCOUNT_ID}:role/shramSetuLambdaExecutionRole',
       operations: ['Decrypt', 'Encrypt', 'GenerateDataKey'],
     },
   },
@@ -179,3 +179,4 @@ export const KMSConfig = {
     retentionPeriod: 2555, // 7 years for compliance
   },
 };
+

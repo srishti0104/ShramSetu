@@ -233,3 +233,4 @@ exports.handler = async (event) => {
 
 // Export for testing
 exports.verifyAuditSignature = verifyAuditSignature;
+

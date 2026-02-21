@@ -89,7 +89,7 @@ export default function BiometricSetup({
       // const publicKeyCredentialCreationOptions = {
       //   challenge: new Uint8Array(32), // Server-generated challenge
       //   rp: {
-      //     name: "Shramik-Setu",
+      //     name: "Shram-Setu",
       //     id: window.location.hostname
       //   },
       //   user: {
@@ -153,7 +153,7 @@ export default function BiometricSetup({
         
         <p className="biometric-setup__description">
           Your device doesn't support biometric authentication or it's not set up.
-          You can still use Shramik-Setu with OTP authentication.
+          You can still use Shram-Setu with OTP authentication.
         </p>
 
         <button
@@ -234,3 +234,4 @@ export default function BiometricSetup({
     </div>
   );
 }
+

@@ -1,11 +1,11 @@
 /**
- * API Gateway Configuration for Shramik-Setu
+ * API Gateway Configuration for Shram-Setu
  */
 
 export const APIGatewayConfig = {
   restApi: {
-    name: 'Shramik-Setu API',
-    description: 'REST API for Shramik-Setu platform',
+    name: 'Shram-Setu API',
+    description: 'REST API for Shram-Setu platform',
     deploymentStage: 'v1',
     
     // Throttling settings
@@ -379,7 +379,7 @@ export const APIGatewayConfig = {
 
   // WebSocket API Configuration
   websocketApi: {
-    name: 'Shramik-Setu WebSocket API',
+    name: 'Shram-Setu WebSocket API',
     description: 'WebSocket API for real-time features',
     routeSelectionExpression: '$request.body.action',
     
@@ -467,3 +467,5 @@ export const APIGatewayConfig = {
     ],
   },
 };
+
+

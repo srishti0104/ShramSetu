@@ -78,7 +78,7 @@
 
 ## PostgreSQL RDS (Financial Ledger)
 
-### Database: `shramik_setu_ledger`
+### Database: `shram_setu_ledger`
 
 ### Tables
 
@@ -141,7 +141,7 @@ npm run deploy
 After RDS instance is created, run the initialization script:
 ```bash
 # Get RDS endpoint from CDK output
-psql -h <RDS_ENDPOINT> -U postgres -d shramik_setu_ledger -f scripts/init-postgres.sql
+psql -h <RDS_ENDPOINT> -U postgres -d shram_setu_ledger -f scripts/init-postgres.sql
 ```
 
 Or use AWS Systems Manager Session Manager to connect securely.
@@ -176,3 +176,5 @@ Or use AWS Systems Manager Session Manager to connect securely.
 - t3.small instance (can scale up as needed)
 - Storage auto-scaling (20GB to 100GB)
 - Multi-AZ for production reliability
+
+

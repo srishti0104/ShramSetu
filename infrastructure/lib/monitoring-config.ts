@@ -1,30 +1,30 @@
 /**
- * Monitoring and Logging Configuration for Shramik-Setu
+ * Monitoring and Logging Configuration for shram-Setu
  */
 
 export const MonitoringConfig = {
   // CloudWatch Log Groups
   logGroups: {
     apiGateway: {
-      logGroupName: '/aws/apigateway/shramik-setu',
+      logGroupName: '/aws/apigateway/shram-setu',
       retentionDays: 30,
       encryption: true,
       kmsKeyId: '${KMS_KEY_ID}',
     },
     lambda: {
-      logGroupName: '/aws/lambda/shramik-setu',
+      logGroupName: '/aws/lambda/shram-setu',
       retentionDays: 30,
       encryption: true,
       kmsKeyId: '${KMS_KEY_ID}',
     },
     rds: {
-      logGroupName: '/aws/rds/shramik-setu',
+      logGroupName: '/aws/rds/shram-setu',
       retentionDays: 7,
       encryption: true,
       kmsKeyId: '${KMS_KEY_ID}',
     },
     application: {
-      logGroupName: '/shramik-setu/application',
+      logGroupName: '/shram-setu/application',
       retentionDays: 90,
       encryption: true,
       kmsKeyId: '${KMS_KEY_ID}',
@@ -33,7 +33,7 @@ export const MonitoringConfig = {
 
   // CloudWatch Metrics
   customMetrics: {
-    namespace: 'ShramikSetu',
+    namespace: 'shramSetu',
     metrics: [
       // API metrics
       {
@@ -292,7 +292,7 @@ export const MonitoringConfig = {
   // CloudWatch Dashboards
   dashboards: {
     main: {
-      dashboardName: 'ShramikSetu-Main',
+      dashboardName: 'shramSetu-Main',
       widgets: [
         // API metrics
         {
@@ -345,12 +345,12 @@ export const MonitoringConfig = {
   // SNS Topics for alerts
   snsTopics: {
     critical: {
-      topicName: 'shramik-setu-critical-alerts',
-      displayName: 'Shramik-Setu Critical Alerts',
+      topicName: 'shram-setu-critical-alerts',
+      displayName: 'shram-Setu Critical Alerts',
       subscriptions: [
         {
           protocol: 'email',
-          endpoint: 'ops-team@shramik-setu.com',
+          endpoint: 'ops-team@shram-setu.com',
         },
         {
           protocol: 'sms',
@@ -359,12 +359,12 @@ export const MonitoringConfig = {
       ],
     },
     warnings: {
-      topicName: 'shramik-setu-warnings',
-      displayName: 'Shramik-Setu Warnings',
+      topicName: 'shram-setu-warnings',
+      displayName: 'shram-Setu Warnings',
       subscriptions: [
         {
           protocol: 'email',
-          endpoint: 'dev-team@shramik-setu.com',
+          endpoint: 'dev-team@shram-setu.com',
         },
       ],
     },
@@ -401,3 +401,4 @@ export const MonitoringConfig = {
     },
   ],
 };
+

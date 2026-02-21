@@ -325,3 +325,4 @@ function calculateProgress(currentTier, average, totalRatings) {
 exports.determineTier = determineTier;
 exports.calculateBadges = calculateBadges;
 exports.TIER_THRESHOLDS = TIER_THRESHOLDS;
+

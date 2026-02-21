@@ -22,7 +22,7 @@ async function getUserByPhone(phoneNumber) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-users',
+  //   TableName: 'shram-setu-users',
   //   IndexName: 'phoneNumber-index',
   //   KeyConditionExpression: 'phoneNumber = :phone',
   //   ExpressionAttributeValues: {
@@ -44,7 +44,7 @@ async function updateLastLogin(userId) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-users',
+  //   TableName: 'shram-setu-users',
   //   Key: { userId },
   //   UpdateExpression: 'SET lastLoginAt = :now, updatedAt = :now',
   //   ExpressionAttributeValues: {
@@ -83,8 +83,8 @@ function generateAccessToken(user) {
   
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: '1h',
-    issuer: 'shramik-setu',
-    audience: 'shramik-setu-app'
+    issuer: 'shram-setu',
+    audience: 'shram-setu-app'
   });
 }
 
@@ -101,8 +101,8 @@ function generateRefreshToken(user) {
   
   return jwt.sign(payload, JWT_REFRESH_SECRET, {
     expiresIn: '30d',
-    issuer: 'shramik-setu',
-    audience: 'shramik-setu-app'
+    issuer: 'shram-setu',
+    audience: 'shram-setu-app'
   });
 }
 
@@ -242,3 +242,4 @@ export async function handler(event) {
     };
   }
 }
+

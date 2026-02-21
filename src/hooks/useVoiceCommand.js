@@ -79,3 +79,4 @@ export function useVoiceCommand(languageCode, sessionId) {
     clearResult
   };
 }
+
