@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
+
+// Import onboarding flow
+import OnboardingFlow from './components/onboarding/OnboardingFlow'
 
 // Import the components we actually created
 import SessionStart from './components/attendance/SessionStart'
@@ -17,10 +20,42 @@ import OfflineSync from './components/sync/OfflineSync'
 function App() {
   const [activeTab, setActiveTab] = useState('home')
   const [sessionId, setSessionId] = useState(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [isOnboarded, setIsOnboarded] = useState(false)
+
+  // Check if user has completed onboarding
+  useEffect(() => {
+    const onboardingComplete = localStorage.getItem('onboarding_complete')
+    if (onboardingComplete === 'true') {
+      setIsOnboarded(true)
+    }
+  }, [])
 
   const handleSessionCreated = (session) => {
     setSessionId(session.sessionId)
     setActiveTab('totp-display')
+  }
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('onboarding_complete', 'true')
+    setIsOnboarded(true)
+    setShowOnboarding(false)
+  }
+
+  const handleStartOnboarding = () => {
+    // Clear previous onboarding data
+    localStorage.removeItem('onboarding_complete')
+    localStorage.removeItem('onboarding_progress')
+    setShowOnboarding(true)
+  }
+
+  // Show onboarding flow if user hasn't completed it or explicitly requested
+  if (showOnboarding || !isOnboarded) {
+    return (
+      <div className="app">
+        <OnboardingFlow onComplete={handleOnboardingComplete} />
+      </div>
+    )
   }
 
   return (
@@ -28,6 +63,13 @@ function App() {
       <header className="app-header">
         <h1>श्रम सेतु / Shram-Setu</h1>
         <p className="tagline">Voice-First Platform for Blue-Collar Workers</p>
+        <button 
+          className="restart-onboarding-btn"
+          onClick={handleStartOnboarding}
+          title="Restart Onboarding"
+        >
+          🔄 Restart Onboarding
+        </button>
       </header>
 
       <nav className="app-nav">

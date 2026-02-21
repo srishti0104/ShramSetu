@@ -1,6 +1,6 @@
 # Project Structure
 
-## Directory Organization
+## Root Directory
 
 ```
 shram-setu/
@@ -42,68 +42,128 @@ shram-setu/
 └── infrastructure/      # AWS CDK/CloudFormation
 
 ```
+src/
+├── components/             # React components (organized by feature)
+│   ├── attendance/        # TOTP attendance components
+│   ├── auth/              # Authentication & onboarding
+│   ├── grievance/         # Grievance reporting
+│   ├── jobs/              # Job marketplace
+│   ├── ledger/            # E-Khata ledger
+│   ├── payslip/           # Payslip auditor
+│   ├── ratings/           # Trust tier system
+│   ├── sync/              # Offline sync
+│   └── voice/             # Voice interface
+├── services/              # API clients
+│   ├── totp-attendance/   # Attendance service client
+│   └── voice-assistant/   # Voice API client
+├── hooks/                 # Custom React hooks
+├── contexts/              # React contexts
+├── types/                 # Type definitions (JSDoc)
+├── App.jsx                # Main app component
+└── main.jsx               # Entry point
+```
 
-## Key Components
+## Backend Structure (`lambda/`)
 
-### Voice Assistant (`src/services/voice-assistant/`)
-Central conversational AI handling voice commands using Amazon Transcribe, Polly, and Lex/Bedrock.
+Lambda functions organized by domain:
 
-### E-Shram Validator (`src/services/e-shram-validator/`)
-Validates worker credentials against government E-Shram database.
+```
+lambda/
+├── auth/                  # Authentication functions
+│   ├── login.js
+│   ├── register.js
+│   ├── send-otp.js
+│   └── verify-otp.js
+├── attendance/            # Attendance functions
+├── jobs/                  # Job marketplace functions
+├── ratings/               # Rating system functions
+├── grievances/            # Grievance functions
+└── voice/                 # Voice processing functions
+```
 
-### Geospatial Matcher (`src/services/geospatial-matcher/`)
-Location-based job matching using Amazon Location Service with city-bounded search.
+## Infrastructure (`infrastructure/`)
 
-### E-Khata Ledger (`src/services/e-khata-ledger/`)
-Digital financial ledger with ACID-compliant PostgreSQL backend for wage tracking and compliance.
+AWS CDK infrastructure as code:
 
-### Payslip Auditor (`src/services/payslip-auditor/`)
-OCR-powered payslip processing using Amazon Textract with Minimum Wage Act validation.
+```
+infrastructure/
+├── lib/                   # CDK construct libraries
+│   ├── api-gateway-config.ts
+│   ├── database-config.ts
+│   ├── lambda-roles-config.ts
+│   └── shramik-setu-stack.ts
+├── scripts/               # Setup scripts
+├── cdk-app.ts             # CDK app entry point
+└── cdk.json               # CDK configuration
+```
 
-### TOTP Attendance (`src/services/totp-attendance/`)
-Time-based One-Time Password system for secure attendance verification with cryptographic audit trails.
+## Component Organization
 
-### Suraksha Grievance Module (`src/services/grievance/`)
-Voice-based safety reporting with AI-powered triage using Amazon Comprehend.
+Components follow a feature-based structure with co-located styles:
 
-### Trust Tier System (`src/services/trust-tier/`)
-Dual rating system for workers and contractors with tier-based prioritization.
+```
+components/feature/
+├── ComponentName.jsx      # Component logic
+└── ComponentName.css      # Component styles
+```
 
-### Delta Sync (`src/services/delta-sync/`)
-Offline-first synchronization with conflict resolution strategies.
+## Naming Conventions
 
-## Data Models Location
+- Components: PascalCase (e.g., `VoiceButton.jsx`)
+- Services: kebab-case (e.g., `voice-assistant/client.js`)
+- Lambda functions: kebab-case (e.g., `send-otp.js`)
+- Types: kebab-case (e.g., `attendance.js`)
+- CSS classes: kebab-case with BEM (e.g., `voice-button__icon`)
 
-All TypeScript interfaces and data models are defined in `src/types/`:
-- `user.ts`: User, WorkerProfile, ContractorProfile
-- `job.ts`: Job, JobApplication, JobMatch
-- `transaction.ts`: Transaction, WageCalculation, ComplianceCheck
-- `attendance.ts`: WorkSession, AttendanceRecord, TOTPValidation
-- `grievance.ts`: Grievance, GrievanceTriage
-- `rating.ts`: Rating, TrustProfile
-- `sync.ts`: SyncOperation, SyncConflict, CachedEntity
+## Code Style
 
-## API Structure
+- Use JSDoc comments for type hints and documentation
+- Export default for components, named exports for utilities
+- Mock implementations clearly marked with `[MOCK]` comments
+- Consistent error handling with structured error responses
+- Accessibility attributes (aria-label, aria-pressed, etc.)
 
-REST endpoints follow pattern: `/api/v1/{resource}/{action}`
+## Type Definitions
 
-WebSocket events for real-time features: attendance, notifications, job updates
+Types are defined in `src/types/` using JSDoc:
 
-## Testing Organization
+```javascript
+/**
+ * @typedef {Object} VoiceCommand
+ * @property {Blob} audioData
+ * @property {string} language
+ * @property {string} userId
+ */
+```
+
+Import types using JSDoc:
+
+```javascript
+/**
+ * @typedef {import('./types/voice.js').VoiceCommand} VoiceCommand
+ */
+```
 
 - Unit tests co-located with source files using `.test.ts` suffix
 - Property tests in `tests/property/` with references to design document properties
 - Integration tests in `tests/integration/` covering end-to-end flows
 - Each property test must include tag: `Feature: shram-setu, Property {number}: {description}`
 
-## Offline Storage
+Current implementation uses mock data with clear markers for AWS integration:
 
-IndexedDB stores:
-- `jobs`: Job listings cache
-- `transactions`: Payment history
-- `attendance`: Attendance records
-- `profiles`: User profiles
-- `syncQueue`: Pending operations
-- `cache`: General cached entities
+```javascript
+// MOCK: In production, call actual API
+console.log('[MOCK] Processing voice command');
 
-Maximum 50MB offline storage with priority-based eviction.
+// Mock implementation here
+
+// Production code commented out:
+// const response = await fetch(`${API_BASE_URL}/endpoint`);
+```
+
+## Documentation
+
+- README.md files in key directories
+- JSDoc comments for all functions and components
+- Inline comments for complex logic
+- Design and requirements documents in root

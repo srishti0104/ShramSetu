@@ -1,0 +1,225 @@
+/* Benefits Screen Styles */
+
+.benefits-screen {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.benefits-screen__content {
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Carousel */
+.benefits-carousel {
+  overflow: hidden;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  touch-action: pan-y;
+}
+
+.benefits-carousel__track {
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Benefit Card */
+.benefit-card {
+  min-width: 100%;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.benefit-card__icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.benefit-card__title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.benefit-card__description {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+/* Progress Dots */
+.benefits-screen__dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.benefits-screen__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.benefits-screen__dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.2);
+}
+
+.benefits-screen__dot--active {
+  background: #ffffff;
+  width: 32px;
+  border-radius: 6px;
+}
+
+/* Navigation Buttons */
+.benefits-screen__navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.benefits-screen__skip,
+.benefits-screen__next {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.benefits-screen__skip {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  flex: 0 0 auto;
+}
+
+.benefits-screen__skip:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.benefits-screen__next {
+  background: #ffffff;
+  color: #667eea;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.benefits-screen__next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.benefits-screen__next:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .benefit-card {
+    padding: 40px 24px;
+  }
+
+  .benefit-card__icon {
+    font-size: 64px;
+  }
+
+  .benefit-card__title {
+    font-size: 22px;
+  }
+
+  .benefit-card__description {
+    font-size: 15px;
+  }
+
+  .benefits-screen__skip,
+  .benefits-screen__next {
+    padding: 14px 24px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .benefits-screen {
+    padding: 16px;
+  }
+
+  .benefit-card {
+    padding: 32px 20px;
+  }
+
+  .benefit-card__icon {
+    font-size: 56px;
+  }
+
+  .benefit-card__title {
+    font-size: 20px;
+  }
+
+  .benefit-card__description {
+    font-size: 14px;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .benefit-card {
+    border: 3px solid #000000;
+  }
+
+  .benefits-screen__dot {
+    border: 2px solid #ffffff;
+  }
+
+  .benefits-screen__dot--active {
+    background: #ffffff;
+    border-color: #ffffff;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .benefits-carousel__track {
+    transition: none;
+  }
+
+  .benefit-card__icon {
+    animation: none;
+  }
+
+  .benefits-screen__next:hover {
+    transform: none;
+  }
+}

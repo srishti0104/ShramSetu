@@ -1,0 +1,225 @@
+.otp-verification {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.otp-verification__content {
+  max-width: 500px;
+  margin: 0 auto;
+  padding-top: 2rem;
+}
+
+.otp-verification__title {
+  text-align: center;
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.otp-verification__subtitle {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.125rem;
+  margin-bottom: 3rem;
+}
+
+.otp-verification__form {
+  background-color: white;
+  padding: 2.5rem 2rem;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* OTP Input Container */
+.otp-input-container {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.otp-input {
+  width: 56px;
+  height: 64px;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  border: 3px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+}
+
+.otp-input--error {
+  border-color: #f44336;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.otp-verification__error {
+  color: #f44336;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.otp-verification__timer {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.otp-verification__countdown {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+.otp-verification__resend {
+  background: none;
+  border: none;
+  color: #1976d2;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.otp-verification__resend:hover {
+  background-color: #e3f2fd;
+}
+
+.otp-verification__resend:focus {
+  outline: 3px solid #2196f3;
+  outline-offset: 2px;
+}
+
+.otp-verification__button {
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  background-color: #1976d2;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.otp-verification__button:hover:not(:disabled) {
+  background-color: #1565c0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.otp-verification__button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.otp-verification__button:disabled {
+  background-color: #bdbdbd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.otp-verification__button:focus {
+  outline: 3px solid #2196f3;
+  outline-offset: 2px;
+}
+
+/* Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .otp-verification {
+    padding: 1rem 0.5rem;
+  }
+
+  .otp-verification__title {
+    font-size: 1.75rem;
+  }
+
+  .otp-verification__subtitle {
+    font-size: 1rem;
+  }
+
+  .otp-verification__form {
+    padding: 2rem 1.5rem;
+  }
+
+  .otp-input-container {
+    gap: 0.5rem;
+  }
+
+  .otp-input {
+    width: 48px;
+    height: 56px;
+    font-size: 1.75rem;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .otp-input {
+    border-width: 4px;
+  }
+
+  .otp-verification__button {
+    border: 3px solid #000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .otp-input,
+  .otp-verification__button,
+  .otp-verification__resend {
+    transition: none;
+  }
+
+  .otp-input--error {
+    animation: none;
+  }
+
+  .otp-verification__button:hover {
+    transform: none;
+  }
+
+  .spinner {
+    animation: none;
+    border-top-color: transparent;
+  }
+}
