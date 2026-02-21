@@ -3,18 +3,43 @@
 ## Root Directory
 
 ```
-ShramSetu/
-├── src/                    # Frontend source code
-├── lambda/                 # AWS Lambda functions
-├── infrastructure/         # AWS CDK infrastructure
-├── public/                 # Static assets
-├── .kiro/                  # Kiro configuration
-├── vite.config.js          # Vite configuration
-├── eslint.config.js        # ESLint flat config
-└── package.json            # Dependencies and scripts
-```
-
-## Frontend Structure (`src/`)
+shram-setu/
+├── .kiro/
+│   ├── specs/           # Feature specifications
+│   └── steering/        # Project steering documents
+├── src/
+│   ├── components/      # React components
+│   │   ├── voice/       # Voice interface components
+│   │   ├── jobs/        # Job marketplace components
+│   │   ├── ledger/      # E-Khata ledger components
+│   │   ├── attendance/  # TOTP attendance components
+│   │   └── grievance/   # Suraksha grievance components
+│   ├── services/        # Business logic and API clients
+│   │   ├── voice-assistant/
+│   │   ├── geospatial-matcher/
+│   │   ├── e-khata-ledger/
+│   │   ├── payslip-auditor/
+│   │   ├── totp-attendance/
+│   │   ├── trust-tier/
+│   │   └── delta-sync/
+│   ├── hooks/           # React hooks
+│   ├── utils/           # Utility functions
+│   ├── types/           # TypeScript type definitions
+│   ├── store/           # State management
+│   └── workers/         # Service workers
+├── lambda/              # AWS Lambda functions
+│   ├── auth/
+│   ├── jobs/
+│   ├── ledger/
+│   ├── attendance/
+│   ├── grievances/
+│   └── ratings/
+├── tests/
+│   ├── unit/            # Unit tests
+│   ├── integration/     # Integration tests
+│   └── property/        # Property-based tests
+├── public/              # Static assets
+└── infrastructure/      # AWS CDK/CloudFormation
 
 ```
 src/
@@ -119,7 +144,10 @@ Import types using JSDoc:
  */
 ```
 
-## Mock Data Pattern
+- Unit tests co-located with source files using `.test.ts` suffix
+- Property tests in `tests/property/` with references to design document properties
+- Integration tests in `tests/integration/` covering end-to-end flows
+- Each property test must include tag: `Feature: shram-setu, Property {number}: {description}`
 
 Current implementation uses mock data with clear markers for AWS integration:
 

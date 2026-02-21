@@ -214,7 +214,7 @@ exports.handler = async (event) => {
     /*
     const eventParams = {
       Entries: [{
-        Source: 'shramik-setu.ratings',
+        Source: 'shram-setu.ratings',
         DetailType: 'RatingSubmitted',
         Detail: JSON.stringify({
           ratingId,
@@ -272,3 +272,4 @@ exports.handler = async (event) => {
 // Export for testing
 exports.validateRating = validateRating;
 exports.RATING_CATEGORIES = RATING_CATEGORIES;
+

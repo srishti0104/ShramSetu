@@ -17,7 +17,7 @@ async function userExists(phoneNumber) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-users',
+  //   TableName: 'shram-setu-users',
   //   Key: { userId: phoneNumber }
   // };
   // const result = await dynamodb.get(params).promise();
@@ -36,7 +36,7 @@ async function createUser(userData) {
   
   // Mock implementation - in production:
   // const params = {
-  //   TableName: 'shramik-setu-users',
+  //   TableName: 'shram-setu-users',
   //   Item: userData
   // };
   // await dynamodb.put(params).promise();
@@ -247,3 +247,4 @@ export async function handler(event) {
     };
   }
 }
+

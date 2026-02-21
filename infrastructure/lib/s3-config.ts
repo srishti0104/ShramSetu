@@ -1,10 +1,10 @@
 /**
- * S3 Bucket Configurations for Shramik-Setu
+ * S3 Bucket Configurations for shram-Setu
  */
 
 export const S3BucketConfig = {
   audioBucket: {
-    bucketName: 'shramik-setu-audio',
+    bucketName: 'shram-setu-audio',
     purpose: 'Store voice recordings for grievances and voice commands',
     encryption: 'KMS',
     versioning: true,
@@ -42,7 +42,7 @@ export const S3BucketConfig = {
   },
 
   documentBucket: {
-    bucketName: 'shramik-setu-documents',
+    bucketName: 'shram-setu-documents',
     purpose: 'Store payslip images, receipts, and verification documents',
     encryption: 'KMS',
     versioning: true,
@@ -162,3 +162,4 @@ export const CloudFrontConfig = {
     },
   },
 };
+

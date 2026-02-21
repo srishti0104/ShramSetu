@@ -61,7 +61,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>श्रमिक सेतु / Shramik-Setu</h1>
+        <h1>श्रम सेतु / Shram-Setu</h1>
         <p className="tagline">Voice-First Platform for Blue-Collar Workers</p>
         <button 
           className="restart-onboarding-btn"
@@ -176,7 +176,7 @@ function App() {
 
         {activeTab === 'home' && (
           <div className="home-section">
-            <h2>Welcome to Shramik-Setu</h2>
+            <h2>Welcome to Shram-Setu</h2>
             <p>A voice-first Progressive Web Application empowering India's blue-collar workforce.</p>
             
             <div className="features-grid">
@@ -303,7 +303,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>© 2024 Shramik-Setu | Empowering India's Blue-Collar Workforce</p>
+        <p>© 2024 Shram-Setu | Empowering India's Blue-Collar Workforce</p>
         <p className="tech-stack">Built with React + Vite | AWS Lambda | DynamoDB | PostgreSQL</p>
       </footer>
     </div>
@@ -311,3 +311,4 @@ function App() {
 }
 
 export default App
+

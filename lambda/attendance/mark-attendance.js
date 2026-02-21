@@ -269,3 +269,4 @@ exports.handler = async (event) => {
 exports.generateAuditSignature = generateAuditSignature;
 exports.verifyAuditSignature = verifyAuditSignature;
 exports.calculateDistance = calculateDistance;
+

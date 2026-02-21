@@ -1,10 +1,10 @@
 /**
- * DynamoDB Table Configurations for Shramik-Setu
+ * DynamoDB Table Configurations for Shram-Setu
  */
 
 export const DynamoDBTables = {
   users: {
-    tableName: 'shramik-setu-users',
+    tableName: 'Shram-setu-users',
     partitionKey: 'userId',
     globalSecondaryIndexes: [
       {
@@ -29,7 +29,7 @@ export const DynamoDBTables = {
   },
 
   jobs: {
-    tableName: 'shramik-setu-jobs',
+    tableName: 'Shram-setu-jobs',
     partitionKey: 'jobId',
     globalSecondaryIndexes: [
       {
@@ -58,7 +58,7 @@ export const DynamoDBTables = {
   },
 
   ratings: {
-    tableName: 'shramik-setu-ratings',
+    tableName: 'Shram-setu-ratings',
     partitionKey: 'ratingId',
     globalSecondaryIndexes: [
       {
@@ -84,7 +84,7 @@ export const DynamoDBTables = {
   },
 
   syncOperations: {
-    tableName: 'shramik-setu-sync-operations',
+    tableName: 'Shram-setu-sync-operations',
     partitionKey: 'userId',
     sortKey: 'timestamp',
     timeToLiveAttribute: 'ttl',
@@ -100,7 +100,7 @@ export const DynamoDBTables = {
   },
 
   attendance: {
-    tableName: 'shramik-setu-attendance',
+    tableName: 'Shram-setu-attendance',
     partitionKey: 'sessionId',
     sortKey: 'recordId',
     globalSecondaryIndexes: [
@@ -121,7 +121,7 @@ export const DynamoDBTables = {
   },
 
   grievances: {
-    tableName: 'shramik-setu-grievances',
+    tableName: 'Shram-setu-grievances',
     partitionKey: 'grievanceId',
     globalSecondaryIndexes: [
       {
@@ -153,7 +153,7 @@ export const DynamoDBTables = {
  * PostgreSQL RDS Configuration
  */
 export const PostgreSQLConfig = {
-  databaseName: 'shramik_setu_ledger',
+  databaseName: 'Shram_setu_ledger',
   engine: 'postgres',
   version: '15',
   instanceClass: 't3.small',
@@ -250,3 +250,5 @@ export const PostgreSQLConfig = {
     },
   },
 };
+
+

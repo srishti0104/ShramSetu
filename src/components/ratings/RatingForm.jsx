@@ -254,3 +254,4 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
 };
 
 export default RatingForm;
+

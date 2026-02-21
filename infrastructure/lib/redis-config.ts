@@ -1,9 +1,9 @@
 /**
- * ElastiCache Redis Configuration for Shramik-Setu
+ * ElastiCache Redis Configuration for shram-Setu
  */
 
 export const RedisConfig = {
-  clusterName: 'shramik-setu-redis',
+  clusterName: 'shram-setu-redis',
   purpose: 'Session management and active TOTP code storage',
   
   // Cluster configuration
@@ -162,8 +162,8 @@ export const RedisClientConfig = {
   // Key naming conventions
   keyNaming: {
     separator: ':',
-    prefix: 'shramik',
-    format: 'shramik:{entity}:{id}',
+    prefix: 'shram',
+    format: 'shram:{entity}:{id}',
   },
 };
 
@@ -235,3 +235,4 @@ export const RedisBestPractices = {
     'Set up CloudWatch alarms',
   ],
 };
+

@@ -1,4 +1,4 @@
-# Implementation Tasks: Shramik-Setu
+# Implementation Tasks: Shram-Setu
 
 ## 1. Project Setup and Infrastructure
 

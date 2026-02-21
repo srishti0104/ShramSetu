@@ -431,3 +431,4 @@ exports.handler = async (event) => {
 exports.classifyCategory = classifyCategory;
 exports.determineSeverity = determineSeverity;
 exports.CATEGORIES = CATEGORIES;
+

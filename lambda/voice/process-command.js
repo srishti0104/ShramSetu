@@ -60,7 +60,7 @@ async function detectIntent(text, languageCode, sessionId) {
   // MOCK: In production, use Amazon Lex or Bedrock
   // const lexruntime = new AWS.LexRuntime();
   // const params = {
-  //   botName: 'ShramikSetuBot',
+  //   botName: 'shramSetuBot',
   //   botAlias: 'prod',
   //   userId: sessionId,
   //   inputText: text,
@@ -276,7 +276,7 @@ async function storeConversationContext(sessionId, context) {
   
   // MOCK: In production, store in DynamoDB
   // const params = {
-  //   TableName: 'shramik-setu-conversation-context',
+  //   TableName: 'shram-setu-conversation-context',
   //   Item: {
   //     sessionId,
   //     context,
@@ -403,3 +403,4 @@ export async function handler(event) {
     };
   }
 }
+

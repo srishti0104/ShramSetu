@@ -196,3 +196,4 @@ export async function getSupportedLanguages() {
     { code: 'pa', name: 'ਪੰਜਾਬੀ', nativeName: 'Punjabi' }
   ];
 }
+

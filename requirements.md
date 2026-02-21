@@ -1,13 +1,13 @@
 <<<<<<< HEAD
-# Requirements Document: Shramik-Setu
+# Requirements Document: Shram-Setu
 
 ## Introduction
 
-Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App designed for India's "Next Billion Users" - specifically targeting laborers and contractors who need an accessible platform for job matching, payment tracking, and labor rights enforcement. The platform prioritizes voice-first interaction, multi-language support, and some offline functionality to serve users with varying literacy levels and connectivity constraints.
+Shram-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App designed for India's "Next Billion Users" - specifically targeting laborers and contractors who need an accessible platform for job matching, payment tracking, and labor rights enforcement. The platform prioritizes voice-first interaction, multi-language support, and some offline functionality to serve users with varying literacy levels and connectivity constraints.
 
 ## Glossary
 
-- **Shramik_Setu_System**: The complete PWA platform including voice interface, job marketplace, and compliance features
+- **Shram_Setu_System**: The complete PWA platform including voice interface, job marketplace, and compliance features
 - **Amazon_Transcribe**: The central voice transcription service handling speech-to-text conversion
 - **Voice_Assistant**: The AI-powered conversational interface that processes voice commands and provides spoken responses using Amazon services
 - **E_Shram_Validator**: Component that validates worker credentials against government E-Shram database
@@ -54,12 +54,12 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN a new user accesses the platform, THE Shramik_Setu_System SHALL present language selection options including Hindi and major regional languages
-2. WHEN a user provides their mobile number, THE Shramik_Setu_System SHALL send an OTP and verify the number within 60 seconds
+1. WHEN a new user accesses the platform, THE Shram_Setu_System SHALL present language selection options including Hindi and major regional languages
+2. WHEN a user provides their mobile number, THE Shram_Setu_System SHALL send an OTP and verify the number within 60 seconds
 3. WHEN a user provides E-Shram card details, THE E_Shram_Validator SHALL verify credentials against the government database and return validation status
-4. WHEN E-Shram validation succeeds, THE Shramik_Setu_System SHALL extract and store verified worker information including skills and location
-5. WHEN users select their role (Worker/Contractor), THE Shramik_Setu_System SHALL configure appropriate interface permissions and features
-6. WHEN biometric authentication is available, THE Shramik_Setu_System SHALL enable passkey setup for future secure access
+4. WHEN E-Shram validation succeeds, THE Shram_Setu_System SHALL extract and store verified worker information including skills and location
+5. WHEN users select their role (Worker/Contractor), THE Shram_Setu_System SHALL configure appropriate interface permissions and features
+6. WHEN biometric authentication is available, THE Shram_Setu_System SHALL enable passkey setup for future secure access
 
 ### Requirement 3: Geospatial Job Marketplace
 
@@ -68,9 +68,9 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 #### Acceptance Criteria
 
 1. WHEN a worker searches for jobs, THE Geospatial_Matcher SHALL return opportunities within the city of the worker sorted by distance
-2. WHEN job results are displayed, THE Shramik_Setu_System SHALL show distance, estimated travel time, and job details in the user's preferred language
-3. WHEN a worker applies for a job, THE Shramik_Setu_System SHALL notify the contractor and track application status
-4. WHEN contractors post jobs, THE Shramik_Setu_System SHALL require location, wage rate, duration, and skill requirements
+2. WHEN job results are displayed, THE Shram_Setu_System SHALL show distance, estimated travel time, and job details in the user's preferred language
+3. WHEN a worker applies for a job, THE Shram_Setu_System SHALL notify the contractor and track application status
+4. WHEN contractors post jobs, THE Shram_Setu_System SHALL require location, wage rate, duration, and skill requirements
 5. WHEN job matching occurs, THE Geospatial_Matcher SHALL prioritize workers based on proximity, skills, and trust tier ratings
 
 ### Requirement 4: Dual Rating and Trust System
@@ -138,11 +138,11 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN high contrast mode is enabled, THE Shramik_Setu_System SHALL use color combinations that meet WCAG AAA contrast ratio standards
-2. WHEN users interact with UI elements, THE Shramik_Setu_System SHALL provide clear visual feedback with sufficient color contrast and size
-3. WHEN text is displayed, THE Shramik_Setu_System SHALL use fonts and sizes optimized for readability in outdoor lighting conditions
-4. WHEN users navigate the interface, THE Shramik_Setu_System SHALL support screen reader compatibility and keyboard navigation
-5. WHEN visual elements convey information, THE Shramik_Setu_System SHALL provide alternative text descriptions and audio cues
+1. WHEN high contrast mode is enabled, THE Shram_Setu_System SHALL use color combinations that meet WCAG AAA contrast ratio standards
+2. WHEN users interact with UI elements, THE Shram_Setu_System SHALL provide clear visual feedback with sufficient color contrast and size
+3. WHEN text is displayed, THE Shram_Setu_System SHALL use fonts and sizes optimized for readability in outdoor lighting conditions
+4. WHEN users navigate the interface, THE Shram_Setu_System SHALL support screen reader compatibility and keyboard navigation
+5. WHEN visual elements convey information, THE Shram_Setu_System SHALL provide alternative text descriptions and audio cues
 
 ### Requirement 10: Progressive Web App Performance and Installation
 
@@ -150,11 +150,11 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN users first visit the platform, THE Shramik_Setu_System SHALL load the initial interface within 3 seconds on 2G/3G/4G/5G connections
-2. WHEN the PWA is installed, THE Shramik_Setu_System SHALL function as a native app with offline capabilities and push notifications
-3. WHEN users navigate between features, THE Shramik_Setu_System SHALL provide smooth transitions with loading times under 1 second for cached content
-4. WHEN the app updates, THE Shramik_Setu_System SHALL download updates in the background and prompt users to refresh when ready
-5. WHEN device storage is limited, THE Shramik_Setu_System SHALL manage cache size intelligently, prioritizing essential features and recent data
+1. WHEN users first visit the platform, THE Shram_Setu_System SHALL load the initial interface within 3 seconds on 2G/3G/4G/5G connections
+2. WHEN the PWA is installed, THE Shram_Setu_System SHALL function as a native app with offline capabilities and push notifications
+3. WHEN users navigate between features, THE Shram_Setu_System SHALL provide smooth transitions with loading times under 1 second for cached content
+4. WHEN the app updates, THE Shram_Setu_System SHALL download updates in the background and prompt users to refresh when ready
+5. WHEN device storage is limited, THE Shram_Setu_System SHALL manage cache size intelligently, prioritizing essential features and recent data
 
 ### Requirement 11: OCR-Powered Payslip Processing and Document Analysis
 
@@ -190,13 +190,13 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN storing user data, THE Shramik_Setu_System SHALL encrypt all sensitive information using industry-standard encryption
-2. WHEN transmitting data to cloud services, THE Shramik_Setu_System SHALL use secure HTTPS connections and API authentication
-3. THE Shramik_Setu_System SHALL implement role-based access control to ensure users only access their own data
-4. WHEN handling E-Shram card information, THE Shramik_Setu_System SHALL comply with Indian data protection regulations and government guidelines
-5. WHEN users request data deletion, THE Shramik_Setu_System SHALL permanently remove all personal information from all systems
-6. THE Shramik_Setu_System SHALL regularly audit access logs and detect suspicious activities
-7. WHILE processing financial data, THE Shramik_Setu_System SHALL maintain audit trails for compliance and dispute resolution purposes
+1. WHEN storing user data, THE Shram_Setu_System SHALL encrypt all sensitive information using industry-standard encryption
+2. WHEN transmitting data to cloud services, THE Shram_Setu_System SHALL use secure HTTPS connections and API authentication
+3. THE Shram_Setu_System SHALL implement role-based access control to ensure users only access their own data
+4. WHEN handling E-Shram card information, THE Shram_Setu_System SHALL comply with Indian data protection regulations and government guidelines
+5. WHEN users request data deletion, THE Shram_Setu_System SHALL permanently remove all personal information from all systems
+6. THE Shram_Setu_System SHALL regularly audit access logs and detect suspicious activities
+7. WHILE processing financial data, THE Shram_Setu_System SHALL maintain audit trails for compliance and dispute resolution purposes
 
 ### Requirement 15: Legal Compliance and Wage Verification Engine
 
@@ -211,15 +211,15 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 5. THE E_Khata_Ledger SHALL maintain up-to-date wage rates and legal requirements for all Indian states and union territories
 6. WHILE processing wage calculations, THE E_Khata_Ledger SHALL handle different employment types (daily wage, contract, permanent, piece-rate)
 =======
-# Requirements Document: Shramik-Setu
+# Requirements Document: Shram-Setu
 
 ## Introduction
 
-Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App designed for India's "Next Billion Users" - specifically targeting laborers and contractors who need an accessible platform for job matching, payment tracking, and labor rights enforcement. The platform prioritizes voice-first interaction, multi-language support, and some offline functionality to serve users with varying literacy levels and connectivity constraints.
+Shram-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App designed for India's "Next Billion Users" - specifically targeting laborers and contractors who need an accessible platform for job matching, payment tracking, and labor rights enforcement. The platform prioritizes voice-first interaction, multi-language support, and some offline functionality to serve users with varying literacy levels and connectivity constraints.
 
 ## Glossary
 
-- **Shramik_Setu_System**: The complete PWA platform including voice interface, job marketplace, and compliance features
+- **Shram_Setu_System**: The complete PWA platform including voice interface, job marketplace, and compliance features
 - **Amazon_Transcribe**: The central voice transcription service handling speech-to-text conversion
 - **Voice_Assistant**: The AI-powered conversational interface that processes voice commands and provides spoken responses using Amazon services
 - **E_Shram_Validator**: Component that validates worker credentials against government E-Shram database
@@ -266,12 +266,12 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN a new user accesses the platform, THE Shramik_Setu_System SHALL present language selection options including Hindi and major regional languages
-2. WHEN a user provides their mobile number, THE Shramik_Setu_System SHALL send an OTP and verify the number within 60 seconds
+1. WHEN a new user accesses the platform, THE Shram_Setu_System SHALL present language selection options including Hindi and major regional languages
+2. WHEN a user provides their mobile number, THE Shram_Setu_System SHALL send an OTP and verify the number within 60 seconds
 3. WHEN a user provides E-Shram card details, THE E_Shram_Validator SHALL verify credentials against the government database and return validation status
-4. WHEN E-Shram validation succeeds, THE Shramik_Setu_System SHALL extract and store verified worker information including skills and location
-5. WHEN users select their role (Worker/Contractor), THE Shramik_Setu_System SHALL configure appropriate interface permissions and features
-6. WHEN biometric authentication is available, THE Shramik_Setu_System SHALL enable passkey setup for future secure access
+4. WHEN E-Shram validation succeeds, THE Shram_Setu_System SHALL extract and store verified worker information including skills and location
+5. WHEN users select their role (Worker/Contractor), THE Shram_Setu_System SHALL configure appropriate interface permissions and features
+6. WHEN biometric authentication is available, THE Shram_Setu_System SHALL enable passkey setup for future secure access
 
 ### Requirement 3: Geospatial Job Marketplace
 
@@ -280,9 +280,9 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 #### Acceptance Criteria
 
 1. WHEN a worker searches for jobs, THE Geospatial_Matcher SHALL return opportunities within the city of the worker sorted by distance
-2. WHEN job results are displayed, THE Shramik_Setu_System SHALL show distance, estimated travel time, and job details in the user's preferred language
-3. WHEN a worker applies for a job, THE Shramik_Setu_System SHALL notify the contractor and track application status
-4. WHEN contractors post jobs, THE Shramik_Setu_System SHALL require location, wage rate, duration, and skill requirements
+2. WHEN job results are displayed, THE Shram_Setu_System SHALL show distance, estimated travel time, and job details in the user's preferred language
+3. WHEN a worker applies for a job, THE Shram_Setu_System SHALL notify the contractor and track application status
+4. WHEN contractors post jobs, THE Shram_Setu_System SHALL require location, wage rate, duration, and skill requirements
 5. WHEN job matching occurs, THE Geospatial_Matcher SHALL prioritize workers based on proximity, skills, and trust tier ratings
 
 ### Requirement 4: Dual Rating and Trust System
@@ -350,11 +350,11 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN high contrast mode is enabled, THE Shramik_Setu_System SHALL use color combinations that meet WCAG AAA contrast ratio standards
-2. WHEN users interact with UI elements, THE Shramik_Setu_System SHALL provide clear visual feedback with sufficient color contrast and size
-3. WHEN text is displayed, THE Shramik_Setu_System SHALL use fonts and sizes optimized for readability in outdoor lighting conditions
-4. WHEN users navigate the interface, THE Shramik_Setu_System SHALL support screen reader compatibility and keyboard navigation
-5. WHEN visual elements convey information, THE Shramik_Setu_System SHALL provide alternative text descriptions and audio cues
+1. WHEN high contrast mode is enabled, THE Shram_Setu_System SHALL use color combinations that meet WCAG AAA contrast ratio standards
+2. WHEN users interact with UI elements, THE Shram_Setu_System SHALL provide clear visual feedback with sufficient color contrast and size
+3. WHEN text is displayed, THE Shram_Setu_System SHALL use fonts and sizes optimized for readability in outdoor lighting conditions
+4. WHEN users navigate the interface, THE Shram_Setu_System SHALL support screen reader compatibility and keyboard navigation
+5. WHEN visual elements convey information, THE Shram_Setu_System SHALL provide alternative text descriptions and audio cues
 
 ### Requirement 10: Progressive Web App Performance and Installation
 
@@ -362,11 +362,11 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN users first visit the platform, THE Shramik_Setu_System SHALL load the initial interface within 3 seconds on 2G/3G/4G/5G connections
-2. WHEN the PWA is installed, THE Shramik_Setu_System SHALL function as a native app with offline capabilities and push notifications
-3. WHEN users navigate between features, THE Shramik_Setu_System SHALL provide smooth transitions with loading times under 1 second for cached content
-4. WHEN the app updates, THE Shramik_Setu_System SHALL download updates in the background and prompt users to refresh when ready
-5. WHEN device storage is limited, THE Shramik_Setu_System SHALL manage cache size intelligently, prioritizing essential features and recent data
+1. WHEN users first visit the platform, THE Shram_Setu_System SHALL load the initial interface within 3 seconds on 2G/3G/4G/5G connections
+2. WHEN the PWA is installed, THE Shram_Setu_System SHALL function as a native app with offline capabilities and push notifications
+3. WHEN users navigate between features, THE Shram_Setu_System SHALL provide smooth transitions with loading times under 1 second for cached content
+4. WHEN the app updates, THE Shram_Setu_System SHALL download updates in the background and prompt users to refresh when ready
+5. WHEN device storage is limited, THE Shram_Setu_System SHALL manage cache size intelligently, prioritizing essential features and recent data
 
 ### Requirement 11: OCR-Powered Payslip Processing and Document Analysis
 
@@ -402,13 +402,13 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 
 #### Acceptance Criteria
 
-1. WHEN storing user data, THE Shramik_Setu_System SHALL encrypt all sensitive information using industry-standard encryption
-2. WHEN transmitting data to cloud services, THE Shramik_Setu_System SHALL use secure HTTPS connections and API authentication
-3. THE Shramik_Setu_System SHALL implement role-based access control to ensure users only access their own data
-4. WHEN handling E-Shram card information, THE Shramik_Setu_System SHALL comply with Indian data protection regulations and government guidelines
-5. WHEN users request data deletion, THE Shramik_Setu_System SHALL permanently remove all personal information from all systems
-6. THE Shramik_Setu_System SHALL regularly audit access logs and detect suspicious activities
-7. WHILE processing financial data, THE Shramik_Setu_System SHALL maintain audit trails for compliance and dispute resolution purposes
+1. WHEN storing user data, THE Shram_Setu_System SHALL encrypt all sensitive information using industry-standard encryption
+2. WHEN transmitting data to cloud services, THE Shram_Setu_System SHALL use secure HTTPS connections and API authentication
+3. THE Shram_Setu_System SHALL implement role-based access control to ensure users only access their own data
+4. WHEN handling E-Shram card information, THE Shram_Setu_System SHALL comply with Indian data protection regulations and government guidelines
+5. WHEN users request data deletion, THE Shram_Setu_System SHALL permanently remove all personal information from all systems
+6. THE Shram_Setu_System SHALL regularly audit access logs and detect suspicious activities
+7. WHILE processing financial data, THE Shram_Setu_System SHALL maintain audit trails for compliance and dispute resolution purposes
 
 ### Requirement 15: Legal Compliance and Wage Verification Engine
 
@@ -423,3 +423,4 @@ Shramik-Setu (Project Jan-Nyaya) is a voice-controlled Progressive Web App desig
 5. THE E_Khata_Ledger SHALL maintain up-to-date wage rates and legal requirements for all Indian states and union territories
 6. WHILE processing wage calculations, THE E_Khata_Ledger SHALL handle different employment types (daily wage, contract, permanent, piece-rate)
 >>>>>>> 42a6dc85c7112ca619cb0bfac70e1e1e1d2c55eb
+
