@@ -11,6 +11,7 @@
   padding: 24px;
   text-align: center;
   box-shadow: 0 4px 12px var(--shadow-medium);
+  position: relative;
 }
 
 .app-header h1 {
@@ -25,6 +26,34 @@
   font-size: 14px;
   opacity: 0.95;
   color: var(--bg-light);
+}
+
+.restart-onboarding-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.restart-onboarding-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.restart-onboarding-btn:active {
+  transform: translateY(0);
 }
 
 .app-nav {
@@ -236,6 +265,13 @@
 @media (max-width: 768px) {
   .app-header h1 {
     font-size: 24px;
+  }
+
+  .restart-onboarding-btn {
+    position: static;
+    margin-top: 12px;
+    width: 100%;
+    max-width: 200px;
   }
 
   .app-nav {

@@ -1,109 +1,141 @@
 # Project Structure
 
-## Directory Organization
+## Root Directory
 
 ```
-shramik-setu/
-├── .kiro/
-│   ├── specs/           # Feature specifications
-│   └── steering/        # Project steering documents
-├── src/
-│   ├── components/      # React components
-│   │   ├── voice/       # Voice interface components
-│   │   ├── jobs/        # Job marketplace components
-│   │   ├── ledger/      # E-Khata ledger components
-│   │   ├── attendance/  # TOTP attendance components
-│   │   └── grievance/   # Suraksha grievance components
-│   ├── services/        # Business logic and API clients
-│   │   ├── voice-assistant/
-│   │   ├── geospatial-matcher/
-│   │   ├── e-khata-ledger/
-│   │   ├── payslip-auditor/
-│   │   ├── totp-attendance/
-│   │   ├── trust-tier/
-│   │   └── delta-sync/
-│   ├── hooks/           # React hooks
-│   ├── utils/           # Utility functions
-│   ├── types/           # TypeScript type definitions
-│   ├── store/           # State management
-│   └── workers/         # Service workers
-├── lambda/              # AWS Lambda functions
-│   ├── auth/
-│   ├── jobs/
-│   ├── ledger/
-│   ├── attendance/
-│   ├── grievances/
-│   └── ratings/
-├── tests/
-│   ├── unit/            # Unit tests
-│   ├── integration/     # Integration tests
-│   └── property/        # Property-based tests
-├── public/              # Static assets
-└── infrastructure/      # AWS CDK/CloudFormation
-
+ShramSetu/
+├── src/                    # Frontend source code
+├── lambda/                 # AWS Lambda functions
+├── infrastructure/         # AWS CDK infrastructure
+├── public/                 # Static assets
+├── .kiro/                  # Kiro configuration
+├── vite.config.js          # Vite configuration
+├── eslint.config.js        # ESLint flat config
+└── package.json            # Dependencies and scripts
 ```
 
-## Key Components
+## Frontend Structure (`src/`)
 
-### Voice Assistant (`src/services/voice-assistant/`)
-Central conversational AI handling voice commands using Amazon Transcribe, Polly, and Lex/Bedrock.
+```
+src/
+├── components/             # React components (organized by feature)
+│   ├── attendance/        # TOTP attendance components
+│   ├── auth/              # Authentication & onboarding
+│   ├── grievance/         # Grievance reporting
+│   ├── jobs/              # Job marketplace
+│   ├── ledger/            # E-Khata ledger
+│   ├── payslip/           # Payslip auditor
+│   ├── ratings/           # Trust tier system
+│   ├── sync/              # Offline sync
+│   └── voice/             # Voice interface
+├── services/              # API clients
+│   ├── totp-attendance/   # Attendance service client
+│   └── voice-assistant/   # Voice API client
+├── hooks/                 # Custom React hooks
+├── contexts/              # React contexts
+├── types/                 # Type definitions (JSDoc)
+├── App.jsx                # Main app component
+└── main.jsx               # Entry point
+```
 
-### E-Shram Validator (`src/services/e-shram-validator/`)
-Validates worker credentials against government E-Shram database.
+## Backend Structure (`lambda/`)
 
-### Geospatial Matcher (`src/services/geospatial-matcher/`)
-Location-based job matching using Amazon Location Service with city-bounded search.
+Lambda functions organized by domain:
 
-### E-Khata Ledger (`src/services/e-khata-ledger/`)
-Digital financial ledger with ACID-compliant PostgreSQL backend for wage tracking and compliance.
+```
+lambda/
+├── auth/                  # Authentication functions
+│   ├── login.js
+│   ├── register.js
+│   ├── send-otp.js
+│   └── verify-otp.js
+├── attendance/            # Attendance functions
+├── jobs/                  # Job marketplace functions
+├── ratings/               # Rating system functions
+├── grievances/            # Grievance functions
+└── voice/                 # Voice processing functions
+```
 
-### Payslip Auditor (`src/services/payslip-auditor/`)
-OCR-powered payslip processing using Amazon Textract with Minimum Wage Act validation.
+## Infrastructure (`infrastructure/`)
 
-### TOTP Attendance (`src/services/totp-attendance/`)
-Time-based One-Time Password system for secure attendance verification with cryptographic audit trails.
+AWS CDK infrastructure as code:
 
-### Suraksha Grievance Module (`src/services/grievance/`)
-Voice-based safety reporting with AI-powered triage using Amazon Comprehend.
+```
+infrastructure/
+├── lib/                   # CDK construct libraries
+│   ├── api-gateway-config.ts
+│   ├── database-config.ts
+│   ├── lambda-roles-config.ts
+│   └── shramik-setu-stack.ts
+├── scripts/               # Setup scripts
+├── cdk-app.ts             # CDK app entry point
+└── cdk.json               # CDK configuration
+```
 
-### Trust Tier System (`src/services/trust-tier/`)
-Dual rating system for workers and contractors with tier-based prioritization.
+## Component Organization
 
-### Delta Sync (`src/services/delta-sync/`)
-Offline-first synchronization with conflict resolution strategies.
+Components follow a feature-based structure with co-located styles:
 
-## Data Models Location
+```
+components/feature/
+├── ComponentName.jsx      # Component logic
+└── ComponentName.css      # Component styles
+```
 
-All TypeScript interfaces and data models are defined in `src/types/`:
-- `user.ts`: User, WorkerProfile, ContractorProfile
-- `job.ts`: Job, JobApplication, JobMatch
-- `transaction.ts`: Transaction, WageCalculation, ComplianceCheck
-- `attendance.ts`: WorkSession, AttendanceRecord, TOTPValidation
-- `grievance.ts`: Grievance, GrievanceTriage
-- `rating.ts`: Rating, TrustProfile
-- `sync.ts`: SyncOperation, SyncConflict, CachedEntity
+## Naming Conventions
 
-## API Structure
+- Components: PascalCase (e.g., `VoiceButton.jsx`)
+- Services: kebab-case (e.g., `voice-assistant/client.js`)
+- Lambda functions: kebab-case (e.g., `send-otp.js`)
+- Types: kebab-case (e.g., `attendance.js`)
+- CSS classes: kebab-case with BEM (e.g., `voice-button__icon`)
 
-REST endpoints follow pattern: `/api/v1/{resource}/{action}`
+## Code Style
 
-WebSocket events for real-time features: attendance, notifications, job updates
+- Use JSDoc comments for type hints and documentation
+- Export default for components, named exports for utilities
+- Mock implementations clearly marked with `[MOCK]` comments
+- Consistent error handling with structured error responses
+- Accessibility attributes (aria-label, aria-pressed, etc.)
 
-## Testing Organization
+## Type Definitions
 
-- Unit tests co-located with source files using `.test.ts` suffix
-- Property tests in `tests/property/` with references to design document properties
-- Integration tests in `tests/integration/` covering end-to-end flows
-- Each property test must include tag: `Feature: shramik-setu, Property {number}: {description}`
+Types are defined in `src/types/` using JSDoc:
 
-## Offline Storage
+```javascript
+/**
+ * @typedef {Object} VoiceCommand
+ * @property {Blob} audioData
+ * @property {string} language
+ * @property {string} userId
+ */
+```
 
-IndexedDB stores:
-- `jobs`: Job listings cache
-- `transactions`: Payment history
-- `attendance`: Attendance records
-- `profiles`: User profiles
-- `syncQueue`: Pending operations
-- `cache`: General cached entities
+Import types using JSDoc:
 
-Maximum 50MB offline storage with priority-based eviction.
+```javascript
+/**
+ * @typedef {import('./types/voice.js').VoiceCommand} VoiceCommand
+ */
+```
+
+## Mock Data Pattern
+
+Current implementation uses mock data with clear markers for AWS integration:
+
+```javascript
+// MOCK: In production, call actual API
+console.log('[MOCK] Processing voice command');
+
+// Mock implementation here
+
+// Production code commented out:
+// const response = await fetch(`${API_BASE_URL}/endpoint`);
+```
+
+## Documentation
+
+- README.md files in key directories
+- JSDoc comments for all functions and components
+- Inline comments for complex logic
+- Design and requirements documents in root

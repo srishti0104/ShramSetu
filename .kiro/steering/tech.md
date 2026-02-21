@@ -2,103 +2,80 @@
 
 ## Frontend
 
-- Progressive Web App (PWA) built with React and TypeScript
-- Service Worker for offline functionality and caching
-- IndexedDB for local data persistence
+- React 19 with JavaScript (JSDoc for type hints)
+- Vite for fast development and building
+- PWA with Service Worker support (vite-plugin-pwa)
 - Web Audio API for voice recording
-- Responsive UI with high contrast mode support
+- IndexedDB for offline storage
+- React Compiler (babel-plugin-react-compiler)
 
-## Backend Services
+## Backend (AWS Ready)
 
 - AWS Lambda for serverless microservices
-- AWS API Gateway for REST endpoints and WebSocket API
-- AWS EventBridge for event-driven communication
-- AWS Step Functions for complex workflows
+- DynamoDB for high-scale data
+- PostgreSQL (RDS) for financial ledger
+- S3 for file storage
+- ElastiCache (Redis) for sessions
+- API Gateway for REST endpoints
 
-## AWS AI/ML Services
+## AI/ML Services (AWS)
 
-- Amazon Transcribe: Speech-to-text (Hindi + regional languages)
-- Amazon Polly: Text-to-speech responses
-- Amazon Lex or Bedrock: Natural language understanding and dialogue management
-- Amazon Textract: OCR for payslip processing
-- Amazon Rekognition: Image quality assessment
-- Amazon Comprehend: Sentiment analysis for grievances
-- Amazon Location Service: Geospatial matching and routing
+- Amazon Transcribe - Speech-to-text
+- Amazon Polly - Text-to-speech
+- Amazon Lex/Bedrock - Natural language understanding
+- Amazon Textract - OCR processing
+- Amazon Comprehend - Sentiment analysis
+- Amazon Location Service - Geospatial matching
 
-## Data Layer
+## Build System
 
-- DynamoDB: User profiles, jobs, ratings (high-scale, low-latency)
-- PostgreSQL (RDS): Financial ledger (ACID compliance)
-- S3: Audio recordings, payslip images, documents
-- ElastiCache (Redis): Session management and active TOTP codes
-
-## Security & Compliance
-
-- AWS KMS for encryption at rest
-- TLS 1.3 for all API communications
-- JWT tokens with 1-hour expiry, refresh tokens with 30-day expiry
-- Digital Personal Data Protection Act (DPDPA) 2023 compliance
-- E-Shram data handling guidelines
-
-## Testing Framework
-
-- Property-Based Testing: fast-check (JavaScript/TypeScript)
-- Unit Testing: Jest or Vitest
-- Integration Testing: Custom E2E scenarios
-- Minimum 100 iterations per property test
+- Package Manager: npm
+- Bundler: Vite 5.4+
+- Linter: ESLint 9 with flat config
+- Testing: Vitest with fast-check for property-based testing
 
 ## Common Commands
 
-### Development
 ```bash
-# Install dependencies
-npm install
+# Development
+npm run dev              # Start dev server (http://localhost:5173)
+npm run build            # Build for production
+npm run preview          # Preview production build
 
-# Start development server (run manually in terminal)
-npm run dev
+# Testing
+npm run test             # Run all tests
+npm run test:unit        # Run unit tests
+npm run test:property    # Run property-based tests
+npm run test:integration # Run integration tests
+npm run test:coverage    # Run tests with coverage
 
-# Run tests
-npm test
+# Code Quality
+npm run lint             # Run ESLint
 
-# Run property-based tests (may take longer)
-npm run test:pbt
+# Infrastructure (CDK)
+cd infrastructure
+npm run build            # Compile TypeScript
+npm run deploy           # Deploy to AWS
+npm run diff             # Show deployment diff
+npm run synth            # Synthesize CloudFormation
+npm run destroy          # Destroy stack
 ```
 
-### Build & Deploy
-```bash
-# Build for production
-npm run build
+## Path Aliases
 
-# Deploy to AWS
-npm run deploy
+Vite is configured with path aliases for cleaner imports:
 
-# Run linting
-npm run lint
+- `@` → `./src`
+- `@components` → `./src/components`
+- `@services` → `./src/services`
+- `@hooks` → `./src/hooks`
+- `@utils` → `./src/utils`
+- `@store` → `./src/store`
 
-# Type checking
-npm run type-check
-```
+## Environment Variables
 
-### Testing
-```bash
-# Run unit tests
-npm run test:unit
+- `VITE_API_BASE_URL` - API base URL (default: http://localhost:3000/api/v1)
 
-# Run integration tests
-npm run test:integration
+## Browser Support
 
-# Run property tests
-npm run test:property
-
-# Run all tests with coverage
-npm run test:coverage
-```
-
-## Performance Benchmarks
-
-- Voice transcription: < 3 seconds for 30-second audio
-- Job search: < 500ms for 100 results
-- TOTP generation: < 100ms
-- OCR processing: < 5 seconds for standard payslip
-- Initial load: < 3 seconds on 2G/3G/4G/5G
-- Cached navigation: < 1 second
+Targets modern browsers with ES2020 support. PWA features require HTTPS in production.
