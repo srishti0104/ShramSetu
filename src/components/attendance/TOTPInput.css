@@ -1,0 +1,263 @@
+.totp-input {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.totp-input.success {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.totp-input.success h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4caf50;
+  margin: 0 0 16px 0;
+}
+
+.totp-input.success p {
+  font-size: 14px;
+  color: #666;
+  margin: 4px 0;
+}
+
+.totp-input-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.totp-input-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.totp-input-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.code-input-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.code-digit {
+  width: 56px;
+  height: 64px;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  border: 3px solid #e0e0e0;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  font-family: 'Courier New', monospace;
+}
+
+.code-digit:focus {
+  outline: none;
+  border-color: #2196f3;
+  background: #e3f2fd;
+  transform: scale(1.05);
+}
+
+.code-digit.error {
+  border-color: #e53935;
+  background: #ffebee;
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.code-digit:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  padding: 12px;
+  background: #ffebee;
+  border-left: 4px solid #e53935;
+  border-radius: 4px;
+  color: #c62828;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.error-icon {
+  font-size: 18px;
+}
+
+.totp-input-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.btn-submit,
+.btn-reset {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-submit:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-reset {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-reset:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.totp-input-info {
+  padding: 16px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1565c0;
+}
+
+.totp-input-info p {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.totp-input-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.totp-input-info li {
+  margin: 4px 0;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .totp-input {
+    border: 3px solid #000;
+  }
+
+  .code-digit {
+    border: 3px solid #000;
+  }
+
+  .code-digit:focus {
+    border: 3px solid #0000ff;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .totp-input {
+    padding: 16px;
+  }
+
+  .code-input-container {
+    gap: 8px;
+  }
+
+  .code-digit {
+    width: 44px;
+    height: 52px;
+    font-size: 24px;
+  }
+
+  .totp-input-actions {
+    flex-direction: column;
+  }
+}
+
+/* Accessibility - Focus Indicators */
+.code-digit:focus-visible,
+.btn-submit:focus-visible,
+.btn-reset:focus-visible {
+  outline: 3px solid #2196f3;
+  outline-offset: 2px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .code-digit,
+  .btn-submit,
+  .success-icon {
+    animation: none;
+    transition: none;
+  }
+
+  .btn-submit:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Large Text Support */
+@media (min-width: 1200px) {
+  .code-digit {
+    width: 64px;
+    height: 72px;
+    font-size: 36px;
+  }
+}
