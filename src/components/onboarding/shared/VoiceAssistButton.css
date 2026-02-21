@@ -1,0 +1,95 @@
+.voice-assist-button {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.voice-assist-button:hover {
+  background-color: #1565c0;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.voice-assist-button:active {
+  transform: scale(0.95);
+}
+
+.voice-assist-button:focus {
+  outline: 3px solid #2196f3;
+  outline-offset: 2px;
+}
+
+.voice-assist-button__icon {
+  width: 28px;
+  height: 28px;
+}
+
+.voice-assist-button--playing {
+  background-color: #f44336;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.voice-assist-button--playing:hover {
+  background-color: #d32f2f;
+}
+
+.voice-assist-button__pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(244, 67, 54, 0.4);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .voice-assist-button {
+    border: 3px solid #fff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .voice-assist-button,
+  .voice-assist-button__pulse {
+    animation: none;
+  }
+  
+  .voice-assist-button:hover {
+    transform: none;
+  }
+}
