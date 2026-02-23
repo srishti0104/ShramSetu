@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auth API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Test Auth API</h1>
+    <p>API Endpoint: <strong id="apiUrl"></strong></p>
+
+    <div class="test-section">
+        <h2>1. Test Send OTP</h2>
+        <input type="tel" id="phoneNumber" placeholder="10-digit phone number" maxlength="10" value="9876543210">
+        <button onclick="testSendOTP()">Send OTP</button>
+        <div id="sendOTPResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Verify OTP</h2>
+        <input type="tel" id="verifyPhone" placeholder="Phone number" maxlength="10" value="9876543210">
+        <input type="text" id="otpCode" placeholder="6-digit OTP" maxlength="6">
+        <button onclick="testVerifyOTP()">Verify OTP</button>
+        <div id="verifyOTPResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Register</h2>
+        <input type="tel" id="registerPhone" placeholder="Phone number" maxlength="10" value="9876543210">
+        <input type="text" id="userName" placeholder="Your Name" value="Test User">
+        <select id="userRole">
+            <option value="worker">Worker</option>
+            <option value="employer">Employer</option>
+        </select>
+        <button onclick="testRegister()">Register</button>
+        <div id="registerResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Login</h2>
+        <input type="tel" id="loginPhone" placeholder="Phone number" maxlength="10" value="9876543210">
+        <button onclick="testLogin()">Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://c6ikb39522.execute-api.ap-south-1.amazonaws.com/prod';
+        document.getElementById('apiUrl').textContent = API_URL;
+
+        async function testSendOTP() {
+            const resultDiv = document.getElementById('sendOTPResult');
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            resultDiv.textContent = 'Sending request...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/send-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: `+91${phoneNumber}`
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error ${response.status}: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        async function testVerifyOTP() {
+            const resultDiv = document.getElementById('verifyOTPResult');
+            const phoneNumber = document.getElementById('verifyPhone').value;
+            const otp = document.getElementById('otpCode').value;
+            
+            resultDiv.textContent = 'Sending request...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: `+91${phoneNumber}`,
+                        otp: otp
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error ${response.status}: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        async function testRegister() {
+            const resultDiv = document.getElementById('registerResult');
+            const phoneNumber = document.getElementById('registerPhone').value;
+            const name = document.getElementById('userName').value;
+            const role = document.getElementById('userRole').value;
+            
+            resultDiv.textContent = 'Sending request...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: `+91${phoneNumber}`,
+                        name: name,
+                        role: role
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error ${response.status}: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            const phoneNumber = document.getElementById('loginPhone').value;
+            
+            resultDiv.textContent = 'Sending request...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: `+91${phoneNumber}`
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error ${response.status}: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -37,6 +37,9 @@ aws-exports.js
 # Build outputs
 build/
 coverage/
+cdk.out/
+*.d.ts
+*.js.map
 
 # OS generated files
 Thumbs.db

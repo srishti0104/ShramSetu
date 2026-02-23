@@ -5,6 +5,8 @@
  * Supports Web Speech API with hooks for AWS Polly/Transcribe integration
  */
 
+import pollyService from '../aws/pollyService';
+
 /**
  * Language voice mappings for Web Speech API
  */
@@ -108,23 +110,26 @@ class VoiceService {
    * @returns {Promise<void>}
    */
   async speakWithPolly(text, language, options = {}) {
-    console.log('[MOCK] AWS Polly speech:', { text, language, options });
-    // TODO: Integrate with AWS Polly
-    // const polly = new AWS.Polly();
-    // const params = {
-    //   Text: text,
-    //   OutputFormat: 'mp3',
-    //   VoiceId: this.getPollyVoiceId(language)
-    // };
-    // const audio = await polly.synthesizeSpeech(params).promise();
-    // Play audio...
-    return Promise.resolve();
+    try {
+      await pollyService.speak(text, language, options);
+    } catch (error) {
+      console.error('AWS Polly error, falling back to Web Speech API:', error);
+      // Fallback to Web Speech API
+      this.useAWSPolly = false;
+      return this.speak(text, language, options);
+    }
   }
 
   /**
    * Stop current speech
    */
   stop() {
+    // Stop AWS Polly if enabled
+    if (this.useAWSPolly) {
+      pollyService.stop();
+    }
+    
+    // Stop Web Speech API
     if (this.synthesis.speaking) {
       this.synthesis.cancel();
     }
@@ -136,6 +141,14 @@ class VoiceService {
    * Pause current speech
    */
   pause() {
+    // Pause AWS Polly if enabled
+    if (this.useAWSPolly) {
+      pollyService.pause();
+      this.isPlaying = false;
+      return;
+    }
+    
+    // Pause Web Speech API
     if (this.synthesis.speaking && !this.synthesis.paused) {
       this.synthesis.pause();
       this.isPlaying = false;
@@ -146,6 +159,14 @@ class VoiceService {
    * Resume paused speech
    */
   resume() {
+    // Resume AWS Polly if enabled
+    if (this.useAWSPolly) {
+      pollyService.resume();
+      this.isPlaying = true;
+      return;
+    }
+    
+    // Resume Web Speech API
     if (this.synthesis.paused) {
       this.synthesis.resume();
       this.isPlaying = true;

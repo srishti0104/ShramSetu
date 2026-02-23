@@ -7,6 +7,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import './VoiceRecorder.css';
+import transcribeService from '../../services/aws/transcribeService';
+import authService from '../../services/aws/authService';
 
 // Mock responses for demo
 const MOCK_RESPONSES = {
@@ -64,6 +66,8 @@ export default function VoiceRecorder({
   const [response, setResponse] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('hi');
   const [conversationHistory, setConversationHistory] = useState([]);
+  const [useRealTranscribe, setUseRealTranscribe] = useState(false);
+  const [confidence, setConfidence] = useState(null);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -207,7 +211,7 @@ export default function VoiceRecorder({
   };
 
   /**
-   * Process audio with mock transcription and response
+   * Process audio with real AWS Transcribe or mock transcription
    * @param {Blob} audioBlob
    */
   const processAudio = async (audioBlob) => {
@@ -215,40 +219,118 @@ export default function VoiceRecorder({
     setTranscription('');
     setTranslation('');
     setResponse('');
+    setConfidence(null);
     
     try {
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (useRealTranscribe) {
+        // Real AWS Transcribe
+        console.log('🎤 Using AWS Transcribe...');
+        
+        try {
+          const user = authService.getUser();
+          const userId = user?.userId || 'anonymous';
+          
+          // Map UI language to AWS language code
+          const languageMap = {
+            'hi': 'hi-IN',
+            'en': 'en-IN',
+            'mr': 'mr-IN',
+            'bn': 'bn-IN',
+            'ta': 'ta-IN',
+            'te': 'te-IN'
+          };
+          
+          const awsLanguageCode = languageMap[selectedLanguage] || 'hi-IN';
+          
+          // Transcribe audio
+          const result = await transcribeService.transcribeAudio(
+            audioBlob,
+            awsLanguageCode,
+            userId
+          );
+          
+          console.log('✅ Transcription result:', result);
+          
+          setTranscription(result.text);
+          setConfidence(result.confidence);
+          
+          // Generate mock response based on transcribed text
+          const mockResponse = generateResponseFromText(result.text);
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          setTranslation(mockResponse.translation);
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          setResponse(mockResponse.response);
+          
+          // Add to conversation history
+          setConversationHistory(prev => [...prev, {
+            timestamp: new Date(),
+            transcription: result.text,
+            translation: mockResponse.translation,
+            response: mockResponse.response,
+            action: mockResponse.action,
+            confidence: result.confidence
+          }]);
+          
+        } catch (transcribeError) {
+          console.error('AWS Transcribe error:', transcribeError);
+          
+          // Check if it's an account activation issue
+          if (transcribeError.message.includes('subscription') || transcribeError.message.includes('Access Key')) {
+            setError('AWS account not fully activated yet. Using mock mode instead. Please wait 24 hours after registration.');
+            setUseRealTranscribe(false);
+            
+            // Fall back to mock mode
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const mockData = MOCK_RESPONSES['default'];
+            setTranscription(mockData.transcription);
+            setTranslation(mockData.translation);
+            setResponse(mockData.response);
+            
+            setConversationHistory(prev => [...prev, {
+              timestamp: new Date(),
+              transcription: mockData.transcription,
+              translation: mockData.translation,
+              response: mockData.response,
+              action: mockData.action
+            }]);
+          } else {
+            throw transcribeError;
+          }
+        }
+        
+      } else {
+        // Mock transcription
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const responseKeys = Object.keys(MOCK_RESPONSES);
+        const randomKey = duration > 3 
+          ? responseKeys[Math.floor(Math.random() * (responseKeys.length - 1))]
+          : 'default';
+        
+        const mockData = MOCK_RESPONSES[randomKey];
+        
+        setTranscription(mockData.transcription);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setTranslation(mockData.translation);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setResponse(mockData.response);
+        
+        setConversationHistory(prev => [...prev, {
+          timestamp: new Date(),
+          transcription: mockData.transcription,
+          translation: mockData.translation,
+          response: mockData.response,
+          action: mockData.action
+        }]);
+      }
       
-      // Mock: Pick a random response based on duration
-      const responseKeys = Object.keys(MOCK_RESPONSES);
-      const randomKey = duration > 3 
-        ? responseKeys[Math.floor(Math.random() * (responseKeys.length - 1))]
-        : 'default';
-      
-      const mockData = MOCK_RESPONSES[randomKey];
-      
-      // Simulate streaming transcription
-      setTranscription(mockData.transcription);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setTranslation(mockData.translation);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setResponse(mockData.response);
-      
-      // Add to conversation history
-      setConversationHistory(prev => [...prev, {
-        timestamp: new Date(),
-        transcription: mockData.transcription,
-        translation: mockData.translation,
-        response: mockData.response,
-        action: mockData.action
-      }]);
-      
-      // Simulate text-to-speech (in real app, would use Amazon Polly)
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(mockData.response);
+      // Text-to-speech
+      if ('speechSynthesis' in window && response) {
+        const utterance = new SpeechSynthesisUtterance(response);
         utterance.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-IN';
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
@@ -256,9 +338,50 @@ export default function VoiceRecorder({
       
     } catch (err) {
       console.error('Failed to process audio:', err);
-      setError('Failed to process voice command. Please try again.');
+      setError(`Failed to process voice command: ${err.message}`);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  /**
+   * Generate response based on transcribed text
+   * @param {string} text
+   * @returns {Object}
+   */
+  const generateResponseFromText = (text) => {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('job') || lowerText.includes('work') || lowerText.includes('काम') || lowerText.includes('नौकरी')) {
+      return {
+        translation: 'Looking for work/job',
+        response: 'I found 5 construction jobs near you. The closest one is at Sector 15, paying ₹600 per day.',
+        action: 'job_search'
+      };
+    } else if (lowerText.includes('attendance') || lowerText.includes('उपस्थिति') || lowerText.includes('हाजिरी')) {
+      return {
+        translation: 'Mark attendance',
+        response: 'Your attendance has been marked for today. Session code: 4582',
+        action: 'mark_attendance'
+      };
+    } else if (lowerText.includes('payment') || lowerText.includes('salary') || lowerText.includes('वेतन') || lowerText.includes('पैसा')) {
+      return {
+        translation: 'Check payment/salary',
+        response: 'Your pending payment of ₹4,200 for 7 days of work will be processed on Friday.',
+        action: 'check_payment'
+      };
+    } else if (lowerText.includes('complaint') || lowerText.includes('grievance') || lowerText.includes('शिकायत')) {
+      return {
+        translation: 'File complaint/grievance',
+        response: 'I understand you want to file a complaint. Please describe the issue and I will help you.',
+        action: 'file_grievance'
+      };
+    } else {
+      return {
+        translation: text,
+        response: 'I heard you. How can I help you with jobs, attendance, payments, or complaints?',
+        action: 'general'
+      };
     }
   };
 
@@ -289,21 +412,35 @@ export default function VoiceRecorder({
         <h2>🎤 Voice Assistant</h2>
         <p>Speak in Hindi or your regional language</p>
         
-        <div className="voice-recorder__language">
-          <label htmlFor="language-select">Language:</label>
-          <select 
-            id="language-select"
-            value={selectedLanguage} 
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            disabled={isRecording || isProcessing}
-          >
-            <option value="hi">हिंदी (Hindi)</option>
-            <option value="en">English</option>
-            <option value="mr">मराठी (Marathi)</option>
-            <option value="bn">বাংলা (Bengali)</option>
-            <option value="ta">தமிழ் (Tamil)</option>
-            <option value="te">తెలుగు (Telugu)</option>
-          </select>
+        <div className="voice-recorder__controls-row">
+          <div className="voice-recorder__language">
+            <label htmlFor="language-select">Language:</label>
+            <select 
+              id="language-select"
+              value={selectedLanguage} 
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              disabled={isRecording || isProcessing}
+            >
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="en">English</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="bn">বাংলা (Bengali)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+            </select>
+          </div>
+          
+          <div className="voice-recorder__mode-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={useRealTranscribe}
+                onChange={(e) => setUseRealTranscribe(e.target.checked)}
+                disabled={isRecording || isProcessing}
+              />
+              <span>Use AWS Transcribe</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -371,6 +508,20 @@ export default function VoiceRecorder({
             <div className="voice-recorder__transcription">
               <strong>You said:</strong>
               <p>{transcription}</p>
+              {confidence !== null && (
+                <div className="voice-recorder__confidence">
+                  <span>Confidence: {(confidence * 100).toFixed(1)}%</span>
+                  <div className="voice-recorder__confidence-bar">
+                    <div 
+                      className="voice-recorder__confidence-fill"
+                      style={{ 
+                        width: `${confidence * 100}%`,
+                        backgroundColor: confidence > 0.8 ? '#4caf50' : confidence > 0.6 ? '#ff9800' : '#f44336'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
           
@@ -425,8 +576,17 @@ export default function VoiceRecorder({
       )}
 
       <div className="voice-recorder__demo-note">
-        <p>💡 <strong>Demo Mode:</strong> This is a mock voice interface. In production, it will use Amazon Transcribe, Lex, and Polly for real voice processing.</p>
-        <p>Try saying: "मुझे काम चाहिए" (I need work) or "मेरी उपस्थिति दर्ज करें" (Mark my attendance)</p>
+        {useRealTranscribe ? (
+          <>
+            <p>✅ <strong>AWS Transcribe Enabled:</strong> Your voice will be transcribed using Amazon Transcribe.</p>
+            <p>🎤 Speak clearly in your selected language. Processing may take 10-30 seconds.</p>
+          </>
+        ) : (
+          <>
+            <p>💡 <strong>Mock Mode:</strong> Using simulated transcription. Enable "Use AWS Transcribe" to use real speech-to-text.</p>
+            <p>Try saying: "मुझे काम चाहिए" (I need work) or "मेरी उपस्थिति दर्ज करें" (Mark my attendance)</p>
+          </>
+        )}
       </div>
     </div>
   );

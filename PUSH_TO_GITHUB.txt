@@ -1,0 +1,62 @@
+═══════════════════════════════════════════════════════════
+🚀 QUICK GITHUB PUSH COMMANDS
+═══════════════════════════════════════════════════════════
+
+📍 LOCATION: Run these commands from ShramSetu folder
+
+═══════════════════════════════════════════════════════════
+✅ RECOMMENDED: Push to Main Branch
+═══════════════════════════════════════════════════════════
+
+cd ShramSetu
+git status
+git add .
+git commit -m "feat: Complete AWS integration for hackathon demo"
+git push origin main
+
+═══════════════════════════════════════════════════════════
+🔒 SAFER: Create New Branch First
+═══════════════════════════════════════════════════════════
+
+cd ShramSetu
+git checkout -b hackathon-demo
+git add .
+git commit -m "feat: Hackathon demo with AWS services"
+git push origin hackathon-demo
+
+═══════════════════════════════════════════════════════════
+🔍 VERIFY BEFORE PUSHING
+═══════════════════════════════════════════════════════════
+
+# Check what will be committed
+git status
+
+# Verify .env is ignored
+git check-ignore .env
+
+# Should output: .env ✅
+
+═══════════════════════════════════════════════════════════
+⚠️ IMPORTANT NOTES
+═══════════════════════════════════════════════════════════
+
+✅ SAFE TO PUSH:
+- All source code (src/)
+- Lambda functions (lambda-*/)
+- Infrastructure code (infrastructure/)
+- Documentation (*.md files)
+- .env.example (template)
+- package.json
+
+❌ NEVER PUSH:
+- .env (contains AWS credentials!)
+- node_modules/ (too large)
+- .aws/ (credentials folder)
+
+═══════════════════════════════════════════════════════════
+📖 DETAILED GUIDE
+═══════════════════════════════════════════════════════════
+
+See: GITHUB_PUSH_GUIDE.md for complete instructions
+
+═══════════════════════════════════════════════════════════
