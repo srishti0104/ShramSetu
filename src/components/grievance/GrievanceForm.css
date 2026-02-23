@@ -415,6 +415,122 @@
   text-transform: uppercase;
 }
 
+/* AI Analysis Toggle */
+.grievance-form__analysis-toggle {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #e8f5e9;
+  border-radius: 8px;
+}
+
+.grievance-form__analysis-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.grievance-form__analysis-toggle input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* AI Analysis Results */
+.grievance-form__ai-analysis {
+  background: #f0f7ff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border: 2px solid #2196f3;
+}
+
+.grievance-form__ai-analysis h4 {
+  font-size: 1.125rem;
+  color: #1565c0;
+  margin: 0 0 1rem 0;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.analysis-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.analysis-label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 600;
+}
+
+.analysis-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Sentiment Colors */
+.sentiment-positive {
+  color: #4caf50;
+}
+
+.sentiment-negative {
+  color: #f44336;
+}
+
+.sentiment-neutral {
+  color: #ff9800;
+}
+
+.sentiment-mixed {
+  color: #9c27b0;
+}
+
+/* Urgency Colors */
+.urgency-high {
+  color: #d32f2f;
+}
+
+.urgency-medium {
+  color: #ff9800;
+}
+
+.urgency-low {
+  color: #4caf50;
+}
+
+.analysis-issues {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #bbdefb;
+}
+
+.analysis-issues strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #1565c0;
+}
+
+.analysis-issues ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.analysis-issues li {
+  margin: 0.25rem 0;
+  color: #333;
+  line-height: 1.5;
+}
+
 /* Demo Notice */
 .grievance-form__demo-notice {
   margin-top: 2rem;

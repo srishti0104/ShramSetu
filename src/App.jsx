@@ -16,6 +16,11 @@ import EKhataLedger from './components/ledger/EKhataLedger'
 import PayslipAuditor from './components/payslip/PayslipAuditor'
 import GrievanceForm from './components/grievance/GrievanceForm'
 import OfflineSync from './components/sync/OfflineSync'
+import PollyDemo from './components/demo/PollyDemo'
+import AuthDemo from './components/demo/AuthDemo'
+import AWSCredentialsCheck from './components/demo/AWSCredentialsCheck'
+import SyncStatus from './components/common/SyncStatus'
+import AIAssistant from './components/ai/AIAssistant'
 
 function App() {
   const [activeTab, setActiveTab] = useState('home')
@@ -80,10 +85,22 @@ function App() {
           🏠 Home
         </button>
         <button 
+          className={activeTab === 'polly-demo' ? 'active' : ''} 
+          onClick={() => setActiveTab('polly-demo')}
+        >
+          🎤 AWS Polly Demo
+        </button>
+        <button 
+          className={activeTab === 'auth-demo' ? 'active' : ''} 
+          onClick={() => setActiveTab('auth-demo')}
+        >
+          🔐 Auth Demo
+        </button>
+        <button 
           className={activeTab === 'voice' ? 'active' : ''} 
           onClick={() => setActiveTab('voice')}
         >
-          🎤 Voice Interface
+          🎙️ Voice Interface
         </button>
         <button 
           className={activeTab === 'jobs' ? 'active' : ''} 
@@ -114,6 +131,12 @@ function App() {
           onClick={() => setActiveTab('sync')}
         >
           📱 Sync
+        </button>
+        <button 
+          className={activeTab === 'ai-assistant' ? 'active' : ''} 
+          onClick={() => setActiveTab('ai-assistant')}
+        >
+          🤖 AI Assistant
         </button>
         <button 
           className={activeTab === 'session-start' ? 'active' : ''} 
@@ -150,6 +173,14 @@ function App() {
       </nav>
 
       <main className="app-content">
+        {activeTab === 'polly-demo' && (
+          <PollyDemo />
+        )}
+
+        {activeTab === 'auth-demo' && (
+          <AuthDemo />
+        )}
+
         {activeTab === 'voice' && (
           <VoiceRecorder />
         )}
@@ -172,6 +203,10 @@ function App() {
 
         {activeTab === 'sync' && (
           <OfflineSync />
+        )}
+
+        {activeTab === 'ai-assistant' && (
+          <AIAssistant />
         )}
 
         {activeTab === 'home' && (
@@ -306,6 +341,12 @@ function App() {
         <p>© 2024 Shram-Setu | Empowering India's Blue-Collar Workforce</p>
         <p className="tech-stack">Built with React + Vite | AWS Lambda | DynamoDB | PostgreSQL</p>
       </footer>
+
+      {/* AWS Credentials Diagnostic */}
+      <AWSCredentialsCheck />
+      
+      {/* Delta Sync Status */}
+      <SyncStatus />
     </div>
   )
 }

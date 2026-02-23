@@ -8,6 +8,11 @@
     "watch": "tsc -w",
     "cdk": "cdk",
     "deploy": "cdk deploy",
+    "deploy:auth": "cdk deploy ShramSetuAuthStack --app 'node cdk-auth-app.js'",
+    "deploy:textract": "cdk deploy ShramSetuTextractStack --app 'node cdk-textract-app.js'",
+    "deploy:services": "cdk deploy --all --app 'node cdk-services-app.js'",
+    "deploy:s3": "cdk deploy ShramSetuS3Stack --app 'node cdk-services-app.js'",
+    "deploy:location": "cdk deploy ShramSetuLocationStack --app 'node cdk-services-app.js'",
     "diff": "cdk diff",
     "synth": "cdk synth",
     "destroy": "cdk destroy"

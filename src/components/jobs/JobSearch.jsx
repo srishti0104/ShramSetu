@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import './JobSearch.css';
+import locationService from '../../services/aws/locationService';
 
 // Mock job data
 const MOCK_JOBS = [
@@ -132,9 +133,60 @@ export default function JobSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [minWage, setMinWage] = useState('');
-  const [maxDistance, setMaxDistance] = useState('');
+  const [maxDistance, setMaxDistance] = useState('10');
   const [selectedJob, setSelectedJob] = useState(null);
   const [appliedJobs, setAppliedJobs] = useState([]);
+  const [userLocation, setUserLocation] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [useRealLocation, setUseRealLocation] = useState(false);
+
+  // Get user location on mount
+  useEffect(() => {
+    if (useRealLocation) {
+      getUserLocation();
+    }
+  }, [useRealLocation]);
+
+  const getUserLocation = async () => {
+    setIsLoadingLocation(true);
+    try {
+      const location = await locationService.getCurrentLocation();
+      setUserLocation(location);
+      console.log('✅ User location:', location);
+      
+      // Recalculate distances with real location
+      calculateRealDistances(location);
+    } catch (error) {
+      console.error('Failed to get location:', error);
+      alert('Could not get your location. Using mock distances.');
+    } finally {
+      setIsLoadingLocation(false);
+    }
+  };
+
+  const calculateRealDistances = (userLoc) => {
+    // Mock job coordinates (in real app, these would come from database)
+    const jobCoordinates = {
+      'job_001': { latitude: 28.5355, longitude: 77.3910 }, // Sector 15, Noida
+      'job_002': { latitude: 28.6271, longitude: 77.3739 }, // Sector 62, Noida
+      'job_003': { latitude: 28.5706, longitude: 77.3272 }, // Sector 18, Noida
+      'job_004': { latitude: 28.5706, longitude: 77.3910 }, // Sector 50, Noida
+      'job_005': { latitude: 28.5355, longitude: 77.3272 }, // Sector 25, Noida
+      'job_006': { latitude: 28.5706, longitude: 77.3591 }  // Sector 32, Noida
+    };
+
+    const updatedJobs = jobs.map(job => {
+      const jobCoords = jobCoordinates[job.id];
+      if (jobCoords) {
+        const distance = locationService.calculateHaversineDistance(userLoc, jobCoords);
+        return { ...job, distance };
+      }
+      return job;
+    });
+
+    setJobs(updatedJobs);
+    setFilteredJobs(updatedJobs);
+  };
 
   useEffect(() => {
     filterJobs();
@@ -202,6 +254,23 @@ export default function JobSearch() {
 
       {/* Search and Filters */}
       <div className="job-search__filters">
+        <div className="job-search__location-toggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={useRealLocation}
+              onChange={(e) => setUseRealLocation(e.target.checked)}
+            />
+            <span>Use My Real Location</span>
+          </label>
+          {isLoadingLocation && <span className="job-search__loading">Getting location...</span>}
+          {userLocation && (
+            <span className="job-search__location-info">
+              📍 Location: {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
+            </span>
+          )}
+        </div>
+
         <div className="job-search__search-box">
           <input
             type="text"
@@ -281,7 +350,7 @@ export default function JobSearch() {
               <div className="job-card__details">
                 <div className="job-card__detail">
                   <span className="job-card__icon">📍</span>
-                  <span>{job.location} ({job.distance} km away)</span>
+                  <span>{job.location} ({locationService.formatDistance(job.distance)} away)</span>
                 </div>
                 <div className="job-card__detail">
                   <span className="job-card__icon">📅</span>
@@ -338,7 +407,7 @@ export default function JobSearch() {
             <div className="job-modal__section">
               <h3>Location</h3>
               <p>📍 {selectedJob.location}</p>
-              <p>🚶 {selectedJob.distance} km from your location</p>
+              <p>🚶 {locationService.formatDistance(selectedJob.distance)} from your location</p>
             </div>
 
             <div className="job-modal__section">
@@ -378,7 +447,11 @@ export default function JobSearch() {
 
       {/* Demo Notice */}
       <div className="job-search__demo-notice">
-        <p>💡 <strong>Demo Mode:</strong> This is mock job data. In production, jobs will be fetched from AWS DynamoDB with real-time geospatial matching.</p>
+        {useRealLocation ? (
+          <p>✅ <strong>Real Location Enabled:</strong> Distances are calculated using your actual GPS location.</p>
+        ) : (
+          <p>💡 <strong>Mock Mode:</strong> Using simulated distances. Enable "Use My Real Location" for accurate distances.</p>
+        )}
       </div>
     </div>
   );
