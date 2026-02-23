@@ -6,6 +6,7 @@
 
 import { useState, useRef } from 'react';
 import './PayslipAuditor.css';
+import textractService from '../../services/aws/textractService';
 
 // Mock OCR results
 const MOCK_OCR_RESULTS = [
@@ -45,6 +46,8 @@ export default function PayslipAuditor() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrResult, setOcrResult] = useState(null);
   const [uploadHistory, setUploadHistory] = useState([]);
+  const [error, setError] = useState(null);
+  const [useRealTextract, setUseRealTextract] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (event) => {
@@ -80,28 +83,49 @@ export default function PayslipAuditor() {
     if (!uploadedFile) return;
 
     setIsProcessing(true);
+    setError(null);
 
-    // Simulate OCR processing delay
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    try {
+      // Validate file
+      textractService.isValidImageFile(uploadedFile);
+      
+      // Set mock mode based on toggle
+      textractService.useMockData = !useRealTextract;
+      
+      // Call Textract API (or mock)
+      if (useRealTextract) {
+        console.log('🔍 Processing with AWS Textract...');
+      } else {
+        console.log('💡 Using mock OCR data...');
+      }
+      
+      const textractData = await textractService.extractPayslipData(uploadedFile);
+      
+      const result = {
+        ...textractData,
+        fileName: uploadedFile.name,
+        uploadDate: new Date().toISOString()
+      };
 
-    // Mock: Randomly select an OCR result
-    const mockResult = MOCK_OCR_RESULTS[Math.floor(Math.random() * MOCK_OCR_RESULTS.length)];
-    
-    const result = {
-      ...mockResult,
-      fileName: uploadedFile.name,
-      uploadDate: new Date().toISOString(),
-      confidence: 0.95
-    };
-
-    setOcrResult(result);
-    setUploadHistory([result, ...uploadHistory]);
-    setIsProcessing(false);
+      setOcrResult(result);
+      setUploadHistory([result, ...uploadHistory]);
+      
+      // Show info if Textract was enabled but fell back to mock
+      if (useRealTextract && result.source === 'mock') {
+        setError('⚠️ Textract service not activated. Using mock data instead. To activate: Go to AWS Console → Textract → Complete account setup.');
+      }
+    } catch (err) {
+      console.error('❌ Processing error:', err);
+      setError(err.message || 'Failed to process payslip');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const resetUpload = () => {
     setUploadedFile(null);
     setOcrResult(null);
+    setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -133,6 +157,25 @@ export default function PayslipAuditor() {
       <div className="payslip-auditor__header">
         <h2>📄 Payslip Auditor</h2>
         <p>Upload payslip for OCR processing and wage compliance check</p>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="payslip-auditor__error">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Textract Toggle */}
+      <div className="payslip-auditor__textract-toggle">
+        <label>
+          <input
+            type="checkbox"
+            checked={useRealTextract}
+            onChange={(e) => setUseRealTextract(e.target.checked)}
+          />
+          <span>Use AWS Textract OCR</span>
+        </label>
       </div>
 
       {!ocrResult ? (
@@ -308,6 +351,7 @@ export default function PayslipAuditor() {
             <div className="payslip-auditor__confidence">
               <span>OCR Confidence: </span>
               <span className="confidence-value">{(ocrResult.confidence * 100).toFixed(1)}%</span>
+              <span className="confidence-source"> ({ocrResult.source || 'unknown'})</span>
             </div>
           </div>
         </>
@@ -340,7 +384,12 @@ export default function PayslipAuditor() {
 
       {/* Demo Notice */}
       <div className="payslip-auditor__demo-notice">
-        <p>💡 <strong>Demo Mode:</strong> This is a mock OCR simulation. In production, it will use Amazon Textract for real payslip processing and validate against Minimum Wage Act 1948 data.</p>
+        {useRealTextract ? (
+          <p>✅ <strong>AWS Textract Enabled:</strong> Your payslip will be processed using real OCR for text extraction and wage compliance checking.</p>
+        ) : (
+          <p>💡 <strong>Mock Mode:</strong> Enable "Use AWS Textract OCR" for real document processing. Currently using simulated data for demonstration.</p>
+        )}
+        <p>📊 <strong>Supported formats:</strong> JPG, PNG, PDF</p>
       </div>
     </div>
   );

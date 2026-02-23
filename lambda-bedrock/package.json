@@ -1,0 +1,13 @@
+{
+  "name": "bedrock-lambda-proxy",
+  "version": "1.0.0",
+  "description": "Lambda proxy for AWS Bedrock API calls",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "keywords": ["aws", "bedrock", "lambda", "proxy"],
+  "author": "ShramSetu",
+  "license": "MIT"
+}

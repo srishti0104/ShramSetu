@@ -6,6 +6,7 @@
 
 import { useState, useRef } from 'react';
 import './GrievanceForm.css';
+import comprehendService from '../../services/aws/comprehendService';
 
 // Grievance categories
 const CATEGORIES = [
@@ -45,6 +46,8 @@ export default function GrievanceForm() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [submittedGrievance, setSubmittedGrievance] = useState(null);
   const [grievanceHistory, setGrievanceHistory] = useState([]);
+  const [useRealAnalysis, setUseRealAnalysis] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -110,44 +113,74 @@ export default function GrievanceForm() {
     }
 
     setIsProcessing(true);
+    setAnalysisResult(null);
 
-    // Simulate AI processing and triage
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      let sentiment, urgencyScore, category, keyIssues;
 
-    // Mock: AI-powered sentiment analysis and auto-categorization
-    const sentiment = Math.random() > 0.5 ? 'negative' : 'very_negative';
-    const urgencyScore = formData.severity === 'critical' ? 95 : 
-                        formData.severity === 'high' ? 75 :
-                        formData.severity === 'medium' ? 50 : 25;
-    
-    const grievance = {
-      id: `GRV${Date.now()}`,
-      ...formData,
-      submittedAt: new Date().toISOString(),
-      status: 'submitted',
-      sentiment,
-      urgencyScore,
-      assignedTo: urgencyScore > 70 ? 'NGO Legal Aid' : 'Support Team',
-      estimatedResponse: urgencyScore > 70 ? '24 hours' : '3-5 days',
-      trackingNumber: `TRACK${Math.floor(Math.random() * 1000000)}`
-    };
+      if (useRealAnalysis) {
+        // Real AWS Comprehend analysis
+        console.log('🔍 Using AWS Comprehend for analysis...');
+        
+        const analysis = await comprehendService.analyzeGrievance(formData.description, 'en');
+        console.log('✅ Analysis result:', analysis);
+        
+        setAnalysisResult(analysis);
+        
+        sentiment = analysis.sentiment.sentiment;
+        urgencyScore = Math.round(analysis.urgencyScore * 100);
+        category = analysis.category;
+        keyIssues = analysis.summary.keyIssues;
+        
+      } else {
+        // Mock analysis
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        sentiment = Math.random() > 0.5 ? 'NEGATIVE' : 'NEUTRAL';
+        urgencyScore = formData.severity === 'critical' ? 95 : 
+                      formData.severity === 'high' ? 75 :
+                      formData.severity === 'medium' ? 50 : 25;
+        category = formData.category.toUpperCase();
+        keyIssues = ['Mock issue 1', 'Mock issue 2'];
+      }
 
-    setSubmittedGrievance(grievance);
-    setGrievanceHistory([grievance, ...grievanceHistory]);
-    setIsProcessing(false);
+      const grievance = {
+        id: `GRV${Date.now()}`,
+        ...formData,
+        submittedAt: new Date().toISOString(),
+        status: 'submitted',
+        sentiment,
+        urgencyScore,
+        category,
+        keyIssues,
+        assignedTo: urgencyScore > 70 ? 'NGO Legal Aid' : 'Support Team',
+        estimatedResponse: urgencyScore > 70 ? '24 hours' : '3-5 days',
+        trackingNumber: `TRACK${Math.floor(Math.random() * 1000000)}`,
+        analysisUsed: useRealAnalysis ? 'AWS Comprehend' : 'Mock'
+      };
 
-    // Reset form
-    setFormData({
-      category: '',
-      severity: '',
-      description: '',
-      location: '',
-      contractorName: '',
-      isAnonymous: false,
-      contactNumber: '',
-      preferredLanguage: 'hi'
-    });
-    setRecordedAudio(null);
+      setSubmittedGrievance(grievance);
+      setGrievanceHistory([grievance, ...grievanceHistory]);
+
+      // Reset form
+      setFormData({
+        category: '',
+        severity: '',
+        description: '',
+        location: '',
+        contractorName: '',
+        isAnonymous: false,
+        contactNumber: '',
+        preferredLanguage: 'hi'
+      });
+      setRecordedAudio(null);
+      
+    } catch (error) {
+      console.error('Analysis error:', error);
+      alert(`Failed to analyze grievance: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const resetForm = () => {
@@ -173,6 +206,18 @@ export default function GrievanceForm() {
 
       {!submittedGrievance ? (
         <form onSubmit={handleSubmit} className="grievance-form__form">
+          {/* AI Analysis Toggle */}
+          <div className="grievance-form__analysis-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={useRealAnalysis}
+                onChange={(e) => setUseRealAnalysis(e.target.checked)}
+              />
+              <span>Use AWS Comprehend AI Analysis</span>
+            </label>
+          </div>
+
           {/* Voice Recording */}
           <div className="grievance-form__voice-section">
             <h3>🎤 Voice Report (Optional)</h3>
@@ -348,6 +393,44 @@ export default function GrievanceForm() {
           </div>
 
           <div className="grievance-form__details">
+            {analysisResult && (
+              <div className="grievance-form__ai-analysis">
+                <h4>🤖 AI Analysis Results</h4>
+                <div className="analysis-grid">
+                  <div className="analysis-item">
+                    <span className="analysis-label">Sentiment:</span>
+                    <span className={`analysis-value sentiment-${analysisResult.sentiment.sentiment.toLowerCase()}`}>
+                      {analysisResult.sentiment.sentiment}
+                    </span>
+                  </div>
+                  <div className="analysis-item">
+                    <span className="analysis-label">Confidence:</span>
+                    <span className="analysis-value">
+                      {(analysisResult.sentiment.dominantScore * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="analysis-item">
+                    <span className="analysis-label">Auto-Category:</span>
+                    <span className="analysis-value">{analysisResult.category}</span>
+                  </div>
+                  <div className="analysis-item">
+                    <span className="analysis-label">Urgency:</span>
+                    <span className={`analysis-value urgency-${analysisResult.summary.urgency.toLowerCase()}`}>
+                      {analysisResult.summary.urgency}
+                    </span>
+                  </div>
+                </div>
+                <div className="analysis-issues">
+                  <strong>Key Issues Detected:</strong>
+                  <ul>
+                    {analysisResult.summary.keyIssues.map((issue, idx) => (
+                      <li key={idx}>{issue}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+            
             <div className="detail-row">
               <span className="detail-label">Grievance ID:</span>
               <span className="detail-value">{submittedGrievance.id}</span>
@@ -430,7 +513,11 @@ export default function GrievanceForm() {
 
       {/* Demo Notice */}
       <div className="grievance-form__demo-notice">
-        <p>💡 <strong>Demo Mode:</strong> This is a mock grievance system. In production, it will use Amazon Comprehend for sentiment analysis, auto-escalate to NGOs, and integrate with legal aid organizations.</p>
+        {useRealAnalysis ? (
+          <p>✅ <strong>AWS Comprehend Enabled:</strong> Your grievance will be analyzed using AI for sentiment, urgency, and categorization.</p>
+        ) : (
+          <p>💡 <strong>Mock Mode:</strong> Enable "Use AWS Comprehend AI Analysis" for real sentiment analysis and auto-categorization.</p>
+        )}
       </div>
     </div>
   );
