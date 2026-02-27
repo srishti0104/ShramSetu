@@ -2,17 +2,22 @@
  * Bedrock Lambda Proxy
  * 
  * Acts as a proxy between your React app and AWS Bedrock
- * Handles CORS and authentication
+ * Handles CORS and authentication using AWS SDK with IAM role
  */
 
-const https = require('https');
+const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
 
-const BEARER_TOKEN = process.env.AWS_BEARER_TOKEN_BEDROCK || 'YOUR_BEARER_TOKEN_HERE';
-const BEDROCK_ENDPOINT = 'bedrock-runtime.ap-south-1.amazonaws.com';
+const REGION = process.env.REGION || 'ap-south-1';
 const DEFAULT_MODEL = 'anthropic.claude-3-sonnet-20240229-v1:0';
+
+// Initialize Bedrock client with Lambda's IAM role
+const bedrockClient = new BedrockRuntimeClient({
+  region: REGION
+});
 
 exports.handler = async (event) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
+  console.log('Using region:', REGION);
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -55,10 +60,8 @@ exports.handler = async (event) => {
       temperature: 0.7
     };
 
-    const postData = JSON.stringify(bedrockBody);
-
-    // Make request to Bedrock
-    const response = await makeBedrockRequest(modelId, postData);
+    // Make request to Bedrock using AWS SDK
+    const response = await invokeBedrockModel(modelId, bedrockBody);
 
     return {
       statusCode: 200,
@@ -91,47 +94,36 @@ exports.handler = async (event) => {
   }
 };
 
-function makeBedrockRequest(modelId, postData) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: BEDROCK_ENDPOINT,
-      port: 443,
-      path: `/model/${modelId}/invoke`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${BEARER_TOKEN}`,
-        'Accept': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    };
-
-    const req = https.request(options, (res) => {
-      let data = '';
-
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          try {
-            const response = JSON.parse(data);
-            resolve(response);
-          } catch (parseError) {
-            reject(new Error(`Failed to parse response: ${parseError.message}`));
-          }
-        } else {
-          reject(new Error(`Bedrock API error: ${res.statusCode} - ${data}`));
-        }
-      });
+/**
+ * Invoke Bedrock model using AWS SDK
+ */
+async function invokeBedrockModel(modelId, bedrockBody) {
+  try {
+    console.log('Invoking Bedrock model:', modelId);
+    
+    const command = new InvokeModelCommand({
+      modelId: modelId,
+      body: JSON.stringify(bedrockBody),
+      contentType: 'application/json',
+      accept: 'application/json'
     });
 
-    req.on('error', (error) => {
-      reject(new Error(`Request error: ${error.message}`));
-    });
-
-    req.write(postData);
-    req.end();
-  });
+    const response = await bedrockClient.send(command);
+    
+    // Parse the response body
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+    
+    console.log('Bedrock invocation successful');
+    return responseBody;
+    
+  } catch (error) {
+    console.error('Bedrock invocation error:', error);
+    
+    // Handle specific AWS errors
+    if (error.name === 'AccessDeniedException') {
+      throw new Error('Lambda does not have permission to invoke Bedrock. Check IAM role permissions.');
+    }
+    
+    throw error;
+  }
 }

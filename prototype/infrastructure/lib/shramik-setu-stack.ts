@@ -167,7 +167,6 @@ export class shramSetuStack extends cdk.Stack {
       cacheSubnetGroupName: cacheSubnetGroup.ref,
       engineVersion: '7.0',
       transitEncryptionEnabled: true,
-      atRestEncryptionEnabled: true,
     });
 
     // Lambda Execution Role

@@ -8,3 +8,5 @@ new BedrockLambdaStack(app, 'ShramSetuBedrockStack', {
     region: 'ap-south-1'
   }
 });
+
+app.synth();

@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export class BedrockLambdaStack extends cdk.Stack {
@@ -18,6 +19,27 @@ export class BedrockLambdaStack extends cdk.Stack {
         REGION: this.region
       }
     });
+
+    // Grant Bedrock permissions to Lambda
+    bedrockLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'bedrock:InvokeModel',
+        'bedrock:InvokeModelWithResponseStream'
+      ],
+      resources: ['*']
+    }));
+
+    // Add CloudWatch Logs permissions
+    bedrockLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'logs:CreateLogGroup',
+        'logs:CreateLogStream',
+        'logs:PutLogEvents'
+      ],
+      resources: ['*']
+    }));
 
     // Create API Gateway
     const api = new apigateway.RestApi(this, 'BedrockProxyAPI', {

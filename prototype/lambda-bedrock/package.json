@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.0.0"
+  },
   "keywords": ["aws", "bedrock", "lambda", "proxy"],
   "author": "ShramSetu",
   "license": "MIT"

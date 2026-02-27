@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { ShramSetuStack } from './lib/Shram-setu-stack';
+import { shramSetuStack } from './lib/shramik-setu-stack';
 
 const app = new cdk.App();
 
-new ShramSetuStack(app, 'ShramSetuStack', {
+new shramSetuStack(app, 'ShramSetuStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION || 'ap-south-1', // Mumbai region for India

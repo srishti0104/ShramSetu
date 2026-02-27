@@ -39,7 +39,7 @@ VITE_SYNC_API_URL=https://8fxdfd43b7.execute-api.ap-south-1.amazonaws.com/prod
 VITE_BEDROCK_API_URL=https://br6vfmwfie.execute-api.ap-south-1.amazonaws.com/prod
 
 # S3 Bucket Name
-VITE_S3_BUCKET_NAME=shram-setu-uploads-372733619851
+VITE_S3_BUCKET_NAME=shram-setu-uploads-808840719701
 ```
 
 ---

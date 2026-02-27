@@ -1,9 +1,9 @@
 # AWS Integration Tasks - Hackathon Ready
 
 ## Prerequisites ✅
-- [x] AWS Account created (Account: 372733619851)
+- [x] AWS Account created (Account: 808840719701 - Tanishq_Tanmay)
 - [x] AWS CLI installed and configured
-- [x] AWS credentials set up (Access Key: AKIAVNSFHV2FZKN4XMGR)
+- [x] AWS credentials set up (IAM User: Shram-setu-admin)
 - [x] CDK bootstrapped for ap-south-1 region
 - [x] Billing alerts configured ($40 threshold)
 

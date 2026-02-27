@@ -12,7 +12,7 @@ npm run deploy:services
 
 Wait for deployment to complete. You'll see outputs like:
 ```
-ShramSetuS3Stack.BucketName = shram-setu-uploads-372733619851
+ShramSetuS3Stack.BucketName = shram-setu-uploads-808840719701
 ShramSetuLocationStack.PlaceIndexName = ShramSetuPlaceIndex
 ```
 
@@ -21,7 +21,7 @@ ShramSetuLocationStack.PlaceIndexName = ShramSetuPlaceIndex
 Edit `ShramSetu/.env` and add:
 
 ```bash
-VITE_S3_BUCKET_NAME=shram-setu-uploads-372733619851
+VITE_S3_BUCKET_NAME=shram-setu-uploads-808840719701
 ```
 
 (Use the bucket name from Step 1 output)

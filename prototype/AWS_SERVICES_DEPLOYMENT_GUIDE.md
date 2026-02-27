@@ -54,7 +54,7 @@ npm run deploy:location
 After deployment, you'll see outputs like:
 
 ```
-ShramSetuS3Stack.BucketName = shram-setu-uploads-372733619851
+ShramSetuS3Stack.BucketName = shram-setu-uploads-808840719701
 ShramSetuLocationStack.PlaceIndexName = ShramSetuPlaceIndex
 ShramSetuLocationStack.RouteCalculatorName = ShramSetuRouteCalculator
 ```
@@ -63,7 +63,7 @@ Update your `.env` file:
 
 ```bash
 # S3 Bucket Name
-VITE_S3_BUCKET_NAME=shram-setu-uploads-372733619851
+VITE_S3_BUCKET_NAME=shram-setu-uploads-808840719701
 ```
 
 ### Step 5: Test the Services
