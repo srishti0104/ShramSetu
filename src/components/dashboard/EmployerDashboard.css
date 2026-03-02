@@ -1,0 +1,244 @@
+.employer-dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-cream, #fef6e4);
+}
+
+.employer-dashboard__header {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.employer-dashboard__header h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.employer-dashboard__tagline {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.95;
+}
+
+.employer-dashboard__restart-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.employer-dashboard__restart-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.employer-dashboard__nav {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  background: white;
+  overflow-x: auto;
+  border-bottom: 2px solid rgba(240, 147, 251, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.employer-dashboard__nav-btn {
+  padding: 10px 16px;
+  background: white;
+  border: 2px solid rgba(240, 147, 251, 0.2);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  color: #333;
+}
+
+.employer-dashboard__nav-btn:hover:not(:disabled) {
+  background: #fff0fb;
+  border-color: #f093fb;
+  color: #f093fb;
+  transform: translateY(-1px);
+}
+
+.employer-dashboard__nav-btn.active {
+  background: #f093fb;
+  border-color: #f093fb;
+  color: white;
+  box-shadow: 0 4px 8px rgba(240, 147, 251, 0.3);
+}
+
+.employer-dashboard__nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.employer-dashboard__content {
+  flex: 1;
+  padding: 24px;
+  background-color: var(--bg-cream, #fef6e4);
+}
+
+.employer-dashboard__message {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.employer-dashboard__message p {
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 20px 0;
+}
+
+.employer-dashboard__message button {
+  padding: 12px 24px;
+  background: #f093fb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.employer-dashboard__message button:hover {
+  background: #f5576c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.3);
+}
+
+.employer-dashboard__footer {
+  background: #333;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  margin-top: auto;
+}
+
+.employer-dashboard__footer p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Employer Home */
+.employer-home {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.employer-home h2 {
+  font-size: 28px;
+  color: #f093fb;
+  margin: 0 0 8px 0;
+}
+
+.employer-home > p {
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 32px 0;
+}
+
+.employer-home__features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Feature Card */
+.feature-card {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(240, 147, 251, 0.2);
+  border-color: #f093fb;
+}
+
+.feature-card__icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.feature-card__title {
+  font-size: 18px;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.feature-card__description {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.feature-card__action {
+  color: #f093fb;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.feature-card:hover .feature-card__action {
+  transform: translateX(4px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .employer-dashboard__header h1 {
+    font-size: 22px;
+  }
+
+  .employer-dashboard__restart-btn {
+    position: static;
+    margin-top: 12px;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .employer-dashboard__nav {
+    padding: 12px;
+  }
+
+  .employer-dashboard__nav-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .employer-dashboard__content {
+    padding: 16px;
+  }
+
+  .employer-home__features {
+    grid-template-columns: 1fr;
+  }
+}

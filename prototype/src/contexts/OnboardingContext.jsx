@@ -5,6 +5,7 @@
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { saveRole, clearRole } from '../utils/roleManager';
 
 const OnboardingContext = createContext(null);
 
@@ -131,6 +132,21 @@ export function OnboardingProvider({ children, onComplete }) {
    * Complete onboarding
    */
   const completeOnboarding = () => {
+    // Save language preference to localStorage if selected during onboarding
+    if (state.language) {
+      try {
+        localStorage.setItem('app_language', state.language);
+        console.log(`Language preference saved during onboarding completion: ${state.language}`);
+      } catch (error) {
+        console.error('Failed to save language preference during onboarding:', error);
+      }
+    }
+    
+    // Save role to localStorage
+    if (state.role) {
+      saveRole(state.role);
+    }
+    
     setState(prev => ({
       ...prev,
       completedAt: Date.now(),
@@ -148,6 +164,9 @@ export function OnboardingProvider({ children, onComplete }) {
    * Reset onboarding
    */
   const resetOnboarding = () => {
+    // Clear role from localStorage
+    clearRole();
+    
     setState({ ...initialState, startedAt: Date.now() });
     clearProgress();
   };

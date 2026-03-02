@@ -1,0 +1,178 @@
+/**
+ * Modern SaaS-style Sidebar Navigation Component
+ * 
+ * @fileoverview Fixed left sidebar with independent scrolling and clean design
+ */
+
+import { useState } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
+import LanguageSwitcher from '../LanguageSwitcher';
+
+/**
+ * Sidebar Navigation Component
+ * @param {Object} props
+ * @param {string} props.userRole - Current user role (worker/employer)
+ * @param {string} props.activeSection - Currently active section
+ * @param {Function} props.onNavigate - Navigation handler
+ * @param {Function} props.onRestartOnboarding - Restart onboarding handler
+ * @param {boolean} props.isCollapsed - Whether sidebar is collapsed
+ * @param {Function} props.setIsCollapsed - Function to set collapsed state
+ */
+export default function Sidebar({ userRole, activeSection, onNavigate, onRestartOnboarding, isCollapsed: externalCollapsed, setIsCollapsed: setExternalCollapsed }) {
+  const { t } = useTranslation();
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  
+  // Use external state if provided, otherwise use internal state
+  const isCollapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  const setIsCollapsed = setExternalCollapsed || setInternalCollapsed;
+
+  // Navigation items based on user role
+  const getNavigationItems = () => {
+    const commonItems = [
+      { id: 'home', icon: '🏠', label: t('common:buttons.home', 'Home') },
+      { id: 'profile', icon: '👤', label: t('profile:title', 'Profile') },
+      { id: 'voice', icon: '🎤', label: t('common:labels.voice', 'Voice') },
+      { id: 'ledger', icon: '💰', label: t('dashboard:ledger', 'E-Khata') },
+      { id: 'grievance', icon: '🛡️', label: t('dashboard:grievance', 'Grievance') },
+      { id: 'rating', icon: '⭐', label: t('dashboard:rating', 'Rating') },
+      { id: 'sync', icon: '📱', label: t('dashboard:sync', 'Sync') },
+      { id: 'ai-assistant', icon: '🤖', label: t('common:labels.ai', 'AI Assistant') },
+    ];
+
+    const roleSpecificItems = userRole === 'worker' 
+      ? [
+          { id: 'attendance', icon: '📋', label: t('dashboard:attendance', 'Attendance') },
+          { id: 'payslip', icon: '💵', label: t('dashboard:payslip', 'Payslip') },
+        ]
+      : [
+          { id: 'talent-search', icon: '🔍', label: t('dashboard:talentSearch', 'Talent Search') },
+          { id: 'session-start', icon: '▶️', label: t('dashboard:sessionStart', 'Start Session') },
+          { id: 'totp-display', icon: '🔢', label: 'TOTP Display' },
+        ];
+
+    return [
+      ...commonItems.slice(0, 3), // Home, Profile, Voice
+      ...roleSpecificItems,
+      ...commonItems.slice(3), // Rest of common items
+    ];
+  };
+
+  const navigationItems = getNavigationItems();
+
+  const supportItems = [
+    { id: 'settings', icon: '⚙️', label: t('settings:title', 'Settings') },
+    { id: 'help', icon: '❓', label: t('help:title', 'Help & Support') },
+  ];
+
+  return (
+    <div className={`fixed left-0 top-0 h-full bg-gray-50 border-r border-gray-200 transition-all duration-300 z-40 ${
+      isCollapsed ? 'w-16' : 'w-64'
+    } lg:translate-x-0 ${isCollapsed ? '' : 'shadow-lg lg:shadow-none'}`}>
+      {/* Mobile Overlay */}
+      {!isCollapsed && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={() => setIsCollapsed(true)}></div>
+      )}
+      {/* Sidebar Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        {!isCollapsed && (
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">S</span>
+            </div>
+            <span className="font-semibold text-gray-900">ShramSetu</span>
+          </div>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {isCollapsed ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            )}
+          </svg>
+        </button>
+      </div>
+
+      {/* Scrollable Navigation Area */}
+      <div className="flex-1 overflow-y-auto sidebar-scrollbar">
+        <div className="p-2">
+          {/* Main Navigation */}
+          <nav className="space-y-1">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeSection === item.id
+                    ? 'bg-primary-100 text-primary-700 border-l-4 border-primary-500'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <span className="text-lg">{item.icon}</span>
+                {!isCollapsed && (
+                  <span className="ml-3 truncate">{item.label}</span>
+                )}
+              </button>
+            ))}
+          </nav>
+
+          {/* Divider */}
+          <div className="my-4 border-t border-gray-200"></div>
+
+          {/* Support Section */}
+          <nav className="space-y-1">
+            {supportItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeSection === item.id
+                    ? 'bg-primary-100 text-primary-700 border-l-4 border-primary-500'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                } ${isCollapsed ? 'justify-center' : 'justify-start'}`}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <span className="text-lg">{item.icon}</span>
+                {!isCollapsed && (
+                  <span className="ml-3 truncate">{item.label}</span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="border-t border-gray-200 p-4 space-y-3">
+        {/* Language Switcher */}
+        {!isCollapsed && (
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+              {t('common:labels.language', 'Language')}
+            </label>
+            <LanguageSwitcher variant="sidebar" />
+          </div>
+        )}
+
+        {/* Restart Button */}
+        <button
+          onClick={onRestartOnboarding}
+          className={`w-full flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors ${
+            isCollapsed ? 'justify-center' : 'justify-start'
+          }`}
+          title={isCollapsed ? t('common:buttons.restart', 'Restart') : undefined}
+        >
+          <span className="text-lg">🔄</span>
+          {!isCollapsed && (
+            <span className="ml-3">{t('common:buttons.restart', 'Restart')}</span>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}

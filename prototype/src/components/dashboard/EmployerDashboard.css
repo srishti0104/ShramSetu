@@ -1,0 +1,527 @@
+/* Modern Employer Dashboard with Fixed Left Sidebar */
+
+/* Main Dashboard Container */
+.employer-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  font-size: var(--font-size-base);
+}
+
+.employer-dashboard--loading {
+  justify-content: center;
+  align-items: center;
+}
+
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-16);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--primary-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== LEFT SIDEBAR ===== */
+.employer-dashboard__sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: #f8f9fa;
+  border-right: 2px solid #e0e0e0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 100;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom scrollbar for sidebar */
+.employer-dashboard__sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.employer-dashboard__sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.employer-dashboard__sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.employer-dashboard__sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.employer-dashboard__sidebar-header {
+  padding: var(--space-6) var(--space-5);
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 100%);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.employer-dashboard__sidebar-title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: white;
+  text-align: center;
+}
+
+.employer-dashboard__sidebar-nav {
+  padding: var(--space-4) 0;
+}
+
+.employer-dashboard__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.employer-dashboard__nav-item {
+  margin: 0;
+}
+
+.employer-dashboard__nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: transparent;
+  border: none;
+  border-left: 4px solid transparent;
+  color: #4a5568;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.employer-dashboard__nav-link:hover {
+  background: rgba(102, 126, 234, 0.08);
+  color: var(--primary-blue);
+  border-left-color: var(--primary-blue);
+}
+
+.employer-dashboard__nav-link--active {
+  background: rgba(102, 126, 234, 0.12);
+  color: var(--primary-blue);
+  border-left-color: var(--primary-blue);
+  font-weight: 600;
+}
+
+.employer-dashboard__nav-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.employer-dashboard__nav-label {
+  flex: 1;
+  font-size: 16px;
+}
+
+/* ===== MAIN CONTENT WRAPPER ===== */
+.employer-dashboard__main-wrapper {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ===== TOP HEADER ===== */
+.employer-dashboard__header {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-purple) 100%);
+  color: white;
+  padding: var(--space-6) var(--space-6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.employer-dashboard__header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  gap: var(--space-4);
+}
+
+.employer-dashboard__title-section {
+  flex: 1;
+}
+
+.employer-dashboard__greeting {
+  margin: 0 0 var(--space-2) 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.employer-dashboard__tagline {
+  margin: 0;
+  font-size: 18px;
+  opacity: 0.95;
+  font-weight: 400;
+}
+
+.employer-dashboard__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+.employer-dashboard__language-switcher {
+  min-width: 160px;
+}
+
+.employer-dashboard__restart-btn {
+  padding: var(--space-3) var(--space-5);
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-lg);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.employer-dashboard__restart-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ===== MAIN CONTENT AREA ===== */
+.employer-dashboard__content {
+  flex: 1;
+  padding: var(--space-6);
+  background: var(--bg-secondary);
+  min-height: calc(100vh - 250px);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ===== FOOTER ===== */
+.employer-dashboard__footer {
+  background: var(--text-primary);
+  color: white;
+  padding: var(--space-4);
+  text-align: center;
+  margin-top: auto;
+}
+
+.employer-dashboard__footer p {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.8;
+}
+
+/* ===== PROFILE COMPONENTS ===== */
+.employer-profile {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.employer-profile__header {
+  margin-bottom: var(--space-8);
+}
+
+.employer-profile__header h2 {
+  font-size: 28px;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+
+.profile-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.profile-card__avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.profile-card__info h3 {
+  font-size: 22px;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  font-weight: 600;
+}
+
+.profile-card__info p {
+  margin: 0 0 var(--space-1) 0;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.employer-stats {
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+}
+
+.employer-stats h4 {
+  font-size: 20px;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 24px;
+  color: var(--primary-blue);
+  font-weight: 700;
+}
+
+/* ===== SETTINGS AND HELP COMPONENTS ===== */
+.employer-settings,
+.employer-help {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.employer-settings h2,
+.employer-help h2 {
+  font-size: 28px;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  font-weight: 700;
+}
+
+.employer-settings p,
+.employer-help p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ===== MESSAGE COMPONENT ===== */
+.employer-dashboard__message {
+  max-width: 600px;
+  margin: var(--space-8) auto;
+  padding: var(--space-8);
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.employer-dashboard__message p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.employer-dashboard__message button {
+  padding: var(--space-3) var(--space-6);
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.employer-dashboard__message button:hover {
+  background: var(--secondary-purple);
+  transform: translateY(-2px);
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .employer-dashboard__sidebar {
+    width: 220px;
+  }
+
+  .employer-dashboard__main-wrapper {
+    margin-left: 220px;
+  }
+
+  .employer-dashboard__header {
+    padding: var(--space-4);
+  }
+
+  .employer-dashboard__header-content {
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+  }
+
+  .employer-dashboard__title-section {
+    text-align: center;
+  }
+
+  .employer-dashboard__greeting {
+    font-size: 24px;
+  }
+
+  .employer-dashboard__tagline {
+    font-size: 16px;
+  }
+
+  .employer-dashboard__header-actions {
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .employer-dashboard__language-switcher {
+    min-width: 140px;
+  }
+
+  .employer-dashboard__content {
+    padding: var(--space-4);
+  }
+
+  .employer-dashboard__nav-label {
+    font-size: 15px;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-4);
+  }
+
+  .profile-card__avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .employer-settings,
+  .employer-help {
+    padding: var(--space-6);
+  }
+}
+
+/* ===== SMALL MOBILE ===== */
+@media (max-width: 480px) {
+  .employer-dashboard__sidebar {
+    width: 70px;
+  }
+
+  .employer-dashboard__main-wrapper {
+    margin-left: 70px;
+  }
+
+  .employer-dashboard__sidebar-title {
+    font-size: 14px;
+  }
+
+  .employer-dashboard__nav-label {
+    display: none;
+  }
+
+  .employer-dashboard__nav-link {
+    justify-content: center;
+    padding: var(--space-3);
+  }
+
+  .employer-dashboard__nav-icon {
+    font-size: 22px;
+  }
+
+  .employer-dashboard__greeting {
+    font-size: 20px;
+  }
+
+  .employer-dashboard__tagline {
+    font-size: 14px;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+  .employer-dashboard__sidebar {
+    border-right: 3px solid var(--text-primary);
+  }
+
+  .employer-dashboard__nav-link--active {
+    border-left-width: 6px;
+  }
+
+  .profile-card,
+  .employer-stats,
+  .employer-settings,
+  .employer-help {
+    border: 2px solid var(--text-primary);
+  }
+}
