@@ -73,8 +73,24 @@ class S3Service {
    * @returns {Promise<Object>} Upload result
    */
   async uploadAudio(audioBlob, userId = 'anonymous') {
-    const file = new File([audioBlob], `recording-${Date.now()}.webm`, {
-      type: 'audio/webm'
+    // Determine file extension from blob type
+    let extension = 'webm';
+    if (audioBlob.type.includes('mp4')) {
+      extension = 'mp4';
+    } else if (audioBlob.type.includes('wav')) {
+      extension = 'wav';
+    } else if (audioBlob.type.includes('mp3')) {
+      extension = 'mp3';
+    }
+    
+    const file = new File([audioBlob], `recording-${Date.now()}.${extension}`, {
+      type: audioBlob.type
+    });
+    
+    console.log('📤 Uploading audio file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
     });
     
     return this.uploadFile(file, 'audio', userId);
