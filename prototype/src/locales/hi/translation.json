@@ -1,0 +1,200 @@
+{
+  "common": {
+    "buttons": {
+      "save": "सहेजें",
+      "cancel": "रद्द करें",
+      "submit": "जमा करें",
+      "back": "वापस",
+      "next": "आगे",
+      "continue": "जारी रखें",
+      "skip": "छोड़ें",
+      "done": "पूर्ण",
+      "close": "बंद करें",
+      "confirm": "पुष्टि करें",
+      "edit": "संपादित करें",
+      "delete": "हटाएं",
+      "search": "खोजें",
+      "filter": "फ़िल्टर",
+      "refresh": "रीफ्रेश करें",
+      "logout": "लॉगआउट",
+      "restart": "पुनः आरंभ",
+      "home": "होम"
+    },
+    "labels": {
+      "name": "नाम",
+      "phone": "फोन नंबर",
+      "email": "ईमेल",
+      "address": "पता",
+      "city": "शहर",
+      "state": "राज्य",
+      "pincode": "पिन कोड",
+      "date": "तारीख",
+      "time": "समय",
+      "language": "भाषा",
+      "changeLanguage": "भाषा बदलें",
+      "role": "भूमिका",
+      "status": "स्थिति",
+      "description": "विवरण",
+      "voice": "आवाज़",
+      "ai": "एआई"
+    },
+    "messages": {
+      "success": "सफलता",
+      "error": "त्रुटि",
+      "loading": "लोड हो रहा है...",
+      "noData": "कोई डेटा उपलब्ध नहीं",
+      "saved": "सफलतापूर्वक सहेजा गया",
+      "deleted": "सफलतापूर्वक हटाया गया",
+      "updated": "सफलतापूर्वक अपडेट किया गया",
+      "welcome": "स्वागत है"
+    },
+    "errors": {
+      "required": "यह फ़ील्ड आवश्यक है",
+      "invalid": "अमान्य इनपुट",
+      "networkError": "नेटवर्क त्रुटि। कृपया पुनः प्रयास करें",
+      "serverError": "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें",
+      "notFound": "नहीं मिला",
+      "unauthorized": "अनधिकृत पहुंच"
+    }
+  },
+  "onboarding": {
+    "welcome": "श्रमसेतु में आपका स्वागत है",
+    "selectLanguage": "अपनी भाषा चुनें",
+    "selectRole": "मैं हूँ...",
+    "worker": "श्रमिक",
+    "employer": "नियोक्ता",
+    "enterPhone": "अपना फोन नंबर दर्ज करें",
+    "enterOTP": "OTP दर्ज करें",
+    "voiceRegister": "आवाज़ से पंजीकरण करें",
+    "locationAccess": "स्थान एक्सेस सक्षम करें",
+    "locationDescription": "नजदीकी नौकरियां दिखाने के लिए हमें आपके स्थान की आवश्यकता है",
+    "selectOccupation": "अपना व्यवसाय चुनें",
+    "personalDetails": "व्यक्तिगत विवरण",
+    "benefits": "लाभ",
+    "disclaimer": "अस्वीकरण",
+    "agreeTerms": "मैं नियम और शर्तों से सहमत हूं",
+    "getStarted": "शुरू करें"
+  },
+  "dashboard": {
+    "welcome": "स्वागत है, {{name}}",
+    "hello": "नमस्ते",
+    "subtitle": "आज हम आपकी कैसे मदद कर सकते हैं?",
+    "workerSubtitle": "अपना अगला अवसर खोजें",
+    "employerSubtitle": "अपनी आवश्यकताओं के लिए सही प्रतिभा खोजें",
+    "workerPortal": "श्रमिक पोर्टल",
+    "employerPortal": "नियोक्ता पोर्टल",
+    "jobSearch": "नौकरी खोजें",
+    "talentSearch": "प्रतिभा खोजें",
+    "attendance": "उपस्थिति",
+    "payslip": "वेतन पर्ची",
+    "ledger": "ई-खाता",
+    "grievance": "शिकायत",
+    "rating": "रेटिंग",
+    "sync": "सिंक",
+    "sessionStart": "सत्र शुरू करें"
+  },
+  "jobs": {
+    "title": "नौकरी बाजार",
+    "searchPlaceholder": "नौकरियां खोजें...",
+    "filters": "फ़िल्टर",
+    "location": "स्थान",
+    "salary": "वेतन",
+    "experience": "अनुभव",
+    "jobType": "नौकरी का प्रकार",
+    "apply": "आवेदन करें",
+    "viewDetails": "विवरण देखें",
+    "noJobs": "कोई नौकरी नहीं मिली"
+  },
+  "attendance": {
+    "title": "उपस्थिति",
+    "markAttendance": "उपस्थिति दर्ज करें",
+    "checkIn": "चेक इन",
+    "checkOut": "चेक आउट",
+    "history": "इतिहास",
+    "present": "उपस्थित",
+    "absent": "अनुपस्थित",
+    "leave": "छुट्टी",
+    "totalDays": "कुल दिन",
+    "presentDays": "उपस्थित दिन"
+  },
+  "ledger": {
+    "title": "डिजिटल खाता (ई-खाता)",
+    "balance": "शेष राशि",
+    "credit": "जमा",
+    "debit": "निकासी",
+    "transactions": "लेनदेन",
+    "addEntry": "प्रविष्टि जोड़ें",
+    "viewHistory": "इतिहास देखें",
+    "amount": "राशि",
+    "description": "विवरण",
+    "date": "तारीख"
+  },
+  "payslip": {
+    "title": "वेतन पर्ची",
+    "month": "महीना",
+    "year": "वर्ष",
+    "basicSalary": "मूल वेतन",
+    "allowances": "भत्ते",
+    "deductions": "कटौती",
+    "netSalary": "शुद्ध वेतन",
+    "download": "डाउनलोड करें",
+    "viewDetails": "विवरण देखें"
+  },
+  "grievance": {
+    "title": "शिकायत निवारण",
+    "raiseGrievance": "शिकायत दर्ज करें",
+    "myGrievances": "मेरी शिकायतें",
+    "status": "स्थिति",
+    "pending": "लंबित",
+    "resolved": "हल हो गया",
+    "inProgress": "प्रगति में",
+    "description": "विवरण",
+    "submit": "जमा करें",
+    "trackStatus": "स्थिति ट्रैक करें"
+  },
+  "rating": {
+    "title": "रेटिंग प्रणाली",
+    "rateWorker": "श्रमिक को रेट करें",
+    "rateEmployer": "नियोक्ता को रेट करें",
+    "yourRating": "आपकी रेटिंग",
+    "averageRating": "औसत रेटिंग",
+    "reviews": "समीक्षाएं",
+    "submitRating": "रेटिंग जमा करें",
+    "feedback": "प्रतिक्रिया"
+  },
+  "sync": {
+    "title": "डेटा सिंक",
+    "lastSync": "अंतिम सिंक",
+    "syncNow": "अभी सिंक करें",
+    "syncing": "सिंक हो रहा है...",
+    "syncSuccess": "सिंक सफल",
+    "syncFailed": "सिंक विफल",
+    "autoSync": "ऑटो सिंक",
+    "manualSync": "मैनुअल सिंक"
+  },
+  "nav": {
+    "home": "होम",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "help": "सहायता और समर्थन",
+    "quickAccess": "त्वरित पहुंच",
+    "menu": "मेनू",
+    "toggleMenu": "नेविगेशन मेनू टॉगल करें"
+  },
+  "profile": {
+    "title": "मेरी प्रोफ़ाइल",
+    "skills": "कौशल",
+    "businessInfo": "व्यापारिक जानकारी",
+    "activeJobs": "सक्रिय नौकरियां",
+    "totalHires": "कुल भर्तियां",
+    "rating": "रेटिंग"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "comingSoon": "सेटिंग्स पैनल जल्द आ रहा है..."
+  },
+  "help": {
+    "title": "सहायता और समर्थन",
+    "comingSoon": "सहायता अनुभाग जल्द आ रहा है..."
+  }
+}

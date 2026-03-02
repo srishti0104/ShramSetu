@@ -1,0 +1,200 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "back": "Back",
+      "next": "Next",
+      "continue": "Continue",
+      "skip": "Skip",
+      "done": "Done",
+      "close": "Close",
+      "confirm": "Confirm",
+      "edit": "Edit",
+      "delete": "Delete",
+      "search": "Search",
+      "filter": "Filter",
+      "refresh": "Refresh",
+      "logout": "Logout",
+      "restart": "Restart",
+      "home": "Home"
+    },
+    "labels": {
+      "name": "Name",
+      "phone": "Phone Number",
+      "email": "Email",
+      "address": "Address",
+      "city": "City",
+      "state": "State",
+      "pincode": "PIN Code",
+      "date": "Date",
+      "time": "Time",
+      "language": "Language",
+      "changeLanguage": "Change Language",
+      "role": "Role",
+      "status": "Status",
+      "description": "Description",
+      "voice": "Voice",
+      "ai": "AI"
+    },
+    "messages": {
+      "success": "Success",
+      "error": "Error",
+      "loading": "Loading...",
+      "noData": "No data available",
+      "saved": "Saved successfully",
+      "deleted": "Deleted successfully",
+      "updated": "Updated successfully",
+      "welcome": "Welcome"
+    },
+    "errors": {
+      "required": "This field is required",
+      "invalid": "Invalid input",
+      "networkError": "Network error. Please try again",
+      "serverError": "Server error. Please try again later",
+      "notFound": "Not found",
+      "unauthorized": "Unauthorized access"
+    }
+  },
+  "onboarding": {
+    "welcome": "Welcome to ShramSetu",
+    "selectLanguage": "Select Your Language",
+    "selectRole": "I am a...",
+    "worker": "Worker",
+    "employer": "Employer",
+    "enterPhone": "Enter Your Phone Number",
+    "enterOTP": "Enter OTP",
+    "voiceRegister": "Register with Voice",
+    "locationAccess": "Enable Location Access",
+    "locationDescription": "We need your location to show nearby jobs",
+    "selectOccupation": "Select Your Occupation",
+    "personalDetails": "Personal Details",
+    "benefits": "Benefits",
+    "disclaimer": "Disclaimer",
+    "agreeTerms": "I agree to the terms and conditions",
+    "getStarted": "Get Started"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}",
+    "hello": "Hello",
+    "subtitle": "How can we help you today?",
+    "workerSubtitle": "Find your next opportunity",
+    "employerSubtitle": "Find the right talent for your needs",
+    "workerPortal": "Worker Portal",
+    "employerPortal": "Employer Portal",
+    "jobSearch": "Job Search",
+    "talentSearch": "Talent Search",
+    "attendance": "Attendance",
+    "payslip": "Payslip",
+    "ledger": "E-Khata",
+    "grievance": "Grievance",
+    "rating": "Rating",
+    "sync": "Sync",
+    "sessionStart": "Start Session"
+  },
+  "jobs": {
+    "title": "Job Marketplace",
+    "searchPlaceholder": "Search for jobs...",
+    "filters": "Filters",
+    "location": "Location",
+    "salary": "Salary",
+    "experience": "Experience",
+    "jobType": "Job Type",
+    "apply": "Apply",
+    "viewDetails": "View Details",
+    "noJobs": "No jobs found"
+  },
+  "attendance": {
+    "title": "Attendance",
+    "markAttendance": "Mark Attendance",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "history": "History",
+    "present": "Present",
+    "absent": "Absent",
+    "leave": "Leave",
+    "totalDays": "Total Days",
+    "presentDays": "Present Days"
+  },
+  "ledger": {
+    "title": "Digital Ledger (E-Khata)",
+    "balance": "Balance",
+    "credit": "Credit",
+    "debit": "Debit",
+    "transactions": "Transactions",
+    "addEntry": "Add Entry",
+    "viewHistory": "View History",
+    "amount": "Amount",
+    "description": "Description",
+    "date": "Date"
+  },
+  "payslip": {
+    "title": "Payslip",
+    "month": "Month",
+    "year": "Year",
+    "basicSalary": "Basic Salary",
+    "allowances": "Allowances",
+    "deductions": "Deductions",
+    "netSalary": "Net Salary",
+    "download": "Download",
+    "viewDetails": "View Details"
+  },
+  "grievance": {
+    "title": "Grievance Redressal",
+    "raiseGrievance": "Raise Grievance",
+    "myGrievances": "My Grievances",
+    "status": "Status",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "inProgress": "In Progress",
+    "description": "Description",
+    "submit": "Submit",
+    "trackStatus": "Track Status"
+  },
+  "rating": {
+    "title": "Rating System",
+    "rateWorker": "Rate Worker",
+    "rateEmployer": "Rate Employer",
+    "yourRating": "Your Rating",
+    "averageRating": "Average Rating",
+    "reviews": "Reviews",
+    "submitRating": "Submit Rating",
+    "feedback": "Feedback"
+  },
+  "sync": {
+    "title": "Data Sync",
+    "lastSync": "Last Synced",
+    "syncNow": "Sync Now",
+    "syncing": "Syncing...",
+    "syncSuccess": "Sync successful",
+    "syncFailed": "Sync failed",
+    "autoSync": "Auto Sync",
+    "manualSync": "Manual Sync"
+  },
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help & Support",
+    "quickAccess": "Quick Access",
+    "menu": "Menu",
+    "toggleMenu": "Toggle navigation menu"
+  },
+  "profile": {
+    "title": "My Profile",
+    "skills": "Skills",
+    "businessInfo": "Business Information",
+    "activeJobs": "Active Jobs",
+    "totalHires": "Total Hires",
+    "rating": "Rating"
+  },
+  "settings": {
+    "title": "Settings",
+    "comingSoon": "Settings panel coming soon..."
+  },
+  "help": {
+    "title": "Help & Support",
+    "comingSoon": "Help section coming soon..."
+  }
+}

@@ -1,0 +1,276 @@
+/**
+ * Modern Worker Dashboard Component with Tailwind CSS
+ * 
+ * @fileoverview SaaS-style dashboard with fixed sidebar and personalized content
+ */
+
+import { useState } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { useUserProfile } from '../../contexts/UserProfileContext';
+import Sidebar from '../layout/Sidebar';
+import JobFeedTailwind from '../feeds/JobFeedTailwind';
+
+// Import feature components
+import VoiceRecorder from '../voice/VoiceRecorder';
+import TOTPInput from '../attendance/TOTPInput';
+import AttendanceLog from '../attendance/AttendanceLog';
+import EKhataLedger from '../ledger/EKhataLedger';
+import PayslipAuditor from '../payslip/PayslipAuditor';
+import GrievanceForm from '../grievance/GrievanceForm';
+import RatingForm from '../ratings/RatingForm';
+import OfflineSync from '../sync/OfflineSync';
+import AIAssistant from '../ai/AIAssistant';
+
+/**
+ * Worker Dashboard Component
+ * @param {Object} props
+ * @param {Function} props.onRestartOnboarding - Callback to restart onboarding
+ */
+export default function WorkerDashboardTailwind({ onRestartOnboarding }) {
+  const [activeSection, setActiveSection] = useState('home');
+  const [sessionId, setSessionId] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Start collapsed on mobile
+  const { t } = useTranslation();
+  const { userProfile, getDisplayName, isLoading: profileLoading } = useUserProfile();
+
+  /**
+   * Handle navigation to different sections
+   */
+  const handleNavigate = (sectionId) => {
+    setActiveSection(sectionId);
+  };
+
+  /**
+   * Render active section content
+   */
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'voice':
+        return <VoiceRecorder />;
+      
+      case 'attendance':
+        return (
+          <TOTPInput
+            sessionId={sessionId || 'demo_session'}
+            workerId="worker_demo_456"
+            onSuccess={(attendance) => {
+              console.log('Attendance marked:', attendance);
+              setActiveSection('attendance-log');
+            }}
+          />
+        );
+      
+      case 'attendance-log':
+        return (
+          <AttendanceLog
+            sessionId={sessionId}
+            workerId="worker_demo_456"
+          />
+        );
+      
+      case 'ledger':
+        return <EKhataLedger userRole="worker" />;
+      
+      case 'payslip':
+        return <PayslipAuditor />;
+      
+      case 'grievance':
+        return <GrievanceForm />;
+      
+      case 'rating':
+        return (
+          <RatingForm
+            jobId="job_demo_789"
+            raterId="worker_demo_456"
+            rateeId="employer_demo_123"
+            raterType="worker"
+            rateeName="Demo Employer"
+            onSuccess={(data) => {
+              console.log('Rating submitted:', data);
+              alert('Rating submitted successfully!');
+            }}
+          />
+        );
+      
+      case 'sync':
+        return <OfflineSync />;
+      
+      case 'ai-assistant':
+        return <AIAssistant />;
+
+      case 'profile':
+        return <WorkerProfile userProfile={userProfile} />;
+
+      case 'settings':
+        return <WorkerSettings />;
+
+      case 'help':
+        return <WorkerHelp />;
+      
+      case 'home':
+      default:
+        return <JobFeedTailwind />;
+    }
+  };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">{t('common:messages.loading', 'Loading...')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Fixed Sidebar */}
+      <Sidebar
+        userRole="worker"
+        activeSection={activeSection}
+        onNavigate={handleNavigate}
+        onRestartOnboarding={onRestartOnboarding}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 lg:ml-64">
+        {/* Mobile Menu Button */}
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-2 bg-white rounded-lg shadow-md border border-gray-200"
+          >
+            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {t('dashboard:hello', 'Hello')}, {getDisplayName()}! 👋
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {t('dashboard:workerSubtitle', 'Find your next opportunity')}
+              </p>
+            </div>
+            
+            {/* Quick Stats */}
+            <div className="flex items-center space-x-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary-600">12</div>
+                <div className="text-xs text-gray-500">Applications</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">5</div>
+                <div className="text-xs text-gray-500">Interviews</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-600">4.8</div>
+                <div className="text-xs text-gray-500">Rating</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="p-6">
+          {renderContent()}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Worker Profile Component
+ */
+function WorkerProfile({ userProfile }) {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+          {t('profile:title', 'My Profile')}
+        </h2>
+        
+        <div className="flex items-start space-x-6">
+          <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+            {userProfile?.name?.charAt(0) || 'U'}
+          </div>
+          
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-900">{userProfile?.name || 'User'}</h3>
+            <p className="text-gray-600 mt-1">{userProfile?.phoneNumber || 'Phone not provided'}</p>
+            <p className="text-gray-600">{userProfile?.location?.city || 'Location not set'}</p>
+            
+            {userProfile?.skills && userProfile.skills.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  {t('profile:skills', 'Skills')}
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {userProfile.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Worker Settings Component
+ */
+function WorkerSettings() {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          {t('settings:title', 'Settings')}
+        </h2>
+        <p className="text-gray-600">
+          {t('settings:comingSoon', 'Settings panel coming soon...')}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Worker Help Component
+ */
+function WorkerHelp() {
+  const { t } = useTranslation();
+  
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          {t('help:title', 'Help & Support')}
+        </h2>
+        <p className="text-gray-600">
+          {t('help:comingSoon', 'Help section coming soon...')}
+        </p>
+      </div>
+    </div>
+  );
+}

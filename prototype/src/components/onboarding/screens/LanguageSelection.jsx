@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
+import { useLanguage } from '../../../contexts/LanguageContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
 import VoiceAssistButton from '../shared/VoiceAssistButton';
 import './LanguageSelection.css';
@@ -31,20 +32,38 @@ const LANGUAGES = [
  */
 export default function LanguageSelection() {
   const { state, updateState, nextStep } = useOnboarding();
+  const { setLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState(state.language);
   const [isVoicePlaying, setIsVoicePlaying] = useState(false);
 
   /**
    * Handle language selection
    */
-  const handleLanguageSelect = (languageCode) => {
+  const handleLanguageSelect = async (languageCode) => {
+    console.log(`Language selection started: ${languageCode}`);
     setSelectedLanguage(languageCode);
     
-    // Update state and move to next step after brief delay
-    setTimeout(() => {
-      updateState({ language: languageCode });
-      nextStep();
-    }, 300);
+    try {
+      // Update the main app's language context immediately
+      console.log(`Changing app language to: ${languageCode}`);
+      const success = await setLanguage(languageCode);
+      
+      if (success) {
+        console.log(`Language successfully changed to: ${languageCode}`);
+        // Update onboarding state
+        updateState({ language: languageCode });
+        
+        // Move to next step after brief delay
+        setTimeout(() => {
+          console.log(`Moving to next step after language selection: ${languageCode}`);
+          nextStep();
+        }, 300);
+      } else {
+        console.error(`Failed to change language to: ${languageCode}`);
+      }
+    } catch (error) {
+      console.error('Error changing language during onboarding:', error);
+    }
   };
 
   /**
