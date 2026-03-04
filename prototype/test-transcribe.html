@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Transcribe Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    .status.info { background: #e3f2fd; color: #1976d2; }
+    .status.success { background: #e8f5e9; color: #388e3c; }
+    .status.error { background: #ffebee; color: #d32f2f; }
+    .status.warning { background: #fff3e0; color: #f57c00; }
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #1565c0;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+    }
+    .log-entry.error { color: #d32f2f; }
+    .log-entry.success { color: #388e3c; }
+    .log-entry.info { color: #1976d2; }
+    select, input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      margin: 10px 5px;
+    }
+    .result {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+      border-left: 4px solid #1976d2;
+    }
+    .result h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 AWS Transcribe Test</h1>
+    <p class="subtitle">Test your AWS Transcribe setup with real audio recording</p>
+
+    <div id="status" class="status info">
+      Ready to test. Click "Start Recording" to begin.
+    </div>
+
+    <div>
+      <label for="language">Language:</label>
+      <select id="language">
+        <option value="hi-IN">Hindi (हिंदी)</option>
+        <option value="en-IN">English (India)</option>
+        <option value="mr-IN">Marathi (मराठी)</option>
+        <option value="bn-IN">Bengali (বাংলা)</option>
+        <option value="ta-IN">Tamil (தமிழ்)</option>
+        <option value="te-IN">Telugu (తెలుగు)</option>
+      </select>
+
+      <button id="recordBtn" onclick="startRecording()">🎙️ Start Recording</button>
+      <button id="stopBtn" onclick="stopRecording()" disabled>⏹️ Stop Recording</button>
+    </div>
+
+    <div id="result" class="result" style="display: none;">
+      <h3>Transcription Result:</h3>
+      <p id="transcriptionText" style="font-size: 18px; color: #333;"></p>
+      <p id="confidence" style="color: #666;"></p>
+    </div>
+
+    <div class="log" id="log">
+      <div class="log-entry info">Console logs will appear here...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from 'https://cdn.jsdelivr.net/npm/@aws-sdk/client-transcribe@3.995.0/+esm';
+    import { S3Client, PutObjectCommand } from 'https://cdn.jsdelivr.net/npm/@aws-sdk/client-s3@3.995.0/+esm';
+
+    // Load environment variables (you'll need to set these)
+    const AWS_CONFIG = {
+      accessKeyId: 'YOUR_ACCESS_KEY_ID',
+      secretAccessKey: 'YOUR_SECRET_ACCESS_KEY',
+      region: 'ap-south-1',
+      bucketName: 'YOUR_BUCKET_NAME'
+    };
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let s3Client, transcribeClient;
+
+    // Initialize AWS clients
+    function initAWS() {
+      s3Client = new S3Client({
+        region: AWS_CONFIG.region,
+        credentials: {
+          accessKeyId: AWS_CONFIG.accessKeyId,
+          secretAccessKey: AWS_CONFIG.secretAccessKey
+        }
+      });
+
+      transcribeClient = new TranscribeClient({
+        region: AWS_CONFIG.region,
+        credentials: {
+          accessKeyId: AWS_CONFIG.accessKeyId,
+          secretAccessKey: AWS_CONFIG.secretAccessKey
+        }
+      });
+
+      log('✅ AWS clients initialized', 'success');
+    }
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+      console.log(message);
+    }
+
+    function setStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = `status ${type}`;
+    }
+
+    window.startRecording = async function() {
+      try {
+        log('🎤 Requesting microphone access...', 'info');
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        log('✅ Microphone access granted', 'success');
+        
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          log(`📊 Recording complete. Size: ${audioBlob.size} bytes`, 'success');
+          await processAudio(audioBlob);
+        };
+
+        mediaRecorder.start();
+        document.getElementById('recordBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        setStatus('🔴 Recording... Speak now!', 'error');
+        log('🔴 Recording started', 'info');
+      } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.stopRecording = function() {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        document.getElementById('recordBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+        setStatus('⏳ Processing audio...', 'warning');
+        log('⏹️ Recording stopped', 'info');
+      }
+    };
+
+    async function processAudio(audioBlob) {
+      try {
+        initAWS();
+
+        // Upload to S3
+        log('📤 Uploading audio to S3...', 'info');
+        const fileName = `test-audio-${Date.now()}.webm`;
+        const uploadCommand = new PutObjectCommand({
+          Bucket: AWS_CONFIG.bucketName,
+          Key: `audio/test/${fileName}`,
+          Body: audioBlob,
+          ContentType: 'audio/webm'
+        });
+
+        await s3Client.send(uploadCommand);
+        const fileUrl = `https://${AWS_CONFIG.bucketName}.s3.${AWS_CONFIG.region}.amazonaws.com/audio/test/${fileName}`;
+        log(`✅ Audio uploaded: ${fileUrl}`, 'success');
+
+        // Start transcription
+        log('🎯 Starting transcription job...', 'info');
+        const jobName = `test-transcribe-${Date.now()}`;
+        const language = document.getElementById('language').value;
+        
+        const startCommand = new StartTranscriptionJobCommand({
+          TranscriptionJobName: jobName,
+          LanguageCode: language,
+          MediaFormat: 'webm',
+          Media: { MediaFileUri: fileUrl },
+          OutputBucketName: AWS_CONFIG.bucketName
+        });
+
+        await transcribeClient.send(startCommand);
+        log(`✅ Transcription job started: ${jobName}`, 'success');
+
+        // Poll for completion
+        await waitForTranscription(jobName);
+
+      } catch (error) {
+        log(`❌ Error: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function waitForTranscription(jobName) {
+      for (let i = 0; i < 30; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const command = new GetTranscriptionJobCommand({
+          TranscriptionJobName: jobName
+        });
+
+        const response = await transcribeClient.send(command);
+        const status = response.TranscriptionJob.TranscriptionJobStatus;
+        
+        log(`📊 Status: ${status} (${i + 1}/30)`, 'info');
+
+        if (status === 'COMPLETED') {
+          const transcriptUri = response.TranscriptionJob.Transcript.TranscriptFileUri;
+          const transcriptResponse = await fetch(transcriptUri);
+          const transcriptData = await transcriptResponse.json();
+          
+          const text = transcriptData.results.transcripts[0].transcript;
+          const items = transcriptData.results.items || [];
+          const avgConfidence = items.length > 0 
+            ? items.reduce((sum, item) => sum + (parseFloat(item.alternatives?.[0]?.confidence) || 0), 0) / items.length
+            : 0;
+
+          log(`✅ Transcription complete!`, 'success');
+          displayResult(text, avgConfidence);
+          return;
+        } else if (status === 'FAILED') {
+          const reason = response.TranscriptionJob.FailureReason;
+          throw new Error(`Transcription failed: ${reason}`);
+        }
+      }
+
+      throw new Error('Transcription timeout');
+    }
+
+    function displayResult(text, confidence) {
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('transcriptionText').textContent = text || '(No speech detected)';
+      document.getElementById('confidence').textContent = `Confidence: ${(confidence * 100).toFixed(1)}%`;
+      setStatus('✅ Transcription complete!', 'success');
+    }
+
+    // Initialize on load
+    log('⚠️ Please update AWS_CONFIG in the script with your credentials', 'warning');
+    log('📝 Then start recording to test transcription', 'info');
+  </script>
+</body>
+</html>
