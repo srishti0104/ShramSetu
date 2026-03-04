@@ -112,9 +112,25 @@ export default function VoiceRecorder({
       visualizeAudioLevel();
       
       // Set up MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      // Try to use a format that AWS Transcribe supports better
+      let mimeType = 'audio/webm;codecs=opus';
+      let fileExtension = 'webm';
+      
+      // Check for MP4 support (better for AWS Transcribe)
+      if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        mimeType = 'audio/mp4';
+        fileExtension = 'mp4';
+        console.log('✅ Using MP4 format for better AWS Transcribe compatibility');
+      } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+        mimeType = 'audio/webm;codecs=opus';
+        fileExtension = 'webm';
+        console.log('⚠️ Using WebM format - may have limited AWS Transcribe support');
+      } else {
+        console.warn('⚠️ No optimal audio format supported, using default');
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
+      console.log('🎙️ Recording with format:', mimeType);
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -126,7 +142,13 @@ export default function VoiceRecorder({
       };
       
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        
+        console.log('🎵 Recording stopped. Audio details:', {
+          size: audioBlob.size,
+          type: audioBlob.type,
+          duration: duration
+        });
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
@@ -139,6 +161,9 @@ export default function VoiceRecorder({
           if (onRecordingComplete) {
             await onRecordingComplete(audioBlob);
           }
+        } else {
+          console.error('❌ Audio blob is empty');
+          setError('Recording failed - no audio captured');
         }
       };
       

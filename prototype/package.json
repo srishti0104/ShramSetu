@@ -14,7 +14,8 @@
     "test:property": "vitest run --config vitest.property.config.js",
     "test:integration": "vitest run --config vitest.integration.config.js",
     "test:coverage": "vitest run --coverage",
-    "textract-server": "node local-textract-server.js"
+    "textract-server": "node local-textract-server.js",
+    "transcribe-server": "node local-transcribe-server.js"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.995.0",

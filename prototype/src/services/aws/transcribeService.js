@@ -3,24 +3,20 @@
  * 
  * Handles speech-to-text conversion for voice commands
  * Supports Hindi and English
+ * Uses Lambda proxy API for better security
  */
-
-import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
-import s3Service from './s3Service';
 
 class TranscribeService {
   constructor() {
-    this.client = new TranscribeClient({
-      region: import.meta.env.VITE_AWS_REGION || 'ap-south-1',
-      credentials: {
-        accessKeyId: import.meta.env.VITE_AWS_ACCESS_KEY_ID,
-        secretAccessKey: import.meta.env.VITE_AWS_SECRET_ACCESS_KEY
-      }
-    });
+    this.apiUrl = import.meta.env.VITE_TRANSCRIBE_API_URL;
+    
+    if (!this.apiUrl) {
+      console.warn('⚠️ VITE_TRANSCRIBE_API_URL not configured. Transcribe service will not work.');
+    }
   }
 
   /**
-   * Transcribe audio to text
+   * Transcribe audio to text using Lambda proxy
    * @param {Blob} audioBlob - Audio blob from recording
    * @param {string} language - Language code ('hi-IN' for Hindi, 'en-IN' for English)
    * @param {string} userId - User ID
@@ -28,104 +24,96 @@ class TranscribeService {
    */
   async transcribeAudio(audioBlob, language = 'hi-IN', userId = 'anonymous') {
     try {
-      console.log('🎤 Starting transcription...');
+      console.log('🎤 Starting transcription via Lambda proxy...');
+      console.log('📊 Audio blob size:', audioBlob.size, 'bytes');
+      console.log('📊 Audio blob type:', audioBlob.type);
+      console.log('🌐 Language:', language);
 
-      // Step 1: Upload audio to S3
-      const uploadResult = await s3Service.uploadAudio(audioBlob, userId);
-      console.log('✅ Audio uploaded to S3:', uploadResult.fileUrl);
+      if (!this.apiUrl) {
+        throw new Error('Transcribe API URL not configured. Please set VITE_TRANSCRIBE_API_URL in .env');
+      }
 
-      // Step 2: Start transcription job
-      const jobName = `transcribe-${Date.now()}`;
-      const command = new StartTranscriptionJobCommand({
-        TranscriptionJobName: jobName,
-        LanguageCode: language,
-        MediaFormat: 'webm',
-        Media: {
-          MediaFileUri: uploadResult.fileUrl
+      // Convert audio blob to base64 for API transmission
+      const base64Audio = await this.blobToBase64(audioBlob);
+      
+      // Determine audio format
+      let audioFormat = 'webm';
+      if (audioBlob.type.includes('mp4')) {
+        audioFormat = 'mp4';
+      } else if (audioBlob.type.includes('wav')) {
+        audioFormat = 'wav';
+      } else if (audioBlob.type.includes('mp3')) {
+        audioFormat = 'mp3';
+      }
+
+      console.log('🎵 Audio format:', audioFormat);
+      console.log('📤 Sending to Lambda proxy:', this.apiUrl);
+
+      // Call Lambda proxy API
+      const response = await fetch(`${this.apiUrl}/transcribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        OutputBucketName: uploadResult.bucket,
-        Settings: {
-          ShowSpeakerLabels: false,
-          MaxSpeakerLabels: 1
-        }
+        body: JSON.stringify({
+          audio: base64Audio,
+          audioFormat: audioFormat,
+          languageCode: language,
+          userId: userId
+        })
       });
 
-      await this.client.send(command);
-      console.log('✅ Transcription job started:', jobName);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `API request failed: ${response.status} ${response.statusText}`);
+      }
 
-      // Step 3: Wait for transcription to complete
-      const transcription = await this.waitForTranscription(jobName);
+      const result = await response.json();
       
-      console.log('✅ Transcription complete:', transcription.text);
+      console.log('✅ Transcription complete:', result.text);
 
       return {
         success: true,
-        text: transcription.text,
-        confidence: transcription.confidence,
-        language,
-        jobName,
-        audioUrl: uploadResult.fileUrl
+        text: result.text || '',
+        confidence: result.confidence || 0,
+        language: result.language || language,
+        jobName: result.jobName,
+        warning: result.warning
       };
     } catch (error) {
       console.error('❌ Transcription error:', error);
+      console.error('❌ Error details:', {
+        name: error.name,
+        message: error.message
+      });
+      
+      // Provide more specific error messages
+      if (error.message.includes('Failed to fetch')) {
+        throw new Error('Network error. Please check your internet connection.');
+      } else if (error.message.includes('API URL not configured')) {
+        throw new Error('Transcribe service not configured. Please contact support.');
+      }
+      
       throw new Error(`Failed to transcribe audio: ${error.message}`);
     }
   }
 
   /**
-   * Wait for transcription job to complete
-   * @param {string} jobName - Transcription job name
-   * @param {number} maxAttempts - Maximum polling attempts
-   * @returns {Promise<Object>} Transcription result
+   * Convert Blob to Base64
+   * @param {Blob} blob - Audio blob
+   * @returns {Promise<string>} Base64 encoded string
    */
-  async waitForTranscription(jobName, maxAttempts = 30) {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const command = new GetTranscriptionJobCommand({
-        TranscriptionJobName: jobName
-      });
-
-      const response = await this.client.send(command);
-      const status = response.TranscriptionJob.TranscriptionJobStatus;
-
-      console.log(`📊 Transcription status (${attempt + 1}/${maxAttempts}):`, status);
-
-      if (status === 'COMPLETED') {
-        // Fetch transcription result
-        const transcriptUri = response.TranscriptionJob.Transcript.TranscriptFileUri;
-        const transcriptResponse = await fetch(transcriptUri);
-        const transcriptData = await transcriptResponse.json();
-
-        const text = transcriptData.results.transcripts[0].transcript;
-        const confidence = this.calculateAverageConfidence(transcriptData.results.items);
-
-        return { text, confidence };
-      } else if (status === 'FAILED') {
-        throw new Error('Transcription job failed');
-      }
-
-      // Wait 2 seconds before next attempt
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-
-    throw new Error('Transcription timeout');
-  }
-
-  /**
-   * Calculate average confidence score
-   * @param {Array} items - Transcription items
-   * @returns {number} Average confidence (0-1)
-   */
-  calculateAverageConfidence(items) {
-    if (!items || items.length === 0) return 0;
-
-    const confidenceScores = items
-      .filter(item => item.alternatives && item.alternatives[0])
-      .map(item => parseFloat(item.alternatives[0].confidence));
-
-    if (confidenceScores.length === 0) return 0;
-
-    const sum = confidenceScores.reduce((a, b) => a + b, 0);
-    return sum / confidenceScores.length;
+  async blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Remove data URL prefix (e.g., "data:audio/webm;base64,")
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   /**
