@@ -50,7 +50,7 @@ class TranscribeService {
       console.log('📤 Sending to Lambda proxy:', this.apiUrl);
 
       // Call Lambda proxy API
-      const response = await fetch(`${this.apiUrl}/transcribe`, {
+      const response = await fetch(`${this.apiUrl}/transcribe-audio`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

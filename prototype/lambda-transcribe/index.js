@@ -6,7 +6,7 @@
  */
 
 import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
 
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'ap-south-1' });
@@ -87,10 +87,30 @@ async function waitForTranscription(jobName) {
     console.log(`📊 Transcription status (${attempt + 1}/${MAX_POLL_ATTEMPTS}):`, status);
 
     if (status === 'COMPLETED') {
-      // Fetch transcription result
+      // Get the transcript file key from the URI
       const transcriptUri = job.Transcript.TranscriptFileUri;
-      const transcriptResponse = await fetch(transcriptUri);
-      const transcriptData = await transcriptResponse.json();
+      console.log('📄 Transcript URI:', transcriptUri);
+      
+      // Extract the S3 key from the URI
+      // URI format: https://s3.region.amazonaws.com/bucket/key or https://bucket.s3.region.amazonaws.com/key
+      const urlParts = new URL(transcriptUri);
+      const pathParts = urlParts.pathname.split('/').filter(p => p);
+      
+      // If first part is bucket name, remove it
+      const transcriptKey = pathParts[0] === BUCKET_NAME ? pathParts.slice(1).join('/') : pathParts.join('/');
+      
+      console.log('📄 Fetching transcript from S3:', transcriptKey);
+      
+      // Fetch from S3 using SDK
+      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+      const getCommand = new GetObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: transcriptKey
+      });
+      
+      const s3Response = await s3Client.send(getCommand);
+      const transcriptText = await s3Response.Body.transformToString();
+      const transcriptData = JSON.parse(transcriptText);
 
       // Check if we have results
       if (!transcriptData.results || !transcriptData.results.transcripts || transcriptData.results.transcripts.length === 0) {
