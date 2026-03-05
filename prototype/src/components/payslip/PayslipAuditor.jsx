@@ -44,7 +44,23 @@ const MOCK_OCR_RESULTS = [
 export default function PayslipAuditor() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [ocrResult, setOcrResult] = useState(null);
+  const [ocrResult, setOcrResult] = useState({
+    employerName: 'ABC Builders Pvt Ltd',
+    workerName: 'Rajesh Kumar',
+    period: 'February 2024',
+    daysWorked: 26,
+    ratePerDay: 600,
+    grossPay: 15600,
+    deductions: 0,
+    netPay: 15600,
+    paymentDate: '2024-03-01',
+    minimumWage: 592,
+    compliance: 'compliant',
+    confidence: 0.95,
+    source: 'demo',
+    fileName: 'Sample Payslip',
+    uploadDate: new Date().toISOString()
+  });
   const [uploadHistory, setUploadHistory] = useState([]);
   const [error, setError] = useState(null);
   const [useRealTextract, setUseRealTextract] = useState(false);
@@ -55,7 +71,7 @@ export default function PayslipAuditor() {
     if (file) {
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         setUploadedFile(file);
-        setOcrResult(null);
+        // Keep the current result visible until new processing
       } else {
         alert('Please upload an image (JPG, PNG) or PDF file');
       }
@@ -68,7 +84,7 @@ export default function PayslipAuditor() {
     if (file) {
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         setUploadedFile(file);
-        setOcrResult(null);
+        // Keep the current result visible until new processing
       } else {
         alert('Please upload an image (JPG, PNG) or PDF file');
       }
@@ -124,7 +140,7 @@ export default function PayslipAuditor() {
 
   const resetUpload = () => {
     setUploadedFile(null);
-    setOcrResult(null);
+    setOcrResult(null); // Clear results to show upload area
     setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -132,7 +148,11 @@ export default function PayslipAuditor() {
   };
 
   const formatCurrency = (amount) => {
-    return `₹${amount.toLocaleString('en-IN')}`;
+    // Handle undefined, null, or non-numeric values
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return '₹0';
+    }
+    return `₹${Number(amount).toLocaleString('en-IN')}`;
   };
 
   const getComplianceColor = (compliance) => {
