@@ -16,11 +16,13 @@
     "test:coverage": "vitest run --coverage",
     "textract-server": "node local-textract-server.js",
     "transcribe-server": "node local-transcribe-server.js",
-    "bedrock-server": "node local-bedrock-server.cjs"
+    "bedrock-server": "node local-bedrock-server.cjs",
+    "ratings-server": "node mock-ratings-server.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.995.0",
     "@aws-sdk/client-comprehend": "^3.995.0",
+    "@aws-sdk/client-dynamodb": "^3.1002.0",
     "@aws-sdk/client-lex-runtime-v2": "^3.995.0",
     "@aws-sdk/client-location": "^3.995.0",
     "@aws-sdk/client-polly": "^3.995.0",
@@ -28,13 +30,14 @@
     "@aws-sdk/client-textract": "^3.995.0",
     "@aws-sdk/client-transcribe": "^3.995.0",
     "@aws-sdk/s3-request-presigner": "^3.995.0",
+    "@aws-sdk/util-dynamodb": "^3.996.1",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.18.2",
     "i18next": "^25.8.14",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-i18next": "^16.5.4"
+    "react-i18next": "^16.5.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
