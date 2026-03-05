@@ -13,15 +13,13 @@
  */
 
 const crypto = require('crypto');
+const { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand, QueryCommand, ScanCommand } = require('@aws-sdk/client-dynamodb');
+const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
+const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 
-// MOCK: In production, uncomment AWS SDK imports
-// const { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
-// const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
-// const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
-
-// MOCK: Initialize clients
-// const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
-// const eventBridge = new EventBridgeClient({ region: process.env.AWS_REGION });
+// Initialize clients
+const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION || 'ap-south-1' });
+const eventBridge = new EventBridgeClient({ region: process.env.AWS_REGION || 'ap-south-1' });
 
 // Rating categories
 const RATING_CATEGORIES = {
@@ -72,23 +70,22 @@ function validateRating(data) {
  * Check if rating already exists
  */
 async function checkExistingRating(jobId, raterId) {
-  // MOCK: In production, query DynamoDB
-  /*
-  const params = {
-    TableName: process.env.RATINGS_TABLE,
-    IndexName: 'JobRaterIndex',
-    KeyConditionExpression: 'jobId = :jobId AND raterId = :raterId',
-    ExpressionAttributeValues: marshall({
-      ':jobId': jobId,
-      ':raterId': raterId
-    })
-  };
-  const result = await dynamodb.send(new QueryCommand(params));
-  return result.Items && result.Items.length > 0;
-  */
-  
-  console.log('MOCK: Checking existing rating:', { jobId, raterId });
-  return false; // Mock: no existing rating
+  try {
+    const params = {
+      TableName: process.env.RATINGS_TABLE || 'Shram-setu-ratings',
+      FilterExpression: 'jobId = :jobId AND fromUserId = :raterId',
+      ExpressionAttributeValues: marshall({
+        ':jobId': jobId,
+        ':raterId': raterId
+      })
+    };
+    
+    const result = await dynamodb.send(new ScanCommand(params));
+    return result.Items && result.Items.length > 0 ? unmarshall(result.Items[0]) : null;
+  } catch (error) {
+    console.error('Error checking existing rating:', error);
+    return null;
+  }
 }
 
 /**
@@ -145,7 +142,12 @@ exports.handler = async (event) => {
     if (!validation.valid) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'
+        },
         body: JSON.stringify({ error: validation.error })
       };
     }
@@ -155,7 +157,12 @@ exports.handler = async (event) => {
     if (existingRating) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'
+        },
         body: JSON.stringify({
           error: 'Rating already submitted for this job'
         })
@@ -167,7 +174,12 @@ exports.handler = async (event) => {
     if (!eligibility.eligible) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'
+        },
         body: JSON.stringify({ error: eligibility.error })
       };
     }
@@ -197,38 +209,49 @@ exports.handler = async (event) => {
       }
     };
 
-    // MOCK: Store rating in DynamoDB
-    // In production, uncomment this:
-    /*
-    const putParams = {
-      TableName: process.env.RATINGS_TABLE,
-      Item: marshall(rating)
-    };
-    await dynamodb.send(new PutItemCommand(putParams));
-    */
+    // Store rating in DynamoDB
+    try {
+      const putParams = {
+        TableName: process.env.RATINGS_TABLE || 'Shram-setu-ratings',
+        Item: marshall(rating)
+      };
+      await dynamodb.send(new PutItemCommand(putParams));
+      console.log('Rating stored successfully in DynamoDB:', ratingId);
+    } catch (error) {
+      console.error('Error storing rating in DynamoDB:', error);
+      return {
+        statusCode: 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'
+        },
+        body: JSON.stringify({ error: 'Failed to store rating' })
+      };
+    }
 
-    console.log('MOCK: Storing rating in DynamoDB:', rating);
-
-    // MOCK: Trigger trust tier recalculation via EventBridge
-    // In production, uncomment this:
-    /*
-    const eventParams = {
-      Entries: [{
-        Source: 'shram-setu.ratings',
-        DetailType: 'RatingSubmitted',
-        Detail: JSON.stringify({
-          ratingId,
-          rateeId,
-          rateeType: rating.rateeType,
-          score
-        }),
-        EventBusName: process.env.EVENT_BUS_NAME
-      }]
-    };
-    await eventBridge.send(new PutEventsCommand(eventParams));
-    */
-
-    console.log('MOCK: Triggering trust tier recalculation event');
+    // Trigger trust tier recalculation via EventBridge
+    try {
+      const eventParams = {
+        Entries: [{
+          Source: 'shram-setu.ratings',
+          DetailType: 'RatingSubmitted',
+          Detail: JSON.stringify({
+            ratingId,
+            rateeId,
+            rateeType: rating.rateeType,
+            score
+          }),
+          EventBusName: process.env.EVENT_BUS_NAME || 'default'
+        }]
+      };
+      await eventBridge.send(new PutEventsCommand(eventParams));
+      console.log('Trust tier recalculation event triggered');
+    } catch (error) {
+      console.error('Error triggering trust tier recalculation:', error);
+      // Continue execution even if event fails
+    }
 
     // Calculate new trust tier (simplified for mock)
     const newTier = score >= 4 ? 'gold' : score >= 3 ? 'silver' : 'bronze';
@@ -237,7 +260,9 @@ exports.handler = async (event) => {
       statusCode: 201,
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'
       },
       body: JSON.stringify({
         success: true,
@@ -260,7 +285,12 @@ exports.handler = async (event) => {
     console.error('Error submitting rating:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token'
+      },
       body: JSON.stringify({
         error: 'Failed to submit rating',
         message: error.message
