@@ -1,75 +1,67 @@
+/**
+ * AWS Textract Service
+ * 
+ * Handles document OCR and text extraction
+ * LAMBDA PROXY ONLY - No direct SDK calls, no credentials in browser
+ */
+
 class TextractService {
   constructor() {
-    this.apiUrl = import.meta.env.VITE_TEXTRACT_API_URL;
-    this.useMockData = true; // Set to false when AWS Textract is working
+    console.log('🔍 Textract Service Initialization:');
+    console.log('🔐 Using Lambda Proxy API (NO SDK)');
+    
+    // Lambda API endpoint
+    this.apiUrl = import.meta.env.VITE_TEXTRACT_API_URL || 'https://ynexgp3tq8.execute-api.ap-south-1.amazonaws.com/prod';
+    
+    console.log('📍 API URL:', this.apiUrl);
   }
 
   async extractPayslipData(file) {
-    // Use mock data for development
-    if (this.useMockData) {
-      console.log('⚠️ Using mock OCR data (Textract disabled)');
-      return this.getMockPayslipData(file);
-    }
-
     try {
+      console.log('🔄 Using Lambda Proxy for Textract...');
+      
       // Convert file to base64
       const base64 = await this.fileToBase64(file);
-      
+
       // Call Lambda API
       const response = await fetch(`${this.apiUrl}/extract-payslip`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ image: base64 })
+        body: JSON.stringify({
+          image: base64,
+          fileName: file.name,
+          fileType: file.type
+        })
       });
-      
+
       if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = `API request failed: ${response.status}`;
-        
-        try {
-          const errorJson = JSON.parse(errorText);
-          if (errorJson.error) {
-            errorMessage = errorJson.error;
-          }
-        } catch (e) {
-          // Not JSON, use status text
-        }
-        
-        // Check if it's a subscription error
-        if (errorMessage.includes('subscription') || errorMessage.includes('Access Key Id needs a subscription')) {
-          console.warn('⚠️ Textract service not activated, falling back to mock data');
-          return this.getMockPayslipData(file);
-        }
-        
-        throw new Error(errorMessage);
+        const error = await response.json();
+        throw new Error(error.error || error.message || 'Textract API call failed');
       }
-      
+
       const result = await response.json();
+      console.log('✅ Textract Lambda call successful!', result);
       
-      if (!result.success) {
-        const errorMsg = result.error || 'Textract processing failed';
-        
-        // Check if it's a subscription error
-        if (errorMsg.includes('subscription') || errorMsg.includes('Access Key Id needs a subscription')) {
-          console.warn('⚠️ Textract service not activated, falling back to mock data');
-          return this.getMockPayslipData(file);
-        }
-        
-        throw new Error(errorMsg);
-      }
+      // Lambda returns { success: true, data: {...} }
+      const payslipData = result.data || result;
       
-      return result.data;
+      return {
+        ...payslipData,
+        extractedAt: new Date().toISOString(),
+        source: 'textract-lambda'
+      };
+      
     } catch (error) {
       console.error('Textract service error:', error);
-      
+
       // If it's a subscription error, fall back to mock data
       if (error.message.includes('subscription') || error.message.includes('Access Key Id needs a subscription')) {
         console.warn('⚠️ Textract service not activated, falling back to mock data');
         return this.getMockPayslipData(file);
       }
-      
+
       throw error;
     }
   }
@@ -133,12 +125,12 @@ class TextractService {
       }, 1500); // 1.5 second delay to simulate processing
     });
   }
-  
+
   async fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        // Remove the data URL prefix (e.g., "data:image/png;base64,")
+        // Remove data URL prefix (e.g., "data:image/png;base64,")
         const base64 = reader.result.split(',')[1];
         resolve(base64);
       };
@@ -151,15 +143,15 @@ class TextractService {
   isValidImageFile(file) {
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
-    
+
     if (!validTypes.includes(file.type)) {
       throw new Error('Invalid file type. Please upload a JPEG, PNG, or WebP image.');
     }
-    
+
     if (file.size > maxSize) {
       throw new Error('File size too large. Maximum size is 5MB.');
     }
-    
+
     return true;
   }
 }
