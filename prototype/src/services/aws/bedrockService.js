@@ -44,8 +44,8 @@ class BedrockService {
       }
     }
     
-    // Use Claude 3 Sonnet - confirmed working with your bearer token
-    this.defaultModel = 'anthropic.claude-3-sonnet-20240229-v1:0';
+    // Use Amazon Nova 2 Lite inference profile
+    this.defaultModel = 'global.amazon.nova-2-lite-v1:0';
   }
 
   /**

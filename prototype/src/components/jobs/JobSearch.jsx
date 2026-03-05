@@ -139,6 +139,40 @@ export default function JobSearch() {
   const [userLocation, setUserLocation] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [useRealLocation, setUseRealLocation] = useState(false);
+  const [filtersApplied, setFiltersApplied] = useState(false);
+
+  // Apply filters from sessionStorage (set by AI Assistant)
+  useEffect(() => {
+    console.log('🔍 JobSearch mounted, checking for stored filters...');
+    const storedFilters = sessionStorage.getItem('job_search_filters');
+    
+    if (storedFilters) {
+      try {
+        const filters = JSON.parse(storedFilters);
+        console.log('📋 Loading filters from sessionStorage:', filters);
+        
+        if (filters.category) {
+          console.log('🔍 Setting category to:', filters.category);
+          setSelectedCategory(filters.category);
+        }
+        
+        if (filters.searchQuery) {
+          console.log('🔍 Setting search query to:', filters.searchQuery);
+          setSearchQuery(filters.searchQuery);
+        }
+        
+        setFiltersApplied(true);
+        
+        // Clear the stored filters after applying
+        sessionStorage.removeItem('job_search_filters');
+        console.log('✅ Filters applied and cleared from sessionStorage');
+      } catch (error) {
+        console.error('Error parsing stored filters:', error);
+      }
+    } else {
+      console.log('ℹ️ No stored filters found');
+    }
+  }, []);
 
   // Get user location on mount
   useEffect(() => {
@@ -190,10 +224,12 @@ export default function JobSearch() {
 
   useEffect(() => {
     filterJobs();
-  }, [searchQuery, selectedCategory, minWage, maxDistance]);
+  }, [searchQuery, selectedCategory, minWage, maxDistance, jobs]);
 
   const filterJobs = () => {
+    console.log('🔍 Filtering jobs with:', { selectedCategory, searchQuery, minWage, maxDistance });
     let filtered = [...jobs];
+    console.log('📊 Total jobs before filtering:', filtered.length);
 
     // Search filter
     if (searchQuery) {
@@ -202,11 +238,17 @@ export default function JobSearch() {
         job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.contractor.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      console.log('📊 After search filter:', filtered.length);
     }
 
     // Category filter
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(job => job.category === selectedCategory);
+      console.log('🏷️ Filtering by category:', selectedCategory);
+      filtered = filtered.filter(job => {
+        console.log(`  - Job "${job.title}" category: "${job.category}" === "${selectedCategory}"?`, job.category === selectedCategory);
+        return job.category === selectedCategory;
+      });
+      console.log('📊 After category filter:', filtered.length);
     }
 
     // Wage filter
@@ -215,16 +257,19 @@ export default function JobSearch() {
         const dailyWage = job.wageType === 'monthly' ? job.wage / 30 : job.wage;
         return dailyWage >= parseInt(minWage);
       });
+      console.log('📊 After wage filter:', filtered.length);
     }
 
     // Distance filter
     if (maxDistance) {
       filtered = filtered.filter(job => job.distance <= parseFloat(maxDistance));
+      console.log('📊 After distance filter:', filtered.length);
     }
 
     // Sort by distance
     filtered.sort((a, b) => a.distance - b.distance);
 
+    console.log('✅ Final filtered jobs:', filtered.length);
     setFilteredJobs(filtered);
   };
 
@@ -324,6 +369,11 @@ export default function JobSearch() {
 
       {/* Results Count */}
       <div className="job-search__results-info">
+        {filtersApplied && (
+          <span className="job-search__filter-badge">
+            🎯 AI-filtered results
+          </span>
+        )}
         Found {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''}
       </div>
 
