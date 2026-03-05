@@ -21,6 +21,8 @@ import RatingForm from '../ratings/RatingForm';
 import OfflineSync from '../sync/OfflineSync';
 import AIAssistant from '../ai/AIAssistant';
 import JobFeed from '../feeds/JobFeed';
+import JobSearch from '../jobs/JobSearch';
+import FloatingAIButton from '../ai/FloatingAIButton';
 
 /**
  * Worker Dashboard Component
@@ -98,7 +100,10 @@ export default function WorkerDashboard({ onRestartOnboarding }) {
         return <OfflineSync />;
       
       case 'ai-assistant':
-        return <AIAssistant />;
+        return <AIAssistant onTabChange={handleNavigate} />;
+
+      case 'jobs':
+        return <JobSearch />;
 
       case 'profile':
         return <WorkerProfile userProfile={userProfile} />;
@@ -144,6 +149,9 @@ export default function WorkerDashboard({ onRestartOnboarding }) {
 
   return (
     <div className="worker-dashboard">
+      {/* Floating AI Assistant Button - Available on all pages */}
+      <FloatingAIButton onTabChange={handleNavigate} currentPage={activeSection} />
+      
       {/* Left Sidebar Navigation */}
       <aside className="worker-dashboard__sidebar">
         <div className="worker-dashboard__sidebar-header">
