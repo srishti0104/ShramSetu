@@ -1,12 +1,13 @@
 /**
  * Grievance Form Component
  * 
- * @fileoverview Voice-based safety reporting with AI-powered triage
+ * @fileoverview Voice-first grievance reporting with AWS Transcribe and admin management
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './GrievanceForm.css';
-import comprehendService from '../../services/aws/comprehendService';
+import { submitGrievance, getGrievances, deleteGrievance as deleteGrievanceAPI } from '../../utils/grievanceApi';
+import transcribeService from '../../services/aws/transcribeService';
 
 // Grievance categories
 const CATEGORIES = [
@@ -38,19 +39,30 @@ export default function GrievanceForm() {
     contractorName: '',
     isAnonymous: false,
     contactNumber: '',
-    preferredLanguage: 'hi'
+    preferredLanguage: 'hi-IN'
   });
   
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedAudio, setRecordedAudio] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [submittedGrievance, setSubmittedGrievance] = useState(null);
   const [grievanceHistory, setGrievanceHistory] = useState([]);
-  const [useRealAnalysis, setUseRealAnalysis] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState(null);
+  const [recordingError, setRecordingError] = useState(null);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [adminGrievances, setAdminGrievances] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [recordedAudio, setRecordedAudio] = useState(null);
+  const [transcriptionResult, setTranscriptionResult] = useState('');
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+
+  // Check for media recorder support
+  useEffect(() => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setRecordingError('Your browser does not support audio recording');
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -60,10 +72,23 @@ export default function GrievanceForm() {
     }));
   };
 
-  const startVoiceRecording = async () => {
+  const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      setRecordingError(null);
+      setTranscriptionResult('');
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        }
+      });
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -74,110 +99,161 @@ export default function GrievanceForm() {
         }
       };
       
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setRecordedAudio(audioBlob);
         stream.getTracks().forEach(track => track.stop());
         
-        // Mock: Auto-fill description from voice
-        const mockDescriptions = [
-          'मुझे सुरक्षा उपकरण नहीं दिए गए हैं। काम करते समय खतरा है।',
-          'मेरा वेतन 15 दिन से लंबित है। ठेकेदार जवाब नहीं दे रहा है।',
-          'काम की जगह पर गंदगी है और पीने का साफ पानी नहीं है।'
-        ];
-        const mockDescription = mockDescriptions[Math.floor(Math.random() * mockDescriptions.length)];
-        setFormData(prev => ({ ...prev, description: mockDescription }));
+        // Start transcription process
+        await transcribeAudio(audioBlob);
       };
       
       mediaRecorder.start();
       setIsRecording(true);
+      
     } catch (err) {
       console.error('Failed to start recording:', err);
-      alert('Failed to access microphone. Please check permissions.');
+      setRecordingError('Failed to access microphone. Please check permissions.');
     }
   };
 
-  const stopVoiceRecording = () => {
+  const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
   };
 
+  const transcribeAudio = async (audioBlob) => {
+    try {
+      setIsTranscribing(true);
+      setRecordingError(null);
+      
+      console.log('🎤 Starting AWS Transcribe...');
+      
+      // Use the transcribe service
+      const result = await transcribeService.transcribeAudio(
+        audioBlob, 
+        formData.preferredLanguage, 
+        `USER_${Date.now()}`
+      );
+      
+      if (result.success && result.text) {
+        const transcribedText = result.text;
+        setTranscriptionResult(transcribedText);
+        
+        // Add transcribed text to description
+        setFormData(prev => ({
+          ...prev,
+          description: prev.description + (prev.description ? ' ' : '') + transcribedText
+        }));
+        
+        console.log('✅ Transcription successful:', transcribedText);
+      } else {
+        throw new Error('No transcription received from AWS Transcribe');
+      }
+      
+    } catch (error) {
+      console.error('❌ AWS Transcribe error:', error);
+      setRecordingError(`AWS Transcribe failed: ${error.message}`);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  const clearDescription = () => {
+    setFormData(prev => ({ ...prev, description: '' }));
+    setTranscriptionResult('');
+    setRecordedAudio(null);
+  };
+
+  const loadAdminGrievances = async () => {
+    try {
+      setAdminLoading(true);
+      const result = await getGrievances({ limit: 10 });
+      setAdminGrievances(result.grievances || []);
+    } catch (err) {
+      console.error('Error loading grievances:', err);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const deleteGrievance = async (grievanceId, submittedAt) => {
+    if (!confirm('Are you sure you want to delete this grievance?')) {
+      return;
+    }
+    
+    try {
+      await deleteGrievanceAPI(grievanceId, submittedAt);
+      // Remove from local state after successful deletion
+      setAdminGrievances(prev => 
+        prev.filter(g => g.grievanceId !== grievanceId)
+      );
+    } catch (err) {
+      console.error('Error deleting grievance:', err);
+      alert('Failed to delete grievance: ' + err.message);
+    }
+  };
+
+  useEffect(() => {
+    if (showAdmin) {
+      loadAdminGrievances();
+    }
+  }, [showAdmin]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.category || !formData.severity || !formData.description) {
-      alert('Please fill in all required fields');
+      alert('कृपया सभी आवश्यक फ़ील्ड भरें / Please fill in all required fields');
       return;
     }
 
     setIsProcessing(true);
-    setAnalysisResult(null);
 
     try {
-      let sentiment, urgencyScore, category, keyIssues;
-
-      if (useRealAnalysis) {
-        // Real AWS Comprehend analysis
-        console.log('🔍 Using AWS Comprehend for analysis...');
-        
-        const analysis = await comprehendService.analyzeGrievance(formData.description, 'en');
-        console.log('✅ Analysis result:', analysis);
-        
-        setAnalysisResult(analysis);
-        
-        sentiment = analysis.sentiment.sentiment;
-        urgencyScore = Math.round(analysis.urgencyScore * 100);
-        category = analysis.category;
-        keyIssues = analysis.summary.keyIssues;
-        
-      } else {
-        // Mock analysis
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        sentiment = Math.random() > 0.5 ? 'NEGATIVE' : 'NEUTRAL';
-        urgencyScore = formData.severity === 'critical' ? 95 : 
-                      formData.severity === 'high' ? 75 :
-                      formData.severity === 'medium' ? 50 : 25;
-        category = formData.category.toUpperCase();
-        keyIssues = ['Mock issue 1', 'Mock issue 2'];
-      }
-
-      const grievance = {
-        id: `GRV${Date.now()}`,
+      // Submit grievance to production DynamoDB
+      const grievanceData = {
         ...formData,
-        submittedAt: new Date().toISOString(),
-        status: 'submitted',
-        sentiment,
-        urgencyScore,
-        category,
-        keyIssues,
-        assignedTo: urgencyScore > 70 ? 'NGO Legal Aid' : 'Support Team',
-        estimatedResponse: urgencyScore > 70 ? '24 hours' : '3-5 days',
-        trackingNumber: `TRACK${Math.floor(Math.random() * 1000000)}`,
-        analysisUsed: useRealAnalysis ? 'AWS Comprehend' : 'Mock'
+        workerId: formData.isAnonymous ? undefined : `USER_${Date.now()}`,
+        hasAudio: false, // We're using text-based input now
+        source: 'voice_to_text_web'
       };
 
-      setSubmittedGrievance(grievance);
-      setGrievanceHistory([grievance, ...grievanceHistory]);
+      const result = await submitGrievance(grievanceData);
+      
+      if (result.success) {
+        const submittedData = {
+          ...result.grievance,
+          category: formData.category,
+          severity: formData.severity,
+          description: formData.description,
+          location: formData.location,
+          contractorName: formData.contractorName,
+          isAnonymous: formData.isAnonymous,
+          contactNumber: formData.contactNumber
+        };
+        
+        setSubmittedGrievance(submittedData);
+        setGrievanceHistory([submittedData, ...grievanceHistory]);
 
-      // Reset form
-      setFormData({
-        category: '',
-        severity: '',
-        description: '',
-        location: '',
-        contractorName: '',
-        isAnonymous: false,
-        contactNumber: '',
-        preferredLanguage: 'hi'
-      });
-      setRecordedAudio(null);
+        // Reset form
+        setFormData({
+          category: '',
+          severity: '',
+          description: '',
+          location: '',
+          contractorName: '',
+          isAnonymous: false,
+          contactNumber: '',
+          preferredLanguage: 'hi-IN'
+        });
+      }
       
     } catch (error) {
-      console.error('Analysis error:', error);
-      alert(`Failed to analyze grievance: ${error.message}`);
+      console.error('Submission error:', error);
+      alert(`शिकायत जमा करने में विफल / Failed to submit grievance: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }
@@ -185,6 +261,9 @@ export default function GrievanceForm() {
 
   const resetForm = () => {
     setSubmittedGrievance(null);
+    setRecordingError(null);
+    setTranscriptionResult('');
+    setRecordedAudio(null);
   };
 
   const getCategoryIcon = (category) => {
@@ -200,323 +279,276 @@ export default function GrievanceForm() {
   return (
     <div className="grievance-form">
       <div className="grievance-form__header">
-        <h2>🛡️ Suraksha Grievance Module</h2>
-        <p>Report workplace safety issues and violations</p>
+        <h2>🛡️ शिकायत दर्ज करें / Submit Grievance</h2>
+        <div className="header-controls">
+          <button 
+            onClick={() => setShowAdmin(!showAdmin)}
+            className="admin-toggle-btn"
+          >
+            🔧 {showAdmin ? 'Hide Admin' : 'Admin Panel'}
+          </button>
+        </div>
       </div>
 
-      {!submittedGrievance ? (
-        <form onSubmit={handleSubmit} className="grievance-form__form">
-          {/* AI Analysis Toggle */}
-          <div className="grievance-form__analysis-toggle">
-            <label>
-              <input
-                type="checkbox"
-                checked={useRealAnalysis}
-                onChange={(e) => setUseRealAnalysis(e.target.checked)}
-              />
-              <span>Use AWS Comprehend AI Analysis</span>
-            </label>
-          </div>
-
-          {/* Voice Recording */}
-          <div className="grievance-form__voice-section">
-            <h3>🎤 Voice Report (Optional)</h3>
-            <p>Describe your issue in your own language</p>
-            
-            {!isRecording ? (
-              <button
-                type="button"
-                onClick={startVoiceRecording}
-                className="grievance-form__voice-btn"
-              >
-                <span className="grievance-form__voice-icon">🎤</span>
-                Start Voice Recording
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={stopVoiceRecording}
-                className="grievance-form__voice-btn grievance-form__voice-btn--recording"
-              >
-                <span className="grievance-form__voice-icon">⏹️</span>
-                Stop Recording
-              </button>
-            )}
-            
-            {recordedAudio && (
-              <div className="grievance-form__audio-preview">
-                ✓ Voice recording captured ({(recordedAudio.size / 1024).toFixed(2)} KB)
-              </div>
-            )}
-          </div>
-
-          {/* Category Selection */}
-          <div className="grievance-form__field">
-            <label htmlFor="category">Category *</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              required
-              className="grievance-form__select"
-            >
-              <option value="">Select a category</option>
-              {CATEGORIES.map(cat => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label} - {cat.description}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Severity Level */}
-          <div className="grievance-form__field">
-            <label>Severity Level *</label>
-            <div className="grievance-form__severity-grid">
-              {SEVERITY_LEVELS.map(level => (
-                <label
-                  key={level.value}
-                  className={`severity-option ${formData.severity === level.value ? 'severity-option--selected' : ''}`}
-                  style={{ borderColor: formData.severity === level.value ? level.color : '#e0e0e0' }}
-                >
-                  <input
-                    type="radio"
-                    name="severity"
-                    value={level.value}
-                    checked={formData.severity === level.value}
+      <div className="grievance-layout">
+        {/* Main Voice Input Section - Takes 70% space */}
+        <div className="voice-main-section">
+          {!submittedGrievance ? (
+            <>
+              {/* Large Voice Input Area */}
+              <div className="voice-input-area">
+                <h3>🎤 आवाज़ से बताएं / Speak Your Grievance</h3>
+                
+                {/* Language Selection */}
+                <div className="language-selector">
+                  <label htmlFor="preferredLanguage">भाषा चुनें / Select Language:</label>
+                  <select
+                    id="preferredLanguage"
+                    name="preferredLanguage"
+                    value={formData.preferredLanguage}
                     onChange={handleInputChange}
-                    required
+                    className="language-select"
+                  >
+                    <option value="hi-IN">🇮🇳 हिंदी / Hindi</option>
+                    <option value="en-US">🇺🇸 English</option>
+                    <option value="bn-IN">🇧🇩 বাংলা / Bengali</option>
+                    <option value="te-IN">🇮🇳 తెలుగు / Telugu</option>
+                    <option value="ta-IN">🇮🇳 தமிழ் / Tamil</option>
+                    <option value="mr-IN">🇮🇳 मराठी / Marathi</option>
+                    <option value="gu-IN">🇮🇳 ગુજરાતી / Gujarati</option>
+                    <option value="kn-IN">🇮🇳 ಕನ್ನಡ / Kannada</option>
+                    <option value="ml-IN">🇮🇳 മലയാളം / Malayalam</option>
+                    <option value="pa-IN">🇮🇳 ਪੰਜਾਬੀ / Punjabi</option>
+                  </select>
+                </div>
+
+                {/* Voice Controls */}
+                <div className="voice-controls-large">
+                  {!recordingError ? (
+                    <>
+                      {!isRecording ? (
+                        <button
+                          type="button"
+                          onClick={startRecording}
+                          className="voice-btn-large"
+                          disabled={isProcessing || isTranscribing}
+                        >
+                          <span className="voice-icon-large">🎤</span>
+                          <span className="voice-text">
+                            बोलना शुरू करें<br/>
+                            <small>Start Speaking</small>
+                          </span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={stopRecording}
+                          className="voice-btn-large voice-btn-listening"
+                        >
+                          <span className="voice-icon-large">⏹️</span>
+                          <span className="voice-text">
+                            रुकें<br/>
+                            <small>Stop Recording</small>
+                          </span>
+                        </button>
+                      )}
+                      
+                      {formData.description && (
+                        <button
+                          type="button"
+                          onClick={clearDescription}
+                          className="clear-btn-large"
+                        >
+                          🗑️ साफ़ करें / Clear
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="voice-unsupported-large">
+                      <p>⚠️ आपका ब्राउज़र वॉइस इनपुट का समर्थन नहीं करता</p>
+                      <p>Your browser doesn't support voice input</p>
+                    </div>
+                  )}
+                </div>
+
+                {recordingError && (
+                  <div className="voice-error-large">
+                    <span className="error-icon">⚠️</span>
+                    {recordingError}
+                  </div>
+                )}
+                
+                {isRecording && (
+                  <div className="listening-indicator-large">
+                    <div className="listening-animation-large">🎤</div>
+                    <p>रिकॉर्ड हो रहा है... / Recording...</p>
+                  </div>
+                )}
+
+                {isTranscribing && (
+                  <div className="transcribing-indicator-large">
+                    <div className="transcribing-animation-large">🔄</div>
+                    <p>AWS Transcribe से टेक्स्ट में बदला जा रहा है... / Converting to text with AWS Transcribe...</p>
+                  </div>
+                )}
+
+                {transcriptionResult && (
+                  <div className="transcription-result-large">
+                    <h4>🎯 नवीनतम ट्रांसक्रिप्शन / Latest Transcription:</h4>
+                    <p>"{transcriptionResult}"</p>
+                  </div>
+                )}
+
+                {/* Large Text Display Area */}
+                <div className="text-display-area">
+                  <label>आपकी शिकायत / Your Grievance:</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    name="description"
+                    rows="8"
+                    placeholder="यहाँ आपकी आवाज़ से टेक्स्ट दिखेगा... / Your speech will appear here..."
+                    className="description-textarea-large"
                   />
-                  <div className="severity-option__label" style={{ color: level.color }}>
-                    {level.label}
+                </div>
+              </div>
+
+              {/* Quick Form Section */}
+              <form onSubmit={handleSubmit} className="quick-form">
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>श्रेणी / Category *</label>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="severity-option__description">
-                    {level.description}
+                  
+                  <div className="form-field">
+                    <label>गंभीरता / Severity *</label>
+                    <select
+                      name="severity"
+                      value={formData.severity}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Severity</option>
+                      {SEVERITY_LEVELS.map(level => (
+                        <option key={level.value} value={level.value}>
+                          {level.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </label>
-              ))}
-            </div>
-          </div>
+                </div>
 
-          {/* Description */}
-          <div className="grievance-form__field">
-            <label htmlFor="description">Description *</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              required
-              rows="5"
-              placeholder="Describe the issue in detail..."
-              className="grievance-form__textarea"
-            />
-          </div>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label>स्थान / Location</label>
+                    <input
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      placeholder="Work site location"
+                    />
+                  </div>
+                  
+                  <div className="form-field">
+                    <label>संपर्क / Contact</label>
+                    <input
+                      type="tel"
+                      name="contactNumber"
+                      value={formData.contactNumber}
+                      onChange={handleInputChange}
+                      placeholder="Phone number"
+                    />
+                  </div>
+                </div>
 
-          {/* Location */}
-          <div className="grievance-form__field">
-            <label htmlFor="location">Location</label>
-            <input
-              type="text"
-              id="location"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              placeholder="Work site location"
-              className="grievance-form__input"
-            />
-          </div>
+                <button
+                  type="submit"
+                  disabled={isProcessing || isRecording || isTranscribing || !formData.description || !formData.category || !formData.severity}
+                  className="submit-btn-large"
+                >
+                  {isProcessing ? 'जमा हो रहा है... / Submitting...' : 'शिकायत जमा करें / Submit Grievance'}
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="success-display-large">
+              <div className="success-icon-large">✅</div>
+              <h3>शिकायत सफलतापूर्वक जमा हुई!</h3>
+              <h4>Grievance Submitted Successfully!</h4>
+              
+              <div className="tracking-info-large">
+                <p><strong>Tracking Number:</strong> {submittedGrievance.trackingNumber}</p>
+                <p><strong>Priority:</strong> {submittedGrievance.priority}</p>
+                <p><strong>Response Time:</strong> {submittedGrievance.expectedResponseTime}</p>
+              </div>
 
-          {/* Contractor Name */}
-          <div className="grievance-form__field">
-            <label htmlFor="contractorName">Contractor/Employer Name</label>
-            <input
-              type="text"
-              id="contractorName"
-              name="contractorName"
-              value={formData.contractorName}
-              onChange={handleInputChange}
-              placeholder="Name of contractor or employer"
-              className="grievance-form__input"
-            />
-          </div>
-
-          {/* Anonymous Checkbox */}
-          <div className="grievance-form__field">
-            <label className="grievance-form__checkbox-label">
-              <input
-                type="checkbox"
-                name="isAnonymous"
-                checked={formData.isAnonymous}
-                onChange={handleInputChange}
-              />
-              <span>Submit anonymously (your identity will be protected)</span>
-            </label>
-          </div>
-
-          {/* Contact Number (if not anonymous) */}
-          {!formData.isAnonymous && (
-            <div className="grievance-form__field">
-              <label htmlFor="contactNumber">Contact Number</label>
-              <input
-                type="tel"
-                id="contactNumber"
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={handleInputChange}
-                placeholder="Your phone number for follow-up"
-                className="grievance-form__input"
-              />
+              <button
+                onClick={resetForm}
+                className="new-grievance-btn"
+              >
+                नई शिकायत / New Grievance
+              </button>
             </div>
           )}
+        </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isProcessing}
-            className="grievance-form__submit-btn"
-          >
-            {isProcessing ? 'Processing...' : 'Submit Grievance'}
-          </button>
-        </form>
-      ) : (
-        <div className="grievance-form__success">
-          <div className="grievance-form__success-icon">✓</div>
-          <h3>Grievance Submitted Successfully</h3>
-          
-          <div className="grievance-form__tracking">
-            <div className="grievance-form__tracking-number">
-              Tracking Number: <strong>{submittedGrievance.trackingNumber}</strong>
+        {/* Admin Panel - Takes 30% space when visible */}
+        {showAdmin && (
+          <div className="admin-panel">
+            <div className="admin-header">
+              <h4>🔧 Admin Panel</h4>
+              <button onClick={loadAdminGrievances} className="refresh-btn-small">
+                🔄 Refresh
+              </button>
             </div>
-            <p>Save this number to track your grievance status</p>
-          </div>
 
-          <div className="grievance-form__details">
-            {analysisResult && (
-              <div className="grievance-form__ai-analysis">
-                <h4>🤖 AI Analysis Results</h4>
-                <div className="analysis-grid">
-                  <div className="analysis-item">
-                    <span className="analysis-label">Sentiment:</span>
-                    <span className={`analysis-value sentiment-${analysisResult.sentiment.sentiment.toLowerCase()}`}>
-                      {analysisResult.sentiment.sentiment}
-                    </span>
+            {adminLoading ? (
+              <div className="admin-loading">Loading...</div>
+            ) : (
+              <div className="admin-grievances">
+                {adminGrievances.map((grievance) => (
+                  <div key={grievance.grievanceId} className="admin-grievance-card">
+                    <div className="admin-card-header">
+                      <span className="grievance-id-small">{grievance.grievanceId.split('_')[1]}</span>
+                      <button
+                        onClick={() => deleteGrievance(grievance.grievanceId, grievance.submittedAt)}
+                        className="delete-btn-small"
+                        title="Delete Grievance"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    
+                    <div className="admin-card-content">
+                      <p className="description-preview">
+                        {grievance.description.substring(0, 100)}...
+                      </p>
+                      <div className="admin-card-meta">
+                        <span className={`priority-badge-small priority-${grievance.priority.toLowerCase()}`}>
+                          {grievance.priority}
+                        </span>
+                        <span className="category-small">{grievance.category}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="analysis-item">
-                    <span className="analysis-label">Confidence:</span>
-                    <span className="analysis-value">
-                      {(analysisResult.sentiment.dominantScore * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="analysis-item">
-                    <span className="analysis-label">Auto-Category:</span>
-                    <span className="analysis-value">{analysisResult.category}</span>
-                  </div>
-                  <div className="analysis-item">
-                    <span className="analysis-label">Urgency:</span>
-                    <span className={`analysis-value urgency-${analysisResult.summary.urgency.toLowerCase()}`}>
-                      {analysisResult.summary.urgency}
-                    </span>
-                  </div>
-                </div>
-                <div className="analysis-issues">
-                  <strong>Key Issues Detected:</strong>
-                  <ul>
-                    {analysisResult.summary.keyIssues.map((issue, idx) => (
-                      <li key={idx}>{issue}</li>
-                    ))}
-                  </ul>
-                </div>
+                ))}
               </div>
             )}
-            
-            <div className="detail-row">
-              <span className="detail-label">Grievance ID:</span>
-              <span className="detail-value">{submittedGrievance.id}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Category:</span>
-              <span className="detail-value">
-                {getCategoryIcon(submittedGrievance.category)} {submittedGrievance.category}
-              </span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Severity:</span>
-              <span className="detail-value" style={{ color: getSeverityColor(submittedGrievance.severity) }}>
-                {submittedGrievance.severity.toUpperCase()}
-              </span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Urgency Score:</span>
-              <span className="detail-value">{submittedGrievance.urgencyScore}/100</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Assigned To:</span>
-              <span className="detail-value">{submittedGrievance.assignedTo}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Expected Response:</span>
-              <span className="detail-value">{submittedGrievance.estimatedResponse}</span>
-            </div>
           </div>
-
-          <div className="grievance-form__next-steps">
-            <h4>What Happens Next?</h4>
-            <ul>
-              <li>Your grievance has been logged and assigned to {submittedGrievance.assignedTo}</li>
-              <li>You will receive updates via SMS/WhatsApp</li>
-              <li>Expected response time: {submittedGrievance.estimatedResponse}</li>
-              {submittedGrievance.urgencyScore > 70 && (
-                <li className="urgent-note">⚠️ High priority - NGO has been notified for immediate action</li>
-              )}
-            </ul>
-          </div>
-
-          <button
-            onClick={resetForm}
-            className="grievance-form__new-btn"
-          >
-            Submit Another Grievance
-          </button>
-        </div>
-      )}
-
-      {/* Grievance History */}
-      {grievanceHistory.length > 0 && (
-        <div className="grievance-form__history">
-          <h3>📋 Your Recent Grievances</h3>
-          <div className="history-list">
-            {grievanceHistory.slice(0, 5).map(grievance => (
-              <div key={grievance.id} className="history-item">
-                <div className="history-item__icon">
-                  {getCategoryIcon(grievance.category)}
-                </div>
-                <div className="history-item__content">
-                  <div className="history-item__id">{grievance.id}</div>
-                  <div className="history-item__category">{grievance.category}</div>
-                  <div className="history-item__date">
-                    {new Date(grievance.submittedAt).toLocaleString()}
-                  </div>
-                </div>
-                <div 
-                  className="history-item__severity"
-                  style={{ backgroundColor: getSeverityColor(grievance.severity) }}
-                >
-                  {grievance.severity}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Demo Notice */}
-      <div className="grievance-form__demo-notice">
-        {useRealAnalysis ? (
-          <p>✅ <strong>AWS Comprehend Enabled:</strong> Your grievance will be analyzed using AI for sentiment, urgency, and categorization.</p>
-        ) : (
-          <p>💡 <strong>Mock Mode:</strong> Enable "Use AWS Comprehend AI Analysis" for real sentiment analysis and auto-categorization.</p>
         )}
       </div>
     </div>

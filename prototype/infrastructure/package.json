@@ -13,6 +13,8 @@
     "deploy:services": "cdk deploy --all --app 'node cdk-services-app.js'",
     "deploy:s3": "cdk deploy ShramSetuS3Stack --app 'node cdk-services-app.js'",
     "deploy:location": "cdk deploy ShramSetuLocationStack --app 'node cdk-services-app.js'",
+    "deploy:ratings": "cdk deploy ShramSetuRatingsStack --app 'npx ts-node cdk-ratings-app.ts'",
+    "deploy:grievance": "cdk deploy ShramSetuGrievanceStack --app 'npx ts-node cdk-grievance-app.ts' --outputs-file grievance-outputs.json",
     "diff": "cdk diff",
     "synth": "cdk synth",
     "destroy": "cdk destroy"

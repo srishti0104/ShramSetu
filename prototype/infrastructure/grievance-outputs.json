@@ -1,0 +1,8 @@
+{
+  "ShramSetuGrievanceStack": {
+    "GrievanceApiEndpointC0FF3EEF": "https://1cmlca8ltj.execute-api.ap-south-1.amazonaws.com/prod/",
+    "GrievanceTableName": "Shram-setu-grievances",
+    "AudioBucketName": "shram-setu-grievance-audio-808840719701",
+    "GrievanceApiUrl": "https://1cmlca8ltj.execute-api.ap-south-1.amazonaws.com/prod/"
+  }
+}

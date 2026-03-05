@@ -17,6 +17,7 @@ import AttendanceLog from '../attendance/AttendanceLog';
 import EKhataLedger from '../ledger/EKhataLedger';
 import PayslipAuditor from '../payslip/PayslipAuditor';
 import GrievanceForm from '../grievance/GrievanceForm';
+import GrievanceAdmin from '../admin/GrievanceAdmin';
 import RatingForm from '../ratings/RatingForm';
 import OfflineSync from '../sync/OfflineSync';
 import AIAssistant from '../ai/AIAssistant';
