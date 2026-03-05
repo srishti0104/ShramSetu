@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { submitRating } from '../../utils/ratingsApi';
 import './RatingForm.css';
 
 const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, onCancel }) => {
@@ -83,37 +84,27 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
     setError(null);
 
     try {
-      const response = await fetch('/api/v1/ratings/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          jobId,
-          raterId,
-          rateeId,
-          raterType,
-          score: overallScore,
-          feedback: {
-            categories: categoryScores,
-            comment,
-            tags: selectedTags
-          }
-        })
-      });
+      const ratingData = {
+        jobId,
+        raterId,
+        rateeId,
+        raterType,
+        score: overallScore,
+        feedback: {
+          categories: categoryScores,
+          comment,
+          tags: selectedTags
+        }
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to submit rating');
-      }
-
-      const data = await response.json();
+      const result = await submitRating(ratingData);
       
       if (onSuccess) {
-        onSuccess(data);
+        onSuccess(result);
       }
 
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to submit rating');
     } finally {
       setLoading(false);
     }

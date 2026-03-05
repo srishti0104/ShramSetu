@@ -1,0 +1,11 @@
+{
+  "name": "ratings-layer",
+  "version": "1.0.0",
+  "description": "Common dependencies for ratings Lambda functions",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.995.0",
+    "@aws-sdk/client-eventbridge": "^3.995.0",
+    "@aws-sdk/util-dynamodb": "^3.995.0",
+    "crypto": "^1.0.1"
+  }
+}
