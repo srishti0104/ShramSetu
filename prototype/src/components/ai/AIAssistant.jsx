@@ -51,7 +51,7 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [useAI, setUseAI] = useState(true);
-  const [aiProvider, setAiProvider] = useState('gemini'); // 'gemini' or 'groq'
+  const [aiProvider, setAiProvider] = useState('groq'); // 'gemini' or 'groq' - Default to Groq
   const [agenticMode, setAgenticMode] = useState(true); // Auto-execute actions for illiterate users
   const [voiceMode, setVoiceMode] = useState(false); // Voice input/output mode
   const [isListening, setIsListening] = useState(false);
@@ -81,102 +81,103 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
     // ONLY map to the 5 main categories: Construction, Plumbing, Electrical, Painting, Carpentry
     // If keyword doesn't map to these 5, don't set category
     const jobTypes = {
+      // Painting - all variations (CHECK FIRST to avoid "paint" matching before "painting")
+      'painting': { category: 'painting', skill: 'Painter' },
+      'painter': { category: 'painting', skill: 'Painter' },
+      'painters': { category: 'painting', skill: 'Painter' },
+      'पेंटिंग': { category: 'painting', skill: 'Painter' },
+      'पेंटर': { category: 'painting', skill: 'Painter' },
+      'रंगाई': { category: 'painting', skill: 'Painter' },
+      'whitewash': { category: 'painting', skill: 'Painter' },
+      'सफेदी': { category: 'painting', skill: 'Painter' },
+      'painted': { category: 'painting', skill: 'Painter' },
+      'paints': { category: 'painting', skill: 'Painter' },
+      'paint': { category: 'painting', skill: 'Painter' },
+      'रंगना': { category: 'painting', skill: 'Painter' },
+      'रंग': { category: 'painting', skill: 'Painter' },
+      'wall': { category: 'painting', skill: 'Painter' },
+      'walls': { category: 'painting', skill: 'Painter' },
+      'दीवार': { category: 'painting', skill: 'Painter' },
+      'color': { category: 'painting', skill: 'Painter' },
+      'colour': { category: 'painting', skill: 'Painter' },
+      
       // Construction - all variations
-      'mason': { category: 'construction', skill: 'Mason' },
-      'masons': { category: 'construction', skill: 'Mason' },
-      'masonry': { category: 'construction', skill: 'Mason' },
-      'मिस्त्री': { category: 'construction', skill: 'Mason' },
-      'राजमिस्त्री': { category: 'construction', skill: 'Mason' },
       'construction': { category: 'construction', skill: 'Construction' },
-      'construct': { category: 'construction', skill: 'Construction' },
       'constructing': { category: 'construction', skill: 'Construction' },
+      'construct': { category: 'construction', skill: 'Construction' },
+      'राजमिस्त्री': { category: 'construction', skill: 'Mason' },
+      'मिस्त्री': { category: 'construction', skill: 'Mason' },
+      'masonry': { category: 'construction', skill: 'Mason' },
+      'masons': { category: 'construction', skill: 'Mason' },
+      'mason': { category: 'construction', skill: 'Mason' },
       'निर्माण': { category: 'construction', skill: 'Construction' },
-      'builder': { category: 'construction', skill: 'Builder' },
       'builders': { category: 'construction', skill: 'Builder' },
+      'builder': { category: 'construction', skill: 'Builder' },
       'building': { category: 'construction', skill: 'Builder' },
       'build': { category: 'construction', skill: 'Builder' },
       'बिल्डर': { category: 'construction', skill: 'Builder' },
-      'ईंट': { category: 'construction', skill: 'Mason' },
       'cement': { category: 'construction', skill: 'Mason' },
       'सीमेंट': { category: 'construction', skill: 'Mason' },
+      'ईंट': { category: 'construction', skill: 'Mason' },
       
       // Plumbing - all variations
-      'plumber': { category: 'plumbing', skill: 'Plumber' },
-      'plumbers': { category: 'plumbing', skill: 'Plumber' },
       'plumbing': { category: 'plumbing', skill: 'Plumber' },
+      'plumbers': { category: 'plumbing', skill: 'Plumber' },
+      'plumber': { category: 'plumbing', skill: 'Plumber' },
       'plumb': { category: 'plumbing', skill: 'Plumber' },
       'प्लंबर': { category: 'plumbing', skill: 'Plumber' },
-      'नल': { category: 'plumbing', skill: 'Plumber' },
-      'पाइप': { category: 'plumbing', skill: 'Plumber' },
-      'pipe': { category: 'plumbing', skill: 'Plumber' },
+      'drainage': { category: 'plumbing', skill: 'Plumber' },
       'pipes': { category: 'plumbing', skill: 'Plumber' },
+      'pipe': { category: 'plumbing', skill: 'Plumber' },
+      'पाइप': { category: 'plumbing', skill: 'Plumber' },
       'water': { category: 'plumbing', skill: 'Plumber' },
       'पानी': { category: 'plumbing', skill: 'Plumber' },
-      'drainage': { category: 'plumbing', skill: 'Plumber' },
       'नाली': { category: 'plumbing', skill: 'Plumber' },
       'tap': { category: 'plumbing', skill: 'Plumber' },
       'leak': { category: 'plumbing', skill: 'Plumber' },
+      'नल': { category: 'plumbing', skill: 'Plumber' },
       
       // Electrical - all variations
-      'electrician': { category: 'electrical', skill: 'Electrician' },
-      'electricians': { category: 'electrical', skill: 'Electrician' },
-      'electrical': { category: 'electrical', skill: 'Electrician' },
-      'electric': { category: 'electrical', skill: 'Electrician' },
-      'electricity': { category: 'electrical', skill: 'Electrician' },
       'बिजली मिस्त्री': { category: 'electrical', skill: 'Electrician' },
-      'बिजली': { category: 'electrical', skill: 'Electrician' },
       'इलेक्ट्रीशियन': { category: 'electrical', skill: 'Electrician' },
+      'electricians': { category: 'electrical', skill: 'Electrician' },
+      'electrician': { category: 'electrical', skill: 'Electrician' },
+      'electrical': { category: 'electrical', skill: 'Electrician' },
+      'electricity': { category: 'electrical', skill: 'Electrician' },
+      'electric': { category: 'electrical', skill: 'Electrician' },
       'wiring': { category: 'electrical', skill: 'Electrician' },
-      'wire': { category: 'electrical', skill: 'Electrician' },
-      'तार': { category: 'electrical', skill: 'Electrician' },
+      'बिजली': { category: 'electrical', skill: 'Electrician' },
+      'lights': { category: 'electrical', skill: 'Electrician' },
+      'light': { category: 'electrical', skill: 'Electrician' },
       'switch': { category: 'electrical', skill: 'Electrician' },
       'स्विच': { category: 'electrical', skill: 'Electrician' },
-      'light': { category: 'electrical', skill: 'Electrician' },
-      'lights': { category: 'electrical', skill: 'Electrician' },
+      'wire': { category: 'electrical', skill: 'Electrician' },
+      'तार': { category: 'electrical', skill: 'Electrician' },
       'fan': { category: 'electrical', skill: 'Electrician' },
       'पंखा': { category: 'electrical', skill: 'Electrician' },
       
       // Carpentry - all variations
-      'carpenter': { category: 'carpentry', skill: 'Carpenter' },
       'carpenters': { category: 'carpentry', skill: 'Carpenter' },
+      'carpenter': { category: 'carpentry', skill: 'Carpenter' },
       'carpentry': { category: 'carpentry', skill: 'Carpenter' },
-      'बढ़ई': { category: 'carpentry', skill: 'Carpenter' },
-      'लकड़ी': { category: 'carpentry', skill: 'Carpenter' },
-      'wood': { category: 'carpentry', skill: 'Carpenter' },
-      'wooden': { category: 'carpentry', skill: 'Carpenter' },
-      'woodwork': { category: 'carpentry', skill: 'Carpenter' },
       'furniture': { category: 'carpentry', skill: 'Carpenter' },
       'फर्नीचर': { category: 'carpentry', skill: 'Carpenter' },
-      'door': { category: 'carpentry', skill: 'Carpenter' },
-      'doors': { category: 'carpentry', skill: 'Carpenter' },
+      'woodwork': { category: 'carpentry', skill: 'Carpenter' },
+      'wooden': { category: 'carpentry', skill: 'Carpenter' },
+      'लकड़ी': { category: 'carpentry', skill: 'Carpenter' },
       'दरवाजा': { category: 'carpentry', skill: 'Carpenter' },
-      'window': { category: 'carpentry', skill: 'Carpenter' },
+      'अलमारी': { category: 'carpentry', skill: 'Carpenter' },
       'खिड़की': { category: 'carpentry', skill: 'Carpenter' },
       'cabinet': { category: 'carpentry', skill: 'Carpenter' },
-      'अलमारी': { category: 'carpentry', skill: 'Carpenter' },
-      
-      // Painting - all variations
-      'painter': { category: 'painting', skill: 'Painter' },
-      'painters': { category: 'painting', skill: 'Painter' },
-      'painting': { category: 'painting', skill: 'Painter' },
-      'paint': { category: 'painting', skill: 'Painter' },
-      'painted': { category: 'painting', skill: 'Painter' },
-      'paints': { category: 'painting', skill: 'Painter' },
-      'पेंटर': { category: 'painting', skill: 'Painter' },
-      'रंगाई': { category: 'painting', skill: 'Painter' },
-      'पेंटिंग': { category: 'painting', skill: 'Painter' },
-      'रंग': { category: 'painting', skill: 'Painter' },
-      'रंगना': { category: 'painting', skill: 'Painter' },
-      'wall': { category: 'painting', skill: 'Painter' },
-      'walls': { category: 'painting', skill: 'Painter' },
-      'दीवार': { category: 'painting', skill: 'Painter' },
-      'whitewash': { category: 'painting', skill: 'Painter' },
-      'सफेदी': { category: 'painting', skill: 'Painter' },
-      'color': { category: 'painting', skill: 'Painter' },
-      'colour': { category: 'painting', skill: 'Painter' }
+      'window': { category: 'carpentry', skill: 'Carpenter' },
+      'doors': { category: 'carpentry', skill: 'Carpenter' },
+      'door': { category: 'carpentry', skill: 'Carpenter' },
+      'wood': { category: 'carpentry', skill: 'Carpenter' },
+      'बढ़ई': { category: 'carpentry', skill: 'Carpenter' }
     };
     
     // Extract job type and category - ONLY if it maps to one of the 5 categories
+    // Check longer keywords first to avoid partial matches
     for (const [keyword, jobInfo] of Object.entries(jobTypes)) {
       if (lowerMessage.includes(keyword)) {
         details.jobType = jobInfo.category.charAt(0).toUpperCase() + jobInfo.category.slice(1);
@@ -809,8 +810,6 @@ Please be more specific about what you need help with, or use the quick action b
           
           {/* Invisible element for auto-scroll */}
           <div ref={messagesEndRef} />
-            </div>
-          )}
         </div>
 
         <div className="quick-actions">
@@ -841,14 +840,14 @@ Please be more specific about what you need help with, or use the quick action b
                 >
                   {isListening ? '🎤 Listening...' : '🎤 Tap to Speak'}
                 </button>
-                <button
-                  onClick={stopSpeaking}
-                  disabled={!isSpeaking}
-                  className="voice-stop-btn"
-                  style={{ opacity: isSpeaking ? 1 : 0.5 }}
-                >
-                  {isSpeaking ? '🔇 Stop Speaking' : '🔇 Stop'}
-                </button>
+                {isSpeaking && (
+                  <button
+                    onClick={stopSpeaking}
+                    className="voice-stop-btn"
+                  >
+                    🔇 Stop Speaking
+                  </button>
+                )}
               </div>
             ) : (
               // Text Mode UI

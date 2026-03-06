@@ -10,8 +10,8 @@ class GeminiService {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     this.apiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
     
-    // Use Gemini 2.5 Flash - fast, stable, and available on free tier
-    this.defaultModel = 'gemini-2.5-flash';
+    // Use Gemini 2.0 Flash-Lite - lightweight, higher free tier limit
+    this.defaultModel = 'gemini-2.0-flash-lite';
     
     console.log('🚀 Gemini Service Initialization:');
     console.log('🔑 API Key:', this.apiKey ? 'Present' : 'Missing');
