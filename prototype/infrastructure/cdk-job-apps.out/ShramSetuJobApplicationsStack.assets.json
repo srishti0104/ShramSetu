@@ -1,0 +1,36 @@
+{
+  "version": "50.0.0",
+  "files": {
+    "cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74": {
+      "displayName": "SubmitApplicationFunction/Code",
+      "source": {
+        "path": "asset.cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "808840719701-ap-south-1-5d0c60e6": {
+          "bucketName": "cdk-hnb659fds-assets-808840719701-ap-south-1",
+          "objectKey": "cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74.zip",
+          "region": "ap-south-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::808840719701:role/cdk-hnb659fds-file-publishing-role-808840719701-ap-south-1"
+        }
+      }
+    },
+    "8ade7d39a8ff8f1008dbe61967220432e95bf8a9eabdbdea987bb176ad820be3": {
+      "displayName": "ShramSetuJobApplicationsStack Template",
+      "source": {
+        "path": "ShramSetuJobApplicationsStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "808840719701-ap-south-1-7834191e": {
+          "bucketName": "cdk-hnb659fds-assets-808840719701-ap-south-1",
+          "objectKey": "8ade7d39a8ff8f1008dbe61967220432e95bf8a9eabdbdea987bb176ad820be3.json",
+          "region": "ap-south-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::808840719701:role/cdk-hnb659fds-file-publishing-role-808840719701-ap-south-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

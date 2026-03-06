@@ -71,6 +71,13 @@
   font-weight: 500;
 }
 
+.job-feed__coordinates {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+  font-family: 'Courier New', monospace;
+}
+
 .job-feed__location-error {
   margin-top: var(--space-2);
   margin-left: var(--space-6);
