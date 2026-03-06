@@ -134,14 +134,13 @@ export default function WorkerDashboard({ onRestartOnboarding }) {
   // Navigation items for worker
   const navigationItems = [
     { id: 'home', label: t('nav:home', 'Home'), icon: '🏠' },
-    { id: 'voice', label: t('common:labels.voice', 'Voice Assistant'), icon: '🎤' },
     { id: 'attendance', label: t('dashboard:attendance', 'Attendance'), icon: '✅' },
     { id: 'ledger', label: t('dashboard:ledger', 'E-Khata'), icon: '💰' },
     { id: 'payslip', label: t('dashboard:payslip', 'Payslip'), icon: '📄' },
     { id: 'grievance', label: t('dashboard:grievance', 'Grievance'), icon: '🛡️' },
     { id: 'rating', label: t('dashboard:rating', 'Rating'), icon: '⭐' },
     { id: 'sync', label: t('dashboard:sync', 'Sync'), icon: '📱' },
-    { id: 'ai-assistant', label: t('common:labels.ai', 'AI Assistant'), icon: '🤖' },
+    { id: 'ai-assistant', label: t('common:labels.ai', 'AI Assistant'), icon: '/images/chatbot-avatar.png', isImage: true },
     { id: 'profile', label: t('nav:profile', 'Profile'), icon: '👤' },
     { id: 'settings', label: t('nav:settings', 'Settings'), icon: '⚙️' },
     { id: 'help', label: t('nav:help', 'Help & Support'), icon: '❓' }
@@ -167,7 +166,21 @@ export default function WorkerDashboard({ onRestartOnboarding }) {
                   }`}
                   onClick={() => handleNavigate(item.id)}
                 >
-                  <span className="worker-dashboard__nav-icon">{item.icon}</span>
+                  <span className="worker-dashboard__nav-icon">
+                    {item.isImage ? (
+                      <img 
+                        src={item.icon} 
+                        alt={item.label}
+                        style={{width: '24px', height: '24px', objectFit: 'cover', borderRadius: '50%'}}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '🤖';
+                        }}
+                      />
+                    ) : (
+                      item.icon
+                    )}
+                  </span>
                   <span className="worker-dashboard__nav-label">{item.label}</span>
                 </button>
               </li>

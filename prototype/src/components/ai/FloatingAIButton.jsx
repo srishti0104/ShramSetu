@@ -50,7 +50,19 @@ export default function FloatingAIButton({ onTabChange, currentPage }) {
           onClick={toggleAI}
           aria-label="AI Assistant"
         >
-          {isOpen ? '✕' : '🤖'}
+          {isOpen ? (
+            <span className="emoji-fallback">✕</span>
+          ) : (
+            <img 
+              src="/images/chatbot-avatar.png" 
+              alt="AI Assistant"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          )}
+          {!isOpen && <span className="emoji-fallback" style={{display: 'none'}}>🤖</span>}
         </button>
       </div>
 
@@ -60,9 +72,15 @@ export default function FloatingAIButton({ onTabChange, currentPage }) {
           <div className="floating-ai-modal__content">
             <AIAssistant 
               onTabChange={(tab) => {
+                console.log('🎯 FloatingAIButton: onTabChange called with tab:', tab);
+                setIsOpen(false); // Close modal FIRST
                 if (onTabChange) {
-                  onTabChange(tab);
-                  setIsOpen(false); // Close modal after navigation
+                  console.log('🎯 FloatingAIButton: Calling parent onTabChange');
+                  setTimeout(() => {
+                    onTabChange(tab);
+                  }, 100); // Small delay to ensure modal closes first
+                } else {
+                  console.warn('⚠️ FloatingAIButton: onTabChange prop not provided');
                 }
               }}
               contextPage={currentPage}
