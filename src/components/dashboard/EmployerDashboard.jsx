@@ -116,7 +116,7 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
             jobId="job_demo_789"
             raterId="employer_demo_123"
             rateeId="worker_demo_456"
-            raterType="employer"
+            raterType="contractor"
             rateeName="Demo Worker"
             onSuccess={(data) => {
               console.log('Rating submitted:', data);

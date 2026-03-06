@@ -8,11 +8,15 @@
 
 class TranscribeService {
   constructor() {
+    // Use the new dedicated transcribe API with proper CORS
     this.apiUrl = import.meta.env.VITE_TRANSCRIBE_API_URL;
+    this.bearerToken = import.meta.env.VITE_AWS_BEARER_TOKEN_BEDROCK;
     
     if (!this.apiUrl) {
       console.warn('⚠️ VITE_TRANSCRIBE_API_URL not configured. Transcribe service will not work.');
     }
+    
+    console.log('🔄 Using dedicated Transcribe API:', this.apiUrl);
   }
 
   /**
@@ -47,14 +51,17 @@ class TranscribeService {
       }
 
       console.log('🎵 Audio format:', audioFormat);
-      console.log('📤 Sending to Lambda proxy:', this.apiUrl);
+      console.log('📤 Sending to dedicated Transcribe API:', this.apiUrl);
 
-      // Call Lambda proxy API
-      const response = await fetch(`${this.apiUrl}/transcribe`, {
+      // Prepare headers (no Authorization to avoid CORS preflight)
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      // Call dedicated Transcribe API
+      const response = await fetch(this.apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           audio: base64Audio,
           audioFormat: audioFormat,

@@ -385,7 +385,7 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
               });
               suggestedActions.push({ 
                 label: `🔍 Find ${jobDetails.skills || jobDetails.jobType || 'Jobs'}`, 
-                path: 'jobs',  // Just the tab name, not a URL
+                path: 'home',  // Navigate to home tab where JobFeed is displayed
                 filters: {
                   category: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
                   searchQuery: jobDetails.skills || '',
@@ -397,7 +397,7 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
             // Always provide option to browse all jobs
             suggestedActions.push({ 
               label: '📋 Browse All Jobs', 
-              path: 'jobs'
+              path: 'home'  // Navigate to home tab where JobFeed is displayed
             });
             
             console.log('🎯 Suggested actions:', suggestedActions);

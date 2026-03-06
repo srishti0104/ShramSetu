@@ -13,12 +13,11 @@
  * @returns {Object} Updated trust profile
  */
 
-// MOCK: In production, uncomment AWS SDK imports
-// const { DynamoDBClient, QueryCommand, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
-// const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
+const { DynamoDBClient, QueryCommand, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
+const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 
-// MOCK: Initialize clients
-// const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION });
+// Initialize clients
+const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION || 'ap-south-1' });
 
 // Trust tier thresholds
 const TIER_THRESHOLDS = {
@@ -41,21 +40,28 @@ const BADGE_CRITERIA = {
  * Fetch all ratings for a user
  */
 async function fetchUserRatings(userId) {
-  // MOCK: In production, query DynamoDB
-  /*
-  const params = {
-    TableName: process.env.RATINGS_TABLE,
-    IndexName: 'RateeIdIndex',
-    KeyConditionExpression: 'rateeId = :userId',
-    ExpressionAttributeValues: marshall({
-      ':userId': userId
-    })
-  };
-  const result = await dynamodb.send(new QueryCommand(params));
-  return result.Items.map(item => unmarshall(item));
-  */
-  
-  // MOCK: Generate sample ratings
+  try {
+    const params = {
+      TableName: process.env.RATINGS_TABLE || 'Shram-setu-ratings',
+      IndexName: 'toUserId-index',
+      KeyConditionExpression: 'toUserId = :userId',
+      ExpressionAttributeValues: marshall({
+        ':userId': userId
+      })
+    };
+    const result = await dynamodb.send(new QueryCommand(params));
+    return result.Items ? result.Items.map(item => unmarshall(item)) : [];
+  } catch (error) {
+    console.error('Error fetching user ratings:', error);
+    // Fallback to mock data for demo
+    return generateMockRatings(userId);
+  }
+}
+
+/**
+ * Generate mock ratings for demo purposes
+ */
+function generateMockRatings(userId, count = 10) {
   const ratings = [];
   const numRatings = Math.floor(Math.random() * 60) + 10;
   

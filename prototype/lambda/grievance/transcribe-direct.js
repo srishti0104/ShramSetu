@@ -1,30 +1,34 @@
 /**
- * AWS Lambda Function for Transcribe Service
- * 
- * Handles audio transcription using Amazon Transcribe
- * Accepts base64 encoded audio from browser
+ * Direct Transcribe Lambda Function
+ * Handles direct audio transcription for grievance system
  */
 
-import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import crypto from 'crypto';
+const { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } = require('@aws-sdk/client-transcribe');
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
-const s3Client = new S3Client({ region: process.env.AWS_REGION || 'ap-south-1' });
-const transcribeClient = new TranscribeClient({ region: process.env.AWS_REGION || 'ap-south-1' });
+const transcribeClient = new TranscribeClient({ region: process.env.AWS_REGION });
+const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'shram-setu-uploads-808840719701';
-const MAX_POLL_ATTEMPTS = 30;
-const POLL_INTERVAL = 2000; // 2 seconds
+const AUDIO_BUCKET = process.env.AUDIO_BUCKET || 'shram-setu-uploads-808840719701';
+
+/**
+ * CORS headers for API Gateway
+ */
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
 
 /**
  * Upload audio to S3
  */
 async function uploadAudioToS3(audioBase64, audioFormat, userId) {
   const buffer = Buffer.from(audioBase64, 'base64');
-  const fileName = `audio/${userId}/${Date.now()}.${audioFormat}`;
+  const fileName = `transcribe/${userId}/${Date.now()}.${audioFormat}`;
   
   const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
+    Bucket: AUDIO_BUCKET,
     Key: fileName,
     Body: buffer,
     ContentType: `audio/${audioFormat}`,
@@ -36,7 +40,7 @@ async function uploadAudioToS3(audioBase64, audioFormat, userId) {
 
   await s3Client.send(command);
   
-  const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || 'ap-south-1'}.amazonaws.com/${fileName}`;
+  const fileUrl = `https://${AUDIO_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
   
   console.log('✅ Audio uploaded to S3:', fileUrl);
   
@@ -47,7 +51,7 @@ async function uploadAudioToS3(audioBase64, audioFormat, userId) {
  * Start transcription job
  */
 async function startTranscriptionJob(fileUrl, languageCode, audioFormat) {
-  const jobName = `transcribe-${Date.now()}`;
+  const jobName = `direct-transcribe-${Date.now()}`;
   
   const command = new StartTranscriptionJobCommand({
     TranscriptionJobName: jobName,
@@ -56,7 +60,7 @@ async function startTranscriptionJob(fileUrl, languageCode, audioFormat) {
     Media: {
       MediaFileUri: fileUrl
     },
-    OutputBucketName: BUCKET_NAME,
+    OutputBucketName: AUDIO_BUCKET,
     Settings: {
       ShowSpeakerLabels: false,
       ShowAlternatives: true,
@@ -74,8 +78,8 @@ async function startTranscriptionJob(fileUrl, languageCode, audioFormat) {
 /**
  * Wait for transcription to complete
  */
-async function waitForTranscription(jobName) {
-  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+async function waitForTranscription(jobName, maxAttempts = 30) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const command = new GetTranscriptionJobCommand({
       TranscriptionJobName: jobName
     });
@@ -84,7 +88,7 @@ async function waitForTranscription(jobName) {
     const job = response.TranscriptionJob;
     const status = job.TranscriptionJobStatus;
 
-    console.log(`📊 Transcription status (${attempt + 1}/${MAX_POLL_ATTEMPTS}):`, status);
+    console.log(`📊 Transcription status (${attempt + 1}/${maxAttempts}):`, status);
 
     if (status === 'COMPLETED') {
       // Get the transcript file key from the URI
@@ -92,19 +96,17 @@ async function waitForTranscription(jobName) {
       console.log('📄 Transcript URI:', transcriptUri);
       
       // Extract the S3 key from the URI
-      // URI format: https://s3.region.amazonaws.com/bucket/key or https://bucket.s3.region.amazonaws.com/key
       const urlParts = new URL(transcriptUri);
       const pathParts = urlParts.pathname.split('/').filter(p => p);
       
       // If first part is bucket name, remove it
-      const transcriptKey = pathParts[0] === BUCKET_NAME ? pathParts.slice(1).join('/') : pathParts.join('/');
+      const transcriptKey = pathParts[0] === AUDIO_BUCKET ? pathParts.slice(1).join('/') : pathParts.join('/');
       
       console.log('📄 Fetching transcript from S3:', transcriptKey);
       
       // Fetch from S3 using SDK
-      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
       const getCommand = new GetObjectCommand({
-        Bucket: BUCKET_NAME,
+        Bucket: AUDIO_BUCKET,
         Key: transcriptKey
       });
       
@@ -145,50 +147,50 @@ async function waitForTranscription(jobName) {
     }
 
     // Wait before next attempt
-    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+    await new Promise(resolve => setTimeout(resolve, 2000));
   }
 
   throw new Error('Transcription timeout');
 }
 
 /**
- * Lambda handler
+ * Main Lambda handler
  */
-export async function handler(event) {
-  const requestId = event.requestContext?.requestId || crypto.randomUUID();
-  
-  console.log('🎤 Transcribe Lambda invoked:', requestId);
-  
+exports.handler = async (event) => {
+  console.log('Received direct transcribe event:', JSON.stringify(event, null, 2));
+
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: '',
+    };
+  }
+
   try {
-    // Parse request body
-    const body = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body);
     const { audio, audioFormat, languageCode, userId } = body;
-    
+
     // Validate input
     if (!audio || !audioFormat || !languageCode || !userId) {
       return {
         statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        },
+        headers: corsHeaders,
         body: JSON.stringify({
           success: false,
-          error: 'Missing required fields: audio, audioFormat, languageCode, userId',
-          requestId
-        })
+          error: 'Missing required fields: audio, audioFormat, languageCode, userId'
+        }),
       };
     }
-    
+
     console.log('📊 Request details:', {
       audioSize: audio.length,
       audioFormat,
       languageCode,
       userId
     });
-    
+
     // Step 1: Upload audio to S3
     const { fileUrl, fileName } = await uploadAudioToS3(audio, audioFormat, userId);
     
@@ -198,15 +200,12 @@ export async function handler(event) {
     // Step 3: Wait for transcription to complete
     const result = await waitForTranscription(jobName);
     
+    console.log('✅ Direct transcription complete!');
+    
     // Return success response
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
+      headers: corsHeaders,
       body: JSON.stringify({
         success: true,
         text: result.text,
@@ -215,28 +214,20 @@ export async function handler(event) {
         jobName,
         audioUrl: fileUrl,
         warning: result.warning,
-        requestId,
         timestamp: new Date().toISOString()
-      })
+      }),
     };
-    
+
   } catch (error) {
-    console.error('❌ Transcription error:', error);
+    console.error('Error in direct transcription:', error);
     
     return {
       statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
+      headers: corsHeaders,
       body: JSON.stringify({
-        success: false,
-        error: error.message || 'Transcription failed',
-        requestId,
-        timestamp: new Date().toISOString()
-      })
+        error: 'Internal server error',
+        message: 'Failed to transcribe audio. Please try again.',
+      }),
     };
   }
-}
+};

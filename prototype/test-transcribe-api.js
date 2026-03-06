@@ -53,11 +53,21 @@ try {
   // Create a tiny mock audio (just for testing the endpoint)
   const mockAudioBase64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent GIF as placeholder
   
+  // Prepare headers
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  // Add bearer token if available
+  const bearerToken = envVars.VITE_AWS_BEARER_TOKEN_BEDROCK;
+  if (bearerToken) {
+    headers['Authorization'] = `Bearer ${bearerToken}`;
+    console.log('🔑 Using Bearer token authentication');
+  }
+  
   const response = await fetch(`${transcribeApiUrl}/transcribe`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       audio: mockAudioBase64,
       audioFormat: 'webm',
