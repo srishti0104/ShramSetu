@@ -19,7 +19,7 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
     if (contextPrompt) {
       return `नमस्ते! ${contextPrompt}`;
     }
-    return 'नमस्ते! I am ShramSetu AI Assistant. I can help you with job advice, payslip analysis, grievances, and worker rights. How can I assist you today?';
+    return 'नमस्ते! मैं श्रम सेतु AI असिस्टेंट हूं। मैं आपकी नौकरी की सलाह, पेस्लिप विश्लेषण, शिकायतों और मजदूर अधिकारों में मदद कर सकता हूं।\n\nHello! I am ShramSetu AI Assistant. I can help you with job advice, payslip analysis, grievances, and worker rights. How can I assist you today?';
   };
   
   // Load chat history from sessionStorage or use initial messages
@@ -40,7 +40,7 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
       },
       {
         role: 'assistant',
-        content: '💡 Quick tip: Just say what you need! For example:\n• "mason job" - I\'ll find construction jobs\n• "salary problem" - I\'ll check your payslip\n• "complaint" - I\'ll help write a grievance',
+        content: '💡 त्वरित सुझाव: बस बताएं कि आपको क्या चाहिए!\n💡 Quick tip: Just say what you need!\n\n• "मिस्त्री की नौकरी" / "mason job" - मैं निर्माण की नौकरियां ढूंढूंगा\n• "वेतन की समस्या" / "salary problem" - मैं आपकी पेस्लिप चेक करूंगा\n• "शिकायत" / "complaint" - मैं शिकायत लिखने में मदद करूंगा',
         timestamp: Date.now() + 1000,
         isProactive: true
       }
@@ -56,6 +56,7 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
   const [voiceMode, setVoiceMode] = useState(false); // Voice input/output mode
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceProcessing, setVoiceProcessing] = useState(false); // Prevent duplicate voice processing
   
   // Ref for chat messages container to enable auto-scroll
   const messagesEndRef = useRef(null);
@@ -73,107 +74,448 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
     }
   }, [messages, isLoading]);
 
+  // Cleanup speech synthesis when component unmounts or voice mode changes
+  useEffect(() => {
+    return () => {
+      // Cleanup function to stop any ongoing speech
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      setIsSpeaking(false);
+    };
+  }, []);
+
+  // Stop speech when voice mode is disabled
+  useEffect(() => {
+    if (!voiceMode && isSpeaking) {
+      stopSpeaking();
+    }
+    // Reset voice processing when voice mode changes
+    if (!voiceMode) {
+      setVoiceProcessing(false);
+    }
+  }, [voiceMode]);
+
   // Helper function to extract job details from message
   const extractJobDetails = (message) => {
     const lowerMessage = message.toLowerCase();
     const details = {};
     
-    // ONLY map to the 5 main categories: Construction, Plumbing, Electrical, Painting, Carpentry
-    // If keyword doesn't map to these 5, don't set category
+    // COMPREHENSIVE JOB KEYWORD MAPPING - All job categories with extensive synonyms
+    // Maps to ALL available categories for complete automation
     const jobTypes = {
-      // Painting - all variations (CHECK FIRST to avoid "paint" matching before "painting")
+      // PAINTING - all variations (CHECK FIRST to avoid "paint" matching before "painting")
       'painting': { category: 'painting', skill: 'Painter' },
+      'paintings': { category: 'painting', skill: 'Painter' },
       'painter': { category: 'painting', skill: 'Painter' },
       'painters': { category: 'painting', skill: 'Painter' },
       'पेंटिंग': { category: 'painting', skill: 'Painter' },
       'पेंटर': { category: 'painting', skill: 'Painter' },
+      'पेंटिंग वाला': { category: 'painting', skill: 'Painter' },
       'रंगाई': { category: 'painting', skill: 'Painter' },
+      'रंगाई पुताई': { category: 'painting', skill: 'Painter' },
       'whitewash': { category: 'painting', skill: 'Painter' },
+      'white wash': { category: 'painting', skill: 'Painter' },
       'सफेदी': { category: 'painting', skill: 'Painter' },
+      'चूना': { category: 'painting', skill: 'Painter' },
       'painted': { category: 'painting', skill: 'Painter' },
       'paints': { category: 'painting', skill: 'Painter' },
       'paint': { category: 'painting', skill: 'Painter' },
       'रंगना': { category: 'painting', skill: 'Painter' },
       'रंग': { category: 'painting', skill: 'Painter' },
-      'wall': { category: 'painting', skill: 'Painter' },
+      'रंग रोगन': { category: 'painting', skill: 'Painter' },
+      'wall painting': { category: 'painting', skill: 'Painter' },
+      'wall painter': { category: 'painting', skill: 'Painter' },
       'walls': { category: 'painting', skill: 'Painter' },
+      'wall': { category: 'painting', skill: 'Painter' },
       'दीवार': { category: 'painting', skill: 'Painter' },
+      'दीवार रंगना': { category: 'painting', skill: 'Painter' },
       'color': { category: 'painting', skill: 'Painter' },
       'colour': { category: 'painting', skill: 'Painter' },
+      'colors': { category: 'painting', skill: 'Painter' },
+      'colours': { category: 'painting', skill: 'Painter' },
+      'decorator': { category: 'painting', skill: 'Painter' },
+      'decoration': { category: 'painting', skill: 'Painter' },
+      'सजावट': { category: 'painting', skill: 'Painter' },
+      'interior': { category: 'painting', skill: 'Painter' },
+      'exterior': { category: 'painting', skill: 'Painter' },
+      'house painting': { category: 'painting', skill: 'Painter' },
+      'home painting': { category: 'painting', skill: 'Painter' },
+      'घर रंगना': { category: 'painting', skill: 'Painter' },
+      'brush': { category: 'painting', skill: 'Painter' },
+      'ब्रश': { category: 'painting', skill: 'Painter' },
+      'roller': { category: 'painting', skill: 'Painter' },
+      'रोलर': { category: 'painting', skill: 'Painter' },
       
-      // Construction - all variations
+      // CONSTRUCTION - all variations
       'construction': { category: 'construction', skill: 'Construction' },
       'constructing': { category: 'construction', skill: 'Construction' },
       'construct': { category: 'construction', skill: 'Construction' },
+      'construction work': { category: 'construction', skill: 'Construction' },
+      'construction worker': { category: 'construction', skill: 'Construction' },
       'राजमिस्त्री': { category: 'construction', skill: 'Mason' },
+      'राज मिस्त्री': { category: 'construction', skill: 'Mason' },
       'मिस्त्री': { category: 'construction', skill: 'Mason' },
+      'मिस्री': { category: 'construction', skill: 'Mason' },
+      'मिस्तरी': { category: 'construction', skill: 'Mason' },
       'masonry': { category: 'construction', skill: 'Mason' },
+      'masonry work': { category: 'construction', skill: 'Mason' },
       'masons': { category: 'construction', skill: 'Mason' },
       'mason': { category: 'construction', skill: 'Mason' },
       'निर्माण': { category: 'construction', skill: 'Construction' },
+      'निर्माण कार्य': { category: 'construction', skill: 'Construction' },
       'builders': { category: 'construction', skill: 'Builder' },
       'builder': { category: 'construction', skill: 'Builder' },
       'building': { category: 'construction', skill: 'Builder' },
+      'building work': { category: 'construction', skill: 'Builder' },
       'build': { category: 'construction', skill: 'Builder' },
       'बिल्डर': { category: 'construction', skill: 'Builder' },
+      'बिल्डिंग': { category: 'construction', skill: 'Builder' },
       'cement': { category: 'construction', skill: 'Mason' },
+      'cement work': { category: 'construction', skill: 'Mason' },
       'सीमेंट': { category: 'construction', skill: 'Mason' },
+      'सीमेंट का काम': { category: 'construction', skill: 'Mason' },
       'ईंट': { category: 'construction', skill: 'Mason' },
+      'ईंट का काम': { category: 'construction', skill: 'Mason' },
+      'brick': { category: 'construction', skill: 'Mason' },
+      'bricks': { category: 'construction', skill: 'Mason' },
+      'brick work': { category: 'construction', skill: 'Mason' },
+      'brick laying': { category: 'construction', skill: 'Mason' },
+      'bricklaying': { category: 'construction', skill: 'Mason' },
+      'labor': { category: 'construction', skill: 'Construction' },
+      'labour': { category: 'construction', skill: 'Construction' },
+      'मजदूर': { category: 'construction', skill: 'Construction' },
+      'मजदूरी': { category: 'construction', skill: 'Construction' },
+      'site work': { category: 'construction', skill: 'Construction' },
+      'साइट': { category: 'construction', skill: 'Construction' },
+      'साइट का काम': { category: 'construction', skill: 'Construction' },
+      'concrete': { category: 'construction', skill: 'Mason' },
+      'कंक्रीट': { category: 'construction', skill: 'Mason' },
+      'plastering': { category: 'construction', skill: 'Mason' },
+      'plaster': { category: 'construction', skill: 'Mason' },
+      'प्लास्टर': { category: 'construction', skill: 'Mason' },
+      'पुताई': { category: 'construction', skill: 'Mason' },
+      'flooring': { category: 'construction', skill: 'Mason' },
+      'फर्श': { category: 'construction', skill: 'Mason' },
+      'tiles': { category: 'construction', skill: 'Mason' },
+      'टाइल्स': { category: 'construction', skill: 'Mason' },
+      'civil work': { category: 'construction', skill: 'Construction' },
+      'civil': { category: 'construction', skill: 'Construction' },
       
-      // Plumbing - all variations
+      // PLUMBING - all variations
       'plumbing': { category: 'plumbing', skill: 'Plumber' },
+      'plumbing work': { category: 'plumbing', skill: 'Plumber' },
       'plumbers': { category: 'plumbing', skill: 'Plumber' },
       'plumber': { category: 'plumbing', skill: 'Plumber' },
       'plumb': { category: 'plumbing', skill: 'Plumber' },
       'प्लंबर': { category: 'plumbing', skill: 'Plumber' },
+      'प्लम्बर': { category: 'plumbing', skill: 'Plumber' },
+      'प्लंबिंग': { category: 'plumbing', skill: 'Plumber' },
+      'नल मिस्त्री': { category: 'plumbing', skill: 'Plumber' },
+      'नल मिस्री': { category: 'plumbing', skill: 'Plumber' },
+      'पाइप मिस्त्री': { category: 'plumbing', skill: 'Plumber' },
       'drainage': { category: 'plumbing', skill: 'Plumber' },
+      'drainage work': { category: 'plumbing', skill: 'Plumber' },
       'pipes': { category: 'plumbing', skill: 'Plumber' },
       'pipe': { category: 'plumbing', skill: 'Plumber' },
+      'pipe work': { category: 'plumbing', skill: 'Plumber' },
+      'pipe fitting': { category: 'plumbing', skill: 'Plumber' },
       'पाइप': { category: 'plumbing', skill: 'Plumber' },
+      'पाइप का काम': { category: 'plumbing', skill: 'Plumber' },
       'water': { category: 'plumbing', skill: 'Plumber' },
+      'water supply': { category: 'plumbing', skill: 'Plumber' },
       'पानी': { category: 'plumbing', skill: 'Plumber' },
+      'पानी का काम': { category: 'plumbing', skill: 'Plumber' },
       'नाली': { category: 'plumbing', skill: 'Plumber' },
+      'नाली का काम': { category: 'plumbing', skill: 'Plumber' },
       'tap': { category: 'plumbing', skill: 'Plumber' },
+      'taps': { category: 'plumbing', skill: 'Plumber' },
+      'tap fitting': { category: 'plumbing', skill: 'Plumber' },
       'leak': { category: 'plumbing', skill: 'Plumber' },
+      'leakage': { category: 'plumbing', skill: 'Plumber' },
+      'लीकेज': { category: 'plumbing', skill: 'Plumber' },
       'नल': { category: 'plumbing', skill: 'Plumber' },
+      'नल लगाना': { category: 'plumbing', skill: 'Plumber' },
+      'bathroom': { category: 'plumbing', skill: 'Plumber' },
+      'बाथरूम': { category: 'plumbing', skill: 'Plumber' },
+      'toilet': { category: 'plumbing', skill: 'Plumber' },
+      'टॉयलेट': { category: 'plumbing', skill: 'Plumber' },
+      'sanitary': { category: 'plumbing', skill: 'Plumber' },
+      'सैनिटरी': { category: 'plumbing', skill: 'Plumber' },
+      'washbasin': { category: 'plumbing', skill: 'Plumber' },
+      'basin': { category: 'plumbing', skill: 'Plumber' },
+      'बेसिन': { category: 'plumbing', skill: 'Plumber' },
+      'geyser': { category: 'plumbing', skill: 'Plumber' },
+      'गीजर': { category: 'plumbing', skill: 'Plumber' },
+      'tank': { category: 'plumbing', skill: 'Plumber' },
+      'टंकी': { category: 'plumbing', skill: 'Plumber' },
       
-      // Electrical - all variations
+      // ELECTRICAL - all variations
       'बिजली मिस्त्री': { category: 'electrical', skill: 'Electrician' },
+      'बिजली मिस्री': { category: 'electrical', skill: 'Electrician' },
       'इलेक्ट्रीशियन': { category: 'electrical', skill: 'Electrician' },
+      'इलेक्ट्रिशियन': { category: 'electrical', skill: 'Electrician' },
       'electricians': { category: 'electrical', skill: 'Electrician' },
       'electrician': { category: 'electrical', skill: 'Electrician' },
       'electrical': { category: 'electrical', skill: 'Electrician' },
+      'electrical work': { category: 'electrical', skill: 'Electrician' },
       'electricity': { category: 'electrical', skill: 'Electrician' },
       'electric': { category: 'electrical', skill: 'Electrician' },
+      'electric work': { category: 'electrical', skill: 'Electrician' },
       'wiring': { category: 'electrical', skill: 'Electrician' },
+      'wiring work': { category: 'electrical', skill: 'Electrician' },
+      'house wiring': { category: 'electrical', skill: 'Electrician' },
       'बिजली': { category: 'electrical', skill: 'Electrician' },
+      'बिजली का काम': { category: 'electrical', skill: 'Electrician' },
+      'वायरिंग': { category: 'electrical', skill: 'Electrician' },
+      'तारों का काम': { category: 'electrical', skill: 'Electrician' },
       'lights': { category: 'electrical', skill: 'Electrician' },
       'light': { category: 'electrical', skill: 'Electrician' },
+      'light fitting': { category: 'electrical', skill: 'Electrician' },
+      'बत्ती': { category: 'electrical', skill: 'Electrician' },
+      'लाइट': { category: 'electrical', skill: 'Electrician' },
+      'लाइट लगाना': { category: 'electrical', skill: 'Electrician' },
       'switch': { category: 'electrical', skill: 'Electrician' },
+      'switches': { category: 'electrical', skill: 'Electrician' },
       'स्विच': { category: 'electrical', skill: 'Electrician' },
+      'स्विच बोर्ड': { category: 'electrical', skill: 'Electrician' },
       'wire': { category: 'electrical', skill: 'Electrician' },
+      'wires': { category: 'electrical', skill: 'Electrician' },
       'तार': { category: 'electrical', skill: 'Electrician' },
+      'तारें': { category: 'electrical', skill: 'Electrician' },
       'fan': { category: 'electrical', skill: 'Electrician' },
+      'fans': { category: 'electrical', skill: 'Electrician' },
+      'fan fitting': { category: 'electrical', skill: 'Electrician' },
       'पंखा': { category: 'electrical', skill: 'Electrician' },
+      'पंखा लगाना': { category: 'electrical', skill: 'Electrician' },
+      'socket': { category: 'electrical', skill: 'Electrician' },
+      'sockets': { category: 'electrical', skill: 'Electrician' },
+      'सॉकेट': { category: 'electrical', skill: 'Electrician' },
+      'plug': { category: 'electrical', skill: 'Electrician' },
+      'प्लग': { category: 'electrical', skill: 'Electrician' },
+      'meter': { category: 'electrical', skill: 'Electrician' },
+      'मीटर': { category: 'electrical', skill: 'Electrician' },
+      'board': { category: 'electrical', skill: 'Electrician' },
+      'बोर्ड': { category: 'electrical', skill: 'Electrician' },
+      'mcb': { category: 'electrical', skill: 'Electrician' },
+      'एमसीबी': { category: 'electrical', skill: 'Electrician' },
+      'inverter': { category: 'electrical', skill: 'Electrician' },
+      'इन्वर्टर': { category: 'electrical', skill: 'Electrician' },
+      'ups': { category: 'electrical', skill: 'Electrician' },
+      'यूपीएस': { category: 'electrical', skill: 'Electrician' },
       
-      // Carpentry - all variations
+      // CARPENTRY - all variations
       'carpenters': { category: 'carpentry', skill: 'Carpenter' },
       'carpenter': { category: 'carpentry', skill: 'Carpenter' },
       'carpentry': { category: 'carpentry', skill: 'Carpenter' },
+      'carpentry work': { category: 'carpentry', skill: 'Carpenter' },
+      'बढ़ई': { category: 'carpentry', skill: 'Carpenter' },
+      'बढ़ईगिरी': { category: 'carpentry', skill: 'Carpenter' },
+      'बढ़ई का काम': { category: 'carpentry', skill: 'Carpenter' },
       'furniture': { category: 'carpentry', skill: 'Carpenter' },
+      'furniture work': { category: 'carpentry', skill: 'Carpenter' },
+      'furniture making': { category: 'carpentry', skill: 'Carpenter' },
       'फर्नीचर': { category: 'carpentry', skill: 'Carpenter' },
+      'फर्नीचर बनाना': { category: 'carpentry', skill: 'Carpenter' },
       'woodwork': { category: 'carpentry', skill: 'Carpenter' },
+      'wood work': { category: 'carpentry', skill: 'Carpenter' },
       'wooden': { category: 'carpentry', skill: 'Carpenter' },
+      'wooden work': { category: 'carpentry', skill: 'Carpenter' },
       'लकड़ी': { category: 'carpentry', skill: 'Carpenter' },
+      'लकड़ी का काम': { category: 'carpentry', skill: 'Carpenter' },
       'दरवाजा': { category: 'carpentry', skill: 'Carpenter' },
+      'दरवाजे': { category: 'carpentry', skill: 'Carpenter' },
+      'दरवाजा बनाना': { category: 'carpentry', skill: 'Carpenter' },
       'अलमारी': { category: 'carpentry', skill: 'Carpenter' },
+      'अलमारी बनाना': { category: 'carpentry', skill: 'Carpenter' },
       'खिड़की': { category: 'carpentry', skill: 'Carpenter' },
+      'खिड़कियां': { category: 'carpentry', skill: 'Carpenter' },
       'cabinet': { category: 'carpentry', skill: 'Carpenter' },
+      'cabinets': { category: 'carpentry', skill: 'Carpenter' },
+      'cabinet making': { category: 'carpentry', skill: 'Carpenter' },
+      'कैबिनेट': { category: 'carpentry', skill: 'Carpenter' },
       'window': { category: 'carpentry', skill: 'Carpenter' },
+      'windows': { category: 'carpentry', skill: 'Carpenter' },
+      'window frame': { category: 'carpentry', skill: 'Carpenter' },
       'doors': { category: 'carpentry', skill: 'Carpenter' },
       'door': { category: 'carpentry', skill: 'Carpenter' },
+      'door frame': { category: 'carpentry', skill: 'Carpenter' },
       'wood': { category: 'carpentry', skill: 'Carpenter' },
-      'बढ़ई': { category: 'carpentry', skill: 'Carpenter' }
+      'wooden furniture': { category: 'carpentry', skill: 'Carpenter' },
+      'table': { category: 'carpentry', skill: 'Carpenter' },
+      'tables': { category: 'carpentry', skill: 'Carpenter' },
+      'मेज': { category: 'carpentry', skill: 'Carpenter' },
+      'chair': { category: 'carpentry', skill: 'Carpenter' },
+      'chairs': { category: 'carpentry', skill: 'Carpenter' },
+      'कुर्सी': { category: 'carpentry', skill: 'Carpenter' },
+      'bed': { category: 'carpentry', skill: 'Carpenter' },
+      'beds': { category: 'carpentry', skill: 'Carpenter' },
+      'बिस्तर': { category: 'carpentry', skill: 'Carpenter' },
+      'पलंग': { category: 'carpentry', skill: 'Carpenter' },
+      'shelf': { category: 'carpentry', skill: 'Carpenter' },
+      'shelves': { category: 'carpentry', skill: 'Carpenter' },
+      'शेल्फ': { category: 'carpentry', skill: 'Carpenter' },
+      'रैक': { category: 'carpentry', skill: 'Carpenter' },
+      'wardrobe': { category: 'carpentry', skill: 'Carpenter' },
+      'वार्डरोब': { category: 'carpentry', skill: 'Carpenter' },
+      'kitchen': { category: 'carpentry', skill: 'Carpenter' },
+      'kitchen cabinet': { category: 'carpentry', skill: 'Carpenter' },
+      'रसोई': { category: 'carpentry', skill: 'Carpenter' },
+      'modular': { category: 'carpentry', skill: 'Carpenter' },
+      'मॉड्यूलर': { category: 'carpentry', skill: 'Carpenter' },
+      
+      // WELDING - all variations
+      'welding': { category: 'welding', skill: 'Welder' },
+      'welder': { category: 'welding', skill: 'Welder' },
+      'welders': { category: 'welding', skill: 'Welder' },
+      'weld': { category: 'welding', skill: 'Welder' },
+      'welded': { category: 'welding', skill: 'Welder' },
+      'वेल्डिंग': { category: 'welding', skill: 'Welder' },
+      'वेल्डर': { category: 'welding', skill: 'Welder' },
+      'वेल्डिंग वाला': { category: 'welding', skill: 'Welder' },
+      'जोड़ना': { category: 'welding', skill: 'Welder' },
+      'जोड़ाई': { category: 'welding', skill: 'Welder' },
+      'धातु जोड़ना': { category: 'welding', skill: 'Welder' },
+      'arc welding': { category: 'welding', skill: 'Welder' },
+      'gas welding': { category: 'welding', skill: 'Welder' },
+      'tig welding': { category: 'welding', skill: 'Welder' },
+      'mig welding': { category: 'welding', skill: 'Welder' },
+      'आर्क वेल्डिंग': { category: 'welding', skill: 'Welder' },
+      'गैस वेल्डिंग': { category: 'welding', skill: 'Welder' },
+      'metal': { category: 'welding', skill: 'Welder' },
+      'metals': { category: 'welding', skill: 'Welder' },
+      'धातु': { category: 'welding', skill: 'Welder' },
+      'लोहा': { category: 'welding', skill: 'Welder' },
+      'स्टील': { category: 'welding', skill: 'Welder' },
+      'steel': { category: 'welding', skill: 'Welder' },
+      'iron': { category: 'welding', skill: 'Welder' },
+      'fabrication': { category: 'welding', skill: 'Welder' },
+      'फैब्रिकेशन': { category: 'welding', skill: 'Welder' },
+      'cutting': { category: 'welding', skill: 'Welder' },
+      'कटिंग': { category: 'welding', skill: 'Welder' },
+      'torch': { category: 'welding', skill: 'Welder' },
+      'टॉर्च': { category: 'welding', skill: 'Welder' },
+      
+      // DELIVERY - all variations
+      'delivery': { category: 'delivery', skill: 'Delivery' },
+      'delivery boy': { category: 'delivery', skill: 'Delivery' },
+      'delivery man': { category: 'delivery', skill: 'Delivery' },
+      'delivery person': { category: 'delivery', skill: 'Delivery' },
+      'डिलीवरी': { category: 'delivery', skill: 'Delivery' },
+      'डिलीवरी बॉय': { category: 'delivery', skill: 'Delivery' },
+      'डिलीवरी वाला': { category: 'delivery', skill: 'Delivery' },
+      'सप्लाई': { category: 'delivery', skill: 'Delivery' },
+      'supply': { category: 'delivery', skill: 'Delivery' },
+      'courier': { category: 'delivery', skill: 'Delivery' },
+      'कूरियर': { category: 'delivery', skill: 'Delivery' },
+      'bike': { category: 'delivery', skill: 'Delivery' },
+      'बाइक': { category: 'delivery', skill: 'Delivery' },
+      'motorcycle': { category: 'delivery', skill: 'Delivery' },
+      'मोटरसाइकिल': { category: 'delivery', skill: 'Delivery' },
+      'scooter': { category: 'delivery', skill: 'Delivery' },
+      'स्कूटर': { category: 'delivery', skill: 'Delivery' },
+      'food delivery': { category: 'delivery', skill: 'Delivery' },
+      'खाना डिलीवरी': { category: 'delivery', skill: 'Delivery' },
+      'package': { category: 'delivery', skill: 'Delivery' },
+      'पैकेज': { category: 'delivery', skill: 'Delivery' },
+      'parcel': { category: 'delivery', skill: 'Delivery' },
+      'पार्सल': { category: 'delivery', skill: 'Delivery' },
+      'logistics': { category: 'delivery', skill: 'Delivery' },
+      'लॉजिस्टिक्स': { category: 'delivery', skill: 'Delivery' },
+      'transport': { category: 'delivery', skill: 'Delivery' },
+      'ट्रांसपोर्ट': { category: 'delivery', skill: 'Delivery' },
+      'driver': { category: 'delivery', skill: 'Driver' },
+      'ड्राइवर': { category: 'delivery', skill: 'Driver' },
+      'driving': { category: 'delivery', skill: 'Driver' },
+      'ड्राइविंग': { category: 'delivery', skill: 'Driver' },
+      
+      // SECURITY - all variations
+      'security': { category: 'security', skill: 'Security' },
+      'security guard': { category: 'security', skill: 'Security' },
+      'guard': { category: 'security', skill: 'Security' },
+      'सिक्योरिटी': { category: 'security', skill: 'Security' },
+      'सिक्योरिटी गार्ड': { category: 'security', skill: 'Security' },
+      'गार्ड': { category: 'security', skill: 'Security' },
+      'चौकीदार': { category: 'security', skill: 'Security' },
+      'रक्षक': { category: 'security', skill: 'Security' },
+      'watchman': { category: 'security', skill: 'Security' },
+      'वॉचमैन': { category: 'security', skill: 'Security' },
+      'night guard': { category: 'security', skill: 'Security' },
+      'रात का गार्ड': { category: 'security', skill: 'Security' },
+      'bouncer': { category: 'security', skill: 'Security' },
+      'बाउंसर': { category: 'security', skill: 'Security' },
+      'patrol': { category: 'security', skill: 'Security' },
+      'पेट्रोल': { category: 'security', skill: 'Security' },
+      'surveillance': { category: 'security', skill: 'Security' },
+      'निगरानी': { category: 'security', skill: 'Security' },
+      'cctv': { category: 'security', skill: 'Security' },
+      'सीसीटीवी': { category: 'security', skill: 'Security' },
+      'monitoring': { category: 'security', skill: 'Security' },
+      'मॉनिटरिंग': { category: 'security', skill: 'Security' },
+      
+      // HOUSEKEEPING - all variations
+      'housekeeping': { category: 'housekeeping', skill: 'Housekeeper' },
+      'housekeeper': { category: 'housekeeping', skill: 'Housekeeper' },
+      'cleaning': { category: 'housekeeping', skill: 'Cleaner' },
+      'cleaner': { category: 'housekeeping', skill: 'Cleaner' },
+      'cleaners': { category: 'housekeeping', skill: 'Cleaner' },
+      'clean': { category: 'housekeeping', skill: 'Cleaner' },
+      'cleaned': { category: 'housekeeping', skill: 'Cleaner' },
+      'हाउसकीपिंग': { category: 'housekeeping', skill: 'Housekeeper' },
+      'सफाई': { category: 'housekeeping', skill: 'Cleaner' },
+      'सफाई वाला': { category: 'housekeeping', skill: 'Cleaner' },
+      'सफाई वाली': { category: 'housekeeping', skill: 'Cleaner' },
+      'झाड़ू': { category: 'housekeeping', skill: 'Cleaner' },
+      'पोछा': { category: 'housekeeping', skill: 'Cleaner' },
+      'धुलाई': { category: 'housekeeping', skill: 'Cleaner' },
+      'मेड': { category: 'housekeeping', skill: 'Housekeeper' },
+      'maid': { category: 'housekeeping', skill: 'Housekeeper' },
+      'domestic': { category: 'housekeeping', skill: 'Housekeeper' },
+      'घरेलू': { category: 'housekeeping', skill: 'Housekeeper' },
+      'janitor': { category: 'housekeeping', skill: 'Cleaner' },
+      'जैनिटर': { category: 'housekeeping', skill: 'Cleaner' },
+      'sweeper': { category: 'housekeeping', skill: 'Cleaner' },
+      'स्वीपर': { category: 'housekeeping', skill: 'Cleaner' },
+      'mopping': { category: 'housekeeping', skill: 'Cleaner' },
+      'मॉपिंग': { category: 'housekeeping', skill: 'Cleaner' },
+      'dusting': { category: 'housekeeping', skill: 'Cleaner' },
+      'डस्टिंग': { category: 'housekeeping', skill: 'Cleaner' },
+      'vacuum': { category: 'housekeeping', skill: 'Cleaner' },
+      'वैक्यूम': { category: 'housekeeping', skill: 'Cleaner' },
+      
+      // MANUFACTURING - all variations
+      'manufacturing': { category: 'manufacturing', skill: 'Factory Worker' },
+      'factory': { category: 'manufacturing', skill: 'Factory Worker' },
+      'factory worker': { category: 'manufacturing', skill: 'Factory Worker' },
+      'production': { category: 'manufacturing', skill: 'Production Worker' },
+      'मैन्युफैक्चरिंग': { category: 'manufacturing', skill: 'Factory Worker' },
+      'फैक्ट्री': { category: 'manufacturing', skill: 'Factory Worker' },
+      'कारखाना': { category: 'manufacturing', skill: 'Factory Worker' },
+      'उत्पादन': { category: 'manufacturing', skill: 'Production Worker' },
+      'प्रोडक्शन': { category: 'manufacturing', skill: 'Production Worker' },
+      'assembly': { category: 'manufacturing', skill: 'Assembly Worker' },
+      'असेंबली': { category: 'manufacturing', skill: 'Assembly Worker' },
+      'machine': { category: 'manufacturing', skill: 'Machine Operator' },
+      'machines': { category: 'manufacturing', skill: 'Machine Operator' },
+      'मशीन': { category: 'manufacturing', skill: 'Machine Operator' },
+      'operator': { category: 'manufacturing', skill: 'Machine Operator' },
+      'ऑपरेटर': { category: 'manufacturing', skill: 'Machine Operator' },
+      'textile': { category: 'manufacturing', skill: 'Textile Worker' },
+      'टेक्सटाइल': { category: 'manufacturing', skill: 'Textile Worker' },
+      'garment': { category: 'manufacturing', skill: 'Garment Worker' },
+      'गारमेंट': { category: 'manufacturing', skill: 'Garment Worker' },
+      'sewing': { category: 'manufacturing', skill: 'Tailor' },
+      'सिलाई': { category: 'manufacturing', skill: 'Tailor' },
+      'tailor': { category: 'manufacturing', skill: 'Tailor' },
+      'दर्जी': { category: 'manufacturing', skill: 'Tailor' },
+      'packaging': { category: 'manufacturing', skill: 'Packer' },
+      'पैकेजिंग': { category: 'manufacturing', skill: 'Packer' },
+      'packing': { category: 'manufacturing', skill: 'Packer' },
+      'पैकिंग': { category: 'manufacturing', skill: 'Packer' },
+      'quality': { category: 'manufacturing', skill: 'Quality Inspector' },
+      'क्वालिटी': { category: 'manufacturing', skill: 'Quality Inspector' },
+      'inspection': { category: 'manufacturing', skill: 'Quality Inspector' },
+      'इंस्पेक्शन': { category: 'manufacturing', skill: 'Quality Inspector' }
     };
     
     // Extract job type and category - ONLY if it maps to one of the 5 categories
@@ -202,67 +544,181 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
   };
 
   const quickActions = [
-    { id: 'payslip', label: '💰 Analyze My Payslip', prompt: 'Help me understand my payslip and check if my wages are correct' },
-    { id: 'jobs', label: '🔍 Find Jobs', prompt: 'I am looking for a job. Can you help me find suitable opportunities?' },
-    { id: 'grievance', label: '📝 Write Grievance', prompt: 'I have a workplace issue and need help writing a formal complaint' },
-    { id: 'rights', label: '⚖️ Worker Rights', prompt: 'What are my rights as a worker in India?' },
-    { id: 'skills', label: '🎓 Skill Development', prompt: 'How can I improve my skills to get better jobs?' },
-    { id: 'contract', label: '📄 Review Contract', prompt: 'I have a job offer. Can you help me review the contract?' }
+    { id: 'payslip', label: '💰 पेस्लिप विश्लेषण / Analyze Payslip', prompt: 'मेरी पेस्लिप समझने और वेतन सही है या नहीं चेक करने में मदद करें / Help me understand my payslip and check if my wages are correct' },
+    { id: 'jobs', label: '🔍 नौकरी खोजें / Find Jobs', prompt: 'मैं नौकरी की तलाश में हूं। क्या आप उपयुक्त अवसर खोजने में मदद कर सकते हैं? / I am looking for a job. Can you help me find suitable opportunities?' },
+    { id: 'grievance', label: '📝 शिकायत लिखें / Write Grievance', prompt: 'मेरी कार्यक्षेत्र में समस्या है और औपचारिक शिकायत लिखने में मदद चाहिए / I have a workplace issue and need help writing a formal complaint' },
+    { id: 'rights', label: '⚖️ मजदूर अधिकार / Worker Rights', prompt: 'भारत में मजदूर के रूप में मेरे क्या अधिकार हैं? / What are my rights as a worker in India?' },
+    { id: 'skills', label: '🎓 कौशल विकास / Skill Development', prompt: 'बेहतर नौकरी पाने के लिए मैं अपने कौशल कैसे सुधार सकता हूं? / How can I improve my skills to get better jobs?' },
+    { id: 'contract', label: '📄 कॉन्ट्रैक्ट समीक्षा / Review Contract', prompt: 'मेरे पास नौकरी का ऑफर है। क्या आप कॉन्ट्रैक्ट की समीक्षा में मदद कर सकते हैं? / I have a job offer. Can you help me review the contract?' }
   ];
 
-  // Voice Recognition Setup
-  const startVoiceRecognition = () => {
+  // Enhanced Voice Recognition Setup with Multi-Language Support
+      const startVoiceRecognition = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.');
+      alert('आवाज पहचान आपके ब्राउज़र में समर्थित नहीं है। कृपया Chrome या Edge का उपयोग करें।');
       return;
     }
+
+    // Prevent starting if already listening or processing
+    if (isListening || voiceProcessing) {
+      console.log('🎤 Voice recognition already active, skipping');
+      return;
+    }
+
+    // CRITICAL: Stop any existing speech before starting recognition
+    stopSpeaking();
+    
+    // Reset processing flag at start
+    setVoiceProcessing(false);
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
-    // Support both Hindi and English
-    recognition.lang = 'en-IN'; // English (India) - better for mixed Hindi-English
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
+    // Enhanced settings for better Hindi/English mixed speech recognition
+    recognition.lang = 'hi-IN'; // Hindi (India) - primary language for better Hindi word recognition
+    recognition.interimResults = true; // Enable interim results for better feedback
+    recognition.maxAlternatives = 5; // Get more alternatives for better accuracy
+    recognition.continuous = false; // Single utterance mode
+    
+    // Enhanced audio processing settings (if supported)
+    if (recognition.audioTrack) {
+      recognition.audioTrack.echoCancellation = true;
+      recognition.audioTrack.noiseSuppression = true;
+      recognition.audioTrack.autoGainControl = true;
+    }
+
+    let finalTranscript = '';
+    let interimTranscript = '';
+    let fallbackUsed = false; // Flag to prevent double sending
 
     recognition.onstart = () => {
       setIsListening(true);
-      console.log('🎤 Voice recognition started');
+      finalTranscript = '';
+      interimTranscript = '';
+      console.log('🎤 Enhanced voice recognition started (Hindi mode)');
     };
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      console.log('🎤 Heard:', transcript);
-      console.log('🎤 All alternatives:', Array.from(event.results[0]).map(r => r.transcript));
-      setInputMessage(transcript);
-      setIsListening(false);
+      interimTranscript = '';
       
-      // Auto-send the message
-      handleSendMessage(transcript);
+      // Process all results
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      // Show interim results in input field for better UX
+      const displayText = finalTranscript + interimTranscript;
+      setInputMessage(displayText);
+      
+      console.log('🎤 Final:', finalTranscript);
+      console.log('🎤 Interim:', interimTranscript);
+      
+      // Log all alternatives for debugging
+      if (event.results[event.results.length - 1].isFinal) {
+        const alternatives = Array.from(event.results[event.results.length - 1]).map(r => ({
+          transcript: r.transcript,
+          confidence: r.confidence
+        }));
+        console.log('🎤 All alternatives with confidence:', alternatives);
+        
+        // Try fallback to English if Hindi confidence is low
+        if (alternatives[0].confidence < 0.6) { // Lowered threshold for better recognition
+          console.log('🎤 Low confidence, trying English fallback...');
+          fallbackUsed = true; // Mark that fallback is being used
+          tryEnglishFallback(finalTranscript);
+          return;
+        }
+      }
     };
 
     recognition.onerror = (event) => {
       console.error('🎤 Voice recognition error:', event.error);
       setIsListening(false);
-      alert(`Voice recognition error: ${event.error}`);
+      
+      // Provide more helpful error messages in Hindi
+      let errorMessage = 'आवाज पहचान में त्रुटि: ';
+      switch (event.error) {
+        case 'network':
+          errorMessage += 'नेटवर्क कनेक्शन की समस्या। कृपया अपना इंटरनेट चेक करें।';
+          break;
+        case 'not-allowed':
+          errorMessage += 'माइक्रोफोन की अनुमति नहीं मिली। कृपया माइक्रोफोन की अनुमति दें।';
+          break;
+        case 'no-speech':
+          errorMessage += 'कोई आवाज नहीं सुनाई दी। कृपया स्पष्ट रूप से बोलें।';
+          break;
+        case 'audio-capture':
+          errorMessage += 'माइक्रोफोन नहीं मिला। कृपया अपना माइक्रोफोन चेक करें।';
+          break;
+        default:
+          errorMessage += event.error;
+      }
+      alert(errorMessage);
     };
 
     recognition.onend = () => {
       setIsListening(false);
       console.log('🎤 Voice recognition ended');
+      
+      // Auto-send the final message if we have content and not already processing and fallback wasn't used
+      if (finalTranscript.trim() && !voiceProcessing && !fallbackUsed) {
+        setVoiceProcessing(true);
+        console.log('🎤 Sending final transcript:', finalTranscript);
+        handleSendMessage(finalTranscript.trim());
+        // Reset processing flag after a delay
+        setTimeout(() => setVoiceProcessing(false), 1000);
+      }
     };
 
     recognition.start();
   };
 
-  // Text-to-Speech for AI responses using AWS Polly
+  // Fallback function to try English recognition if Hindi fails
+  const tryEnglishFallback = (hindiTranscript) => {
+    console.log('🎤 Trying English fallback recognition...');
+    
+    // Prevent duplicate processing
+    if (voiceProcessing) {
+      console.log('🎤 Voice already processing, skipping fallback');
+      return;
+    }
+    
+    // Just use the Hindi result directly - no need for additional English recognition
+    // This simplifies the logic and prevents multiple calls
+    if (!voiceProcessing && hindiTranscript.trim()) {
+      setVoiceProcessing(true);
+      console.log('🎤 Using Hindi transcript from fallback:', hindiTranscript);
+      setInputMessage(hindiTranscript);
+      handleSendMessage(hindiTranscript);
+      setTimeout(() => setVoiceProcessing(false), 1000);
+    }
+  };
+
+  // Text-to-Speech for AI responses using AWS Polly (Hindi Priority) - SINGLE VOICE ONLY
   const speakText = async (text) => {
     try {
+      // CRITICAL: Stop any existing speech first to prevent double voices
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      
+      // Stop any ongoing speech synthesis immediately
+      setIsSpeaking(false);
+      
+      // Small delay to ensure cleanup
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       setIsSpeaking(true);
-      console.log('🔊 Speaking with AWS Polly:', text);
+      console.log('🔊 Speaking with AWS Polly (Hindi):', text);
       
       await pollyService.speak(text, 'hi-IN', {
-        rate: 0.9,
+        rate: 0.8, // Slower for Hindi clarity
         volume: 1,
         onStart: () => {
           setIsSpeaking(true);
@@ -273,47 +729,75 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
         onError: (error) => {
           console.error('🔊 Polly error:', error);
           setIsSpeaking(false);
-          // Fallback to browser TTS
+          // Fallback to browser TTS with Hindi
           fallbackToWebSpeech(text);
         }
       });
     } catch (error) {
       console.error('🔊 Speech error:', error);
       setIsSpeaking(false);
-      // Fallback to browser TTS
+      // Fallback to browser TTS with Hindi
       fallbackToWebSpeech(text);
     }
   };
 
-  // Fallback to browser Web Speech API if Polly fails
+  // Fallback to browser Web Speech API with Hindi priority - SINGLE VOICE ONLY
   const fallbackToWebSpeech = (text) => {
     if (!('speechSynthesis' in window)) {
       console.warn('Text-to-speech not supported');
       return;
     }
 
+    // CRITICAL: Cancel any existing speech to prevent double voices
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'hi-IN';
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 1;
+    
+    // Additional delay to ensure complete cancellation
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'hi-IN'; // Hindi (India) as primary
+      utterance.rate = 0.8; // Slower for Hindi clarity
+      utterance.pitch = 1;
+      utterance.volume = 1;
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+      };
 
-    window.speechSynthesis.speak(utterance);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }, 200); // Delay to ensure previous speech is fully stopped
   };
 
-  // Stop speaking
+  // Stop speaking function - Enhanced cleanup
   const stopSpeaking = () => {
-    // Stop AWS Polly
-    pollyService.stop();
+    console.log('🔇 Stopping all speech synthesis...');
     
-    // Stop browser TTS as fallback
-    if ('speechSynthesis' in window) {
+    // Stop AWS Polly
+    if (pollyService && pollyService.stop) {
+      pollyService.stop();
+    }
+    
+    // Stop browser TTS as fallback - multiple attempts for reliability
+    if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
+      // Additional cleanup attempts
+      setTimeout(() => {
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+        }
+      }, 100);
+      setTimeout(() => {
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+        }
+      }, 300);
     }
     
     setIsSpeaking(false);
@@ -370,26 +854,28 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
               
               // Store filter params in sessionStorage for the JobSearch component to read
               // IMPORTANT: Store category in lowercase to match CATEGORIES array
-              sessionStorage.setItem('job_search_filters', JSON.stringify({
+              const filterData = {
                 category: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
                 searchQuery: jobDetails.skills || '',
-                location: jobDetails.location || ''
-              }));
+                location: jobDetails.location || '',
+                enableLocation: true, // Enable location automatically
+                scrollToCategory: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null // Scroll to specific category
+              };
+              
+              sessionStorage.setItem('job_search_filters', JSON.stringify(filterData));
               
               const jobSearchUrl = `/jobs${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
               console.log('🔗 Job search URL:', jobSearchUrl);
-              console.log('💾 Stored filters in sessionStorage:', {
-                category: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
-                searchQuery: jobDetails.skills || '',
-                location: jobDetails.location || ''
-              });
+              console.log('💾 Stored enhanced filters in sessionStorage:', filterData);
+              
               suggestedActions.push({ 
-                label: `🔍 Find ${jobDetails.skills || jobDetails.jobType || 'Jobs'}`, 
+                label: `🎯 Find ${jobDetails.skills || jobDetails.jobType || 'Jobs'}${jobDetails.location ? ` in ${jobDetails.location}` : ' Near You'}`, 
                 path: 'home',  // Navigate to home tab where JobFeed is displayed
-                filters: {
-                  category: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
-                  searchQuery: jobDetails.skills || '',
-                  location: jobDetails.location || ''
+                filters: filterData,
+                autoActions: {
+                  enableLocation: true,
+                  scrollToCategory: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
+                  focusOnResults: true
                 }
               });
             }
@@ -464,26 +950,65 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
           sessionStorage.setItem('job_search_filters', JSON.stringify(firstAction.filters));
           console.log('💾 Auto-stored filters:', firstAction.filters);
         }
+        
+        // Store auto-actions for enhanced automation
+        if (firstAction.autoActions) {
+          sessionStorage.setItem('job_search_auto_actions', JSON.stringify(firstAction.autoActions));
+          console.log('🤖 Auto-stored auto-actions:', firstAction.autoActions);
+        }
+        
         if (onTabChange && firstAction.path) {
           console.log('🔄 Auto-switching to tab:', firstAction.path);
           console.log('🔄 Calling onTabChange function...');
           setTimeout(() => {
             console.log('🔄 Executing onTabChange NOW');
             onTabChange(firstAction.path);
+            
+            // Execute auto-actions after tab switch
+            if (firstAction.autoActions) {
+              setTimeout(() => {
+                // Auto-enable location
+                if (firstAction.autoActions.enableLocation) {
+                  console.log('📍 Auto-enabling location...');
+                  window.dispatchEvent(new CustomEvent('enableLocation'));
+                }
+                
+                // Auto-scroll to category
+                if (firstAction.autoActions.scrollToCategory) {
+                  console.log('📜 Auto-scrolling to category:', firstAction.autoActions.scrollToCategory);
+                  window.dispatchEvent(new CustomEvent('scrollToCategory', {
+                    detail: { category: firstAction.autoActions.scrollToCategory }
+                  }));
+                }
+              }, 1500); // Wait for tab to fully load
+            }
           }, 500); // Reduced to 0.5 seconds
         } else {
           console.error('❌ Cannot auto-switch: onTabChange=' + !!onTabChange + ', path=' + firstAction.path);
         }
         
-        // Voice narration using AWS Polly (if available)
+        // Voice narration using AWS Polly (if available) - SINGLE VOICE ONLY
         if (voiceMode) {
-          speakText(response);
+          // CRITICAL: Stop any existing speech before starting new speech
+          stopSpeaking();
+          setTimeout(() => {
+            speakText(response);
+          }, 500); // Increased delay to ensure complete cleanup
         }
       } else {
         console.log('⚠️ Agentic mode not executing:', {
           agenticMode,
           actionsLength: suggestedActions.length
         });
+        
+        // Still provide voice response even if no actions
+        if (voiceMode) {
+          // CRITICAL: Stop any existing speech before starting new speech
+          stopSpeaking();
+          setTimeout(() => {
+            speakText(response);
+          }, 500); // Increased delay for consistency
+        }
       }
     } catch (error) {
       const errorMessage = {
@@ -750,15 +1275,50 @@ Please be more specific about what you need help with, or use the quick action b
                           console.log('🔘 onTabChange available?', !!onTabChange);
                           console.log('🔘 action.path:', action.path);
                           
+                          // Stop any ongoing speech before navigation
+                          stopSpeaking();
+                          
                           // Store filters if provided
                           if (action.filters) {
                             sessionStorage.setItem('job_search_filters', JSON.stringify(action.filters));
                             console.log('💾 Stored filters:', action.filters);
                           }
+                          
+                          // Store auto-actions for the target component
+                          if (action.autoActions) {
+                            sessionStorage.setItem('job_search_auto_actions', JSON.stringify(action.autoActions));
+                            console.log('🤖 Stored auto-actions:', action.autoActions);
+                          }
+                          
                           // Navigate to tab using parent callback if available
                           if (onTabChange && action.path) {
                             console.log('🔄 Calling onTabChange with:', action.path);
-                            onTabChange(action.path);
+                            
+                            // Smooth tab transition with slight delay
+                            setTimeout(() => {
+                              onTabChange(action.path);
+                              
+                              // Additional delay for auto-actions after tab switch
+                              if (action.autoActions) {
+                                setTimeout(() => {
+                                  // Trigger location enable if requested
+                                  if (action.autoActions.enableLocation) {
+                                    console.log('📍 Auto-enabling location...');
+                                    // Dispatch custom event for location enabling
+                                    window.dispatchEvent(new CustomEvent('enableLocation'));
+                                  }
+                                  
+                                  // Trigger scroll to category if requested
+                                  if (action.autoActions.scrollToCategory) {
+                                    console.log('📜 Auto-scrolling to category:', action.autoActions.scrollToCategory);
+                                    // Dispatch custom event for scrolling
+                                    window.dispatchEvent(new CustomEvent('scrollToCategory', {
+                                      detail: { category: action.autoActions.scrollToCategory }
+                                    }));
+                                  }
+                                }, 1000); // Wait for tab to fully load
+                              }
+                            }, 100);
                           } else if (action.path) {
                             console.warn('⚠️ onTabChange not available, using fallback');
                             // Fallback: store the tab to switch to and reload
@@ -835,10 +1395,12 @@ Please be more specific about what you need help with, or use the quick action b
               <div className="voice-input-container">
                 <button
                   onClick={startVoiceRecognition}
-                  disabled={isLoading || isListening}
-                  className={`voice-record-btn ${isListening ? 'listening' : ''}`}
+                  disabled={isLoading || isListening || voiceProcessing}
+                  className={`voice-record-btn ${isListening ? 'listening' : ''} ${voiceProcessing ? 'processing' : ''}`}
                 >
-                  {isListening ? '🎤 Listening...' : '🎤 Tap to Speak'}
+                  {voiceProcessing ? '⏳ Processing...' : 
+                   isListening ? '🎤 Listening...' : 
+                   '🎤 Tap to Speak'}
                 </button>
                 {isSpeaking && (
                   <button

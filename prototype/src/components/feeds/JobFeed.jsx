@@ -28,33 +28,71 @@ const JHARKHAND_CITIES = [
 ];
 
 /**
- * Job titles and categories - STRICT KEYWORDS ONLY
+ * Job titles and categories - COMPREHENSIVE JOB CATEGORIES
  */
 const JOB_CATEGORIES = {
   construction: ['Construction Worker', 'Mason', 'Building Helper', 'Site Supervisor', 'Concrete Mixer'],
-  welder: ['Welder', 'Arc Welder', 'Gas Welder', 'Metal Fabricator', 'Cutting Operator'],
-  electrician: ['Electrician', 'Electrical Helper', 'Wiring Technician', 'Electrical Supervisor', 'Panel Operator'],
-  painter: ['Painter', 'Wall Painter', 'Spray Painter', 'Texture Artist', 'Color Mixer'],
-  carpenter: ['Carpenter', 'Wood Worker', 'Furniture Maker', 'Cabinet Installer', 'Flooring Specialist']
+  welding: ['Welder', 'Arc Welder', 'Gas Welder', 'Metal Fabricator', 'Cutting Operator'],
+  electrical: ['Electrician', 'Electrical Helper', 'Wiring Technician', 'Electrical Supervisor', 'Panel Operator'],
+  painting: ['Painter', 'Wall Painter', 'Spray Painter', 'Texture Artist', 'Color Mixer'],
+  carpentry: [
+    'Carpenter', 'Wood Worker', 'Furniture Maker', 'Cabinet Installer', 'Flooring Specialist',
+    'Door Frame Installer', 'Window Frame Maker', 'Modular Kitchen Installer', 'Wardrobe Maker',
+    'Bed Frame Carpenter', 'Table Maker', 'Chair Maker', 'Sofa Frame Carpenter', 'Wooden Partition Installer',
+    'Ceiling Work Carpenter', 'Staircase Carpenter', 'Wooden Railing Installer', 'Plywood Cutter',
+    'Laminate Installer', 'Veneer Worker', 'Wood Polisher', 'Furniture Repair Specialist',
+    'Custom Furniture Maker', 'Interior Carpenter', 'Residential Carpenter', 'Commercial Carpenter'
+  ],
+  plumbing: ['Plumber', 'Pipe Fitter', 'Drainage Specialist', 'Water Supply Technician', 'Sanitary Installer'],
+  delivery: ['Delivery Boy', 'Courier', 'Food Delivery', 'Package Delivery', 'Logistics Helper'],
+  security: ['Security Guard', 'Watchman', 'Night Guard', 'Bouncer', 'CCTV Operator'],
+  housekeeping: ['Housekeeper', 'Cleaner', 'Janitor', 'Domestic Helper', 'Office Cleaner'],
+  manufacturing: ['Factory Worker', 'Production Worker', 'Assembly Worker', 'Machine Operator', 'Quality Inspector']
 };
 
 /**
- * Company names for Jharkhand
+ * Company names for Jharkhand - ENHANCED WITH CARPENTER BUSINESSES
  */
 const COMPANIES = [
+  // Major Industrial Companies
   'Jharkhand Construction Ltd', 'Ranchi Builders', 'Tata Steel Projects', 'SAIL Contractors',
   'Coal India Services', 'Jharkhand Infrastructure', 'Bokaro Steel Works', 'Hindalco Projects',
   'Adani Mining Services', 'Vedanta Resources', 'JSW Steel Contractors', 'NTPC Projects',
+  
+  // City-specific Companies
   'Ranchi Municipal Corp', 'Jamshedpur Development', 'Dhanbad Coal Services', 'Hazaribagh Builders',
   'Giridih Stone Works', 'Deoghar Tourism Dept', 'Ramgarh Industries', 'Chaibasa Tribal Dev',
+  
+  // Jamshedpur Carpenter & Furniture Companies
+  'Jamshedpur Furniture Hub', 'Tata Steel Township Carpentry', 'Bistupur Furniture Works', 'Sakchi Wood Works',
+  'Kadma Modular Kitchen', 'Sidhgora Furniture Mart', 'Mango Carpenter Services', 'Jugsalai Wood Craft',
+  'Adityapur Furniture Factory', 'Telco Carpenter Guild', 'Golmuri Wood Works', 'Parsudih Furniture',
+  'Jamshedpur Custom Furniture', 'Steel City Carpentry', 'Dimna Lake Resort Carpentry', 'JRD Tata Complex Carpentry',
+  
+  // Ranchi Carpenter Companies
+  'Ranchi Furniture Plaza', 'Hinoo Carpenter Services', 'Kanke Wood Works', 'Doranda Furniture Mart',
+  'Lalpur Modular Kitchen', 'Bariatu Carpenter Guild', 'Ratu Road Furniture', 'Harmu Carpenter Services',
+  
+  // Government & Public Sector
   'Jharkhand Road Construction', 'State Electricity Board', 'Water Supply Department', 'Forest Department',
   'Rural Development Corp', 'Urban Development Authority', 'Industrial Development Corp', 'Mining Corporation',
   'Agricultural Development', 'Transport Corporation', 'Housing Board', 'Public Works Department',
+  
+  // Skill Development & Employment
   'Skill Development Mission', 'Employment Exchange', 'Labour Department', 'Tribal Welfare Dept',
   'Women Development Corp', 'Youth Development', 'Sports Authority', 'Tourism Development',
+  
+  // Traditional & Handicraft
   'Handicrafts Board', 'Handloom Corporation', 'Sericulture Department', 'Fisheries Department',
   'Animal Husbandry Dept', 'Dairy Development', 'Horticulture Department', 'Watershed Development',
-  'MGNREGA Projects', 'Swachh Bharat Mission', 'Digital India Initiative', 'Skill India Mission'
+  
+  // Government Schemes
+  'MGNREGA Projects', 'Swachh Bharat Mission', 'Digital India Initiative', 'Skill India Mission',
+  
+  // Private Carpenter & Furniture Businesses
+  'Jharkhand Timber Traders', 'Plywood Palace Jamshedpur', 'Godrej Interio Ranchi', 'Nilkamal Furniture',
+  'Hometown Furniture Jamshedpur', 'Urban Ladder Ranchi', 'Carpenter King Services', 'Wood Craft Industries',
+  'Modern Furniture Solutions', 'Heritage Wood Works', 'Royal Furniture Jamshedpur', 'Elite Carpenter Services'
 ];
 
 /**
@@ -76,26 +114,41 @@ function generateMockJobs() {
       const randomTitle = jobTitles[Math.floor(Math.random() * jobTitles.length)];
       const randomCompany = COMPANIES[Math.floor(Math.random() * COMPANIES.length)];
       
-      // Generate salary based on job category
+      // Generate salary based on job category - COMPREHENSIVE WAGE RANGES
       const salaryRanges = {
         construction: [800, 1500], // Daily wage rates
-        welder: [1200, 2200],
-        electrician: [1000, 2000],
-        painter: [700, 1300],
-        carpenter: [800, 1600]
+        welding: [1200, 2200],
+        electrical: [1000, 2000],
+        painting: [700, 1300],
+        carpentry: [900, 1800], // Enhanced range for skilled carpenter work
+        plumbing: [900, 1700],
+        delivery: [600, 1200],
+        security: [500, 1000],
+        housekeeping: [400, 800],
+        manufacturing: [600, 1300]
       };
       
       const [minSalary, maxSalary] = salaryRanges[randomCategory];
       const adjustedMin = minSalary + Math.floor(Math.random() * 200);
       const adjustedMax = maxSalary + Math.floor(Math.random() * 300);
       
-      // Generate skills based on category
+      // Generate skills based on category - COMPREHENSIVE SKILL SETS
       const skillSets = {
         construction: ['Construction', 'Safety Protocols', 'Physical Fitness', 'Tool Handling', 'Blueprint Reading'],
-        welder: ['Arc Welding', 'Gas Welding', 'Metal Fabrication', 'Safety', 'Blueprint Reading'],
-        electrician: ['Electrical Wiring', 'Circuit Testing', 'Safety', 'Troubleshooting', 'Panel Installation'],
-        painter: ['Wall Painting', 'Color Mixing', 'Surface Preparation', 'Spray Painting', 'Texture Work'],
-        carpenter: ['Wood Working', 'Furniture Making', 'Tool Handling', 'Measurement', 'Finishing']
+        welding: ['Arc Welding', 'Gas Welding', 'Metal Fabrication', 'Safety', 'Blueprint Reading'],
+        electrical: ['Electrical Wiring', 'Circuit Testing', 'Safety', 'Troubleshooting', 'Panel Installation'],
+        painting: ['Wall Painting', 'Color Mixing', 'Surface Preparation', 'Spray Painting', 'Texture Work'],
+        carpentry: [
+          'Wood Working', 'Furniture Making', 'Tool Handling', 'Measurement', 'Finishing',
+          'Plywood Cutting', 'Laminate Work', 'Modular Kitchen', 'Wardrobe Installation', 'Door Fitting',
+          'Window Frame', 'Custom Furniture', 'Wood Polishing', 'Veneer Work', 'Interior Design',
+          'Carpentry Tools', 'Wood Joints', 'Furniture Repair', 'Cabinet Making', 'Flooring Work'
+        ],
+        plumbing: ['Pipe Fitting', 'Water Supply', 'Drainage', 'Sanitary Installation', 'Leak Repair'],
+        delivery: ['Bike Riding', 'Navigation', 'Customer Service', 'Time Management', 'Package Handling'],
+        security: ['Surveillance', 'Patrol', 'Emergency Response', 'CCTV Operation', 'Safety Protocols'],
+        housekeeping: ['Cleaning', 'Maintenance', 'Organization', 'Hygiene Standards', 'Equipment Handling'],
+        manufacturing: ['Machine Operation', 'Quality Control', 'Assembly', 'Production Planning', 'Safety Compliance']
       };
       
       const categorySkills = skillSets[randomCategory];
@@ -241,6 +294,77 @@ export default function JobFeed() {
         console.error('Error parsing stored filters:', error);
       }
     }
+  }, []);
+
+  // Listen for AI automation events
+  useEffect(() => {
+    const handleEnableLocation = () => {
+      console.log('🤖 AI automation: Enabling location...');
+      setUseRealLocation(true);
+      getUserLocation();
+    };
+
+    const handleScrollToCategory = (event) => {
+      const { category } = event.detail;
+      console.log('🤖 AI automation: Scrolling to category:', category);
+      
+      // Set the category filter
+      setSelectedCategory(category);
+      
+      // Scroll to the category section after a delay
+      setTimeout(() => {
+        const categoryElement = document.querySelector(`[data-category="${category}"]`);
+        if (categoryElement) {
+          categoryElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        } else {
+          // If no specific category element, scroll to job results
+          const jobResults = document.querySelector('.job-feed__results');
+          if (jobResults) {
+            jobResults.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start' 
+            });
+          }
+        }
+      }, 1000);
+    };
+
+    // Add event listeners
+    window.addEventListener('enableLocation', handleEnableLocation);
+    window.addEventListener('scrollToCategory', handleScrollToCategory);
+
+    // Check for stored auto-actions
+    const storedAutoActions = sessionStorage.getItem('job_search_auto_actions');
+    if (storedAutoActions) {
+      try {
+        const autoActions = JSON.parse(storedAutoActions);
+        console.log('🤖 Executing stored auto-actions:', autoActions);
+        
+        if (autoActions.enableLocation) {
+          setTimeout(() => handleEnableLocation(), 500);
+        }
+        
+        if (autoActions.scrollToCategory) {
+          setTimeout(() => {
+            handleScrollToCategory({ detail: { category: autoActions.scrollToCategory } });
+          }, 1500);
+        }
+        
+        // Clear stored auto-actions
+        sessionStorage.removeItem('job_search_auto_actions');
+      } catch (error) {
+        console.error('Error parsing stored auto-actions:', error);
+      }
+    }
+
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('enableLocation', handleEnableLocation);
+      window.removeEventListener('scrollToCategory', handleScrollToCategory);
+    };
   }, []);
 
   /**
@@ -554,13 +678,19 @@ export default function JobFeed() {
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="job-feed__category-select"
+            data-category="category-selector"
           >
             <option value="all">{t('jobs:allCategories', 'All Categories')}</option>
-            <option value="construction">{t('jobs:construction', 'Construction')}</option>
-            <option value="welder">{t('jobs:welder', 'Welder')}</option>
-            <option value="electrician">{t('jobs:electrician', 'Electrician')}</option>
-            <option value="painter">{t('jobs:painter', 'Painter')}</option>
-            <option value="carpenter">{t('jobs:carpenter', 'Carpenter')}</option>
+            <option value="construction" data-category="construction">{t('jobs:construction', 'Construction')}</option>
+            <option value="welding" data-category="welding">{t('jobs:welding', 'Welding')}</option>
+            <option value="electrical" data-category="electrical">{t('jobs:electrical', 'Electrical')}</option>
+            <option value="painting" data-category="painting">{t('jobs:painting', 'Painting')}</option>
+            <option value="carpentry" data-category="carpentry">{t('jobs:carpentry', 'Carpentry')}</option>
+            <option value="plumbing" data-category="plumbing">{t('jobs:plumbing', 'Plumbing')}</option>
+            <option value="delivery" data-category="delivery">{t('jobs:delivery', 'Delivery')}</option>
+            <option value="security" data-category="security">{t('jobs:security', 'Security')}</option>
+            <option value="housekeeping" data-category="housekeeping">{t('jobs:housekeeping', 'Housekeeping')}</option>
+            <option value="manufacturing" data-category="manufacturing">{t('jobs:manufacturing', 'Manufacturing')}</option>
           </select>
 
           <input
@@ -630,7 +760,7 @@ export default function JobFeed() {
         </div>
       </div>
 
-      <div className="job-feed__list">
+      <div className="job-feed__list job-feed__results" data-category="job-results">
         {filteredJobs.length === 0 ? (
           <div className="job-feed__empty">
             <p>{t('jobs:noJobs', 'No jobs found matching your criteria.')}</p>
