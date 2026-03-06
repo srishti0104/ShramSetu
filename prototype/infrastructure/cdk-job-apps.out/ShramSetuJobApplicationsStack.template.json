@@ -1,0 +1,1709 @@
+{
+ "Resources": {
+  "JobApplicationsTable22D2998F": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "applicationId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "userId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "appliedAt",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "contractorId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "contractorJobIndex",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "GlobalSecondaryIndexes": [
+     {
+      "IndexName": "UserApplicationsIndex",
+      "KeySchema": [
+       {
+        "AttributeName": "userId",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "appliedAt",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      }
+     },
+     {
+      "IndexName": "ContractorApplicationsIndex",
+      "KeySchema": [
+       {
+        "AttributeName": "contractorId",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "appliedAt",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      }
+     },
+     {
+      "IndexName": "ContractorJobIndex",
+      "KeySchema": [
+       {
+        "AttributeName": "contractorJobIndex",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "appliedAt",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      }
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "applicationId",
+      "KeyType": "HASH"
+     }
+    ],
+    "PointInTimeRecoverySpecification": {
+     "PointInTimeRecoveryEnabled": true
+    },
+    "TableName": "Shram-setu-job-applications"
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsTable/Resource"
+   }
+  },
+  "SubmitApplicationFunctionServiceRole2C4E825C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/SubmitApplicationFunction/ServiceRole/Resource"
+   }
+  },
+  "SubmitApplicationFunctionServiceRoleDefaultPolicyB01ADA63": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "JobApplicationsTable22D2998F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "JobApplicationsTable22D2998F",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SubmitApplicationFunctionServiceRoleDefaultPolicyB01ADA63",
+    "Roles": [
+     {
+      "Ref": "SubmitApplicationFunctionServiceRole2C4E825C"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/SubmitApplicationFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "SubmitApplicationFunctionEA09C60C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-808840719701-ap-south-1",
+     "S3Key": "cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "JOB_APPLICATIONS_TABLE": {
+       "Ref": "JobApplicationsTable22D2998F"
+      }
+     }
+    },
+    "Handler": "submit-application.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "SubmitApplicationFunctionServiceRole2C4E825C",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "SubmitApplicationFunctionServiceRoleDefaultPolicyB01ADA63",
+    "SubmitApplicationFunctionServiceRole2C4E825C"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/SubmitApplicationFunction/Resource",
+    "aws:asset:path": "asset.cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetUserApplicationsFunctionServiceRoleA25F8623": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/GetUserApplicationsFunction/ServiceRole/Resource"
+   }
+  },
+  "GetUserApplicationsFunctionServiceRoleDefaultPolicy9121C2B5": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "JobApplicationsTable22D2998F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "JobApplicationsTable22D2998F",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetUserApplicationsFunctionServiceRoleDefaultPolicy9121C2B5",
+    "Roles": [
+     {
+      "Ref": "GetUserApplicationsFunctionServiceRoleA25F8623"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/GetUserApplicationsFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetUserApplicationsFunctionFE9248E2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-808840719701-ap-south-1",
+     "S3Key": "cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "JOB_APPLICATIONS_TABLE": {
+       "Ref": "JobApplicationsTable22D2998F"
+      }
+     }
+    },
+    "Handler": "get-user-applications.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "GetUserApplicationsFunctionServiceRoleA25F8623",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "GetUserApplicationsFunctionServiceRoleDefaultPolicy9121C2B5",
+    "GetUserApplicationsFunctionServiceRoleA25F8623"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/GetUserApplicationsFunction/Resource",
+    "aws:asset:path": "asset.cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetContractorApplicationsFunctionServiceRole5125465F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/GetContractorApplicationsFunction/ServiceRole/Resource"
+   }
+  },
+  "GetContractorApplicationsFunctionServiceRoleDefaultPolicy6CE5ED95": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "JobApplicationsTable22D2998F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "JobApplicationsTable22D2998F",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetContractorApplicationsFunctionServiceRoleDefaultPolicy6CE5ED95",
+    "Roles": [
+     {
+      "Ref": "GetContractorApplicationsFunctionServiceRole5125465F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/GetContractorApplicationsFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetContractorApplicationsFunctionD92A2A6D": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-808840719701-ap-south-1",
+     "S3Key": "cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "JOB_APPLICATIONS_TABLE": {
+       "Ref": "JobApplicationsTable22D2998F"
+      }
+     }
+    },
+    "Handler": "get-contractor-applications.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "GetContractorApplicationsFunctionServiceRole5125465F",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "GetContractorApplicationsFunctionServiceRoleDefaultPolicy6CE5ED95",
+    "GetContractorApplicationsFunctionServiceRole5125465F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/GetContractorApplicationsFunction/Resource",
+    "aws:asset:path": "asset.cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "UpdateApplicationStatusFunctionServiceRole8F2C3BE2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/UpdateApplicationStatusFunction/ServiceRole/Resource"
+   }
+  },
+  "UpdateApplicationStatusFunctionServiceRoleDefaultPolicy4C8F5E40": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "JobApplicationsTable22D2998F",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "JobApplicationsTable22D2998F",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "UpdateApplicationStatusFunctionServiceRoleDefaultPolicy4C8F5E40",
+    "Roles": [
+     {
+      "Ref": "UpdateApplicationStatusFunctionServiceRole8F2C3BE2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/UpdateApplicationStatusFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "UpdateApplicationStatusFunction2F7843B7": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-808840719701-ap-south-1",
+     "S3Key": "cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "JOB_APPLICATIONS_TABLE": {
+       "Ref": "JobApplicationsTable22D2998F"
+      }
+     }
+    },
+    "Handler": "update-application-status.handler",
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "UpdateApplicationStatusFunctionServiceRole8F2C3BE2",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "UpdateApplicationStatusFunctionServiceRoleDefaultPolicy4C8F5E40",
+    "UpdateApplicationStatusFunctionServiceRole8F2C3BE2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/UpdateApplicationStatusFunction/Resource",
+    "aws:asset:path": "asset.cfe7b4d4ce349c24caa33804a0614b151a07a4b5a486404e4b53980843ba2d74",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "JobApplicationsApiF3431E18": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Description": "API for managing job applications",
+    "Name": "Shram Setu Job Applications API"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Resource"
+   }
+  },
+  "JobApplicationsApiCloudWatchRole14625092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/CloudWatchRole/Resource"
+   }
+  },
+  "JobApplicationsApiAccount5E526970": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "JobApplicationsApiCloudWatchRole14625092",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "JobApplicationsApiF3431E18"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Account"
+   }
+  },
+  "JobApplicationsApiDeploymentB6974178c4e4feca59c3f57811f7afe13414037f": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "API for managing job applications",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "DependsOn": [
+    "JobApplicationsApiapplicationsapplicationIdOPTIONS2C96E24F",
+    "JobApplicationsApiapplicationsapplicationId852976E2",
+    "JobApplicationsApiapplicationsapplicationIdstatusOPTIONSE193C665",
+    "JobApplicationsApiapplicationsapplicationIdstatusPUTA685ABD2",
+    "JobApplicationsApiapplicationsapplicationIdstatus7A1C881D",
+    "JobApplicationsApiapplicationscontractorcontractorIdGET2C60265F",
+    "JobApplicationsApiapplicationscontractorcontractorIdOPTIONS60015854",
+    "JobApplicationsApiapplicationscontractorcontractorIdB9AD9350",
+    "JobApplicationsApiapplicationscontractorOPTIONSC633F104",
+    "JobApplicationsApiapplicationscontractorE4225A5D",
+    "JobApplicationsApiapplicationsOPTIONSB7CABE3A",
+    "JobApplicationsApiapplications15BAF511",
+    "JobApplicationsApiapplicationssubmitOPTIONSBA0A8455",
+    "JobApplicationsApiapplicationssubmitPOSTA0F102BA",
+    "JobApplicationsApiapplicationssubmit74F9C190",
+    "JobApplicationsApiapplicationsuseruserIdGET914C28C6",
+    "JobApplicationsApiapplicationsuseruserIdOPTIONSD3EB996E",
+    "JobApplicationsApiapplicationsuseruserId0C207498",
+    "JobApplicationsApiapplicationsuserOPTIONS0545B7E3",
+    "JobApplicationsApiapplicationsuserD8C16F68",
+    "JobApplicationsApiOPTIONSE569467A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Deployment/Resource",
+    "aws:cdk:do-not-refactor": true
+   }
+  },
+  "JobApplicationsApiDeploymentStageprod23B5C8C5": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "JobApplicationsApiDeploymentB6974178c4e4feca59c3f57811f7afe13414037f"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    },
+    "StageName": "prod"
+   },
+   "DependsOn": [
+    "JobApplicationsApiAccount5E526970"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/DeploymentStage.prod/Resource"
+   }
+  },
+  "JobApplicationsApiOPTIONSE569467A": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "JobApplicationsApiF3431E18",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplications15BAF511": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "JobApplicationsApiF3431E18",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "applications",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsOPTIONSB7CABE3A": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplications15BAF511"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationssubmit74F9C190": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplications15BAF511"
+    },
+    "PathPart": "submit",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/submit/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationssubmitOPTIONSBA0A8455": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationssubmit74F9C190"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/submit/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationssubmitPOSTApiPermissionShramSetuJobApplicationsStackJobApplicationsApi36459EC8POSTapplicationssubmit2207A924": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "SubmitApplicationFunctionEA09C60C",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/",
+       {
+        "Ref": "JobApplicationsApiDeploymentStageprod23B5C8C5"
+       },
+       "/POST/applications/submit"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/submit/POST/ApiPermission.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.POST..applications.submit"
+   }
+  },
+  "JobApplicationsApiapplicationssubmitPOSTApiPermissionTestShramSetuJobApplicationsStackJobApplicationsApi36459EC8POSTapplicationssubmit8C1C48DD": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "SubmitApplicationFunctionEA09C60C",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/test-invoke-stage/POST/applications/submit"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/submit/POST/ApiPermission.Test.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.POST..applications.submit"
+   }
+  },
+  "JobApplicationsApiapplicationssubmitPOSTA0F102BA": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "SubmitApplicationFunctionEA09C60C",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationssubmit74F9C190"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/submit/POST/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsuserD8C16F68": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplications15BAF511"
+    },
+    "PathPart": "user",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsuserOPTIONS0545B7E3": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationsuserD8C16F68"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsuseruserId0C207498": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplicationsuserD8C16F68"
+    },
+    "PathPart": "{userId}",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/{userId}/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsuseruserIdOPTIONSD3EB996E": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationsuseruserId0C207498"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/{userId}/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsuseruserIdGETApiPermissionShramSetuJobApplicationsStackJobApplicationsApi36459EC8GETapplicationsuseruserIdFF72D056": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetUserApplicationsFunctionFE9248E2",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/",
+       {
+        "Ref": "JobApplicationsApiDeploymentStageprod23B5C8C5"
+       },
+       "/GET/applications/user/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/{userId}/GET/ApiPermission.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.GET..applications.user.{userId}"
+   }
+  },
+  "JobApplicationsApiapplicationsuseruserIdGETApiPermissionTestShramSetuJobApplicationsStackJobApplicationsApi36459EC8GETapplicationsuseruserIdF108CCE7": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetUserApplicationsFunctionFE9248E2",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/test-invoke-stage/GET/applications/user/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/{userId}/GET/ApiPermission.Test.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.GET..applications.user.{userId}"
+   }
+  },
+  "JobApplicationsApiapplicationsuseruserIdGET914C28C6": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "GetUserApplicationsFunctionFE9248E2",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationsuseruserId0C207498"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/user/{userId}/GET/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorE4225A5D": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplications15BAF511"
+    },
+    "PathPart": "contractor",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorOPTIONSC633F104": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationscontractorE4225A5D"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorcontractorIdB9AD9350": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplicationscontractorE4225A5D"
+    },
+    "PathPart": "{contractorId}",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/{contractorId}/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorcontractorIdOPTIONS60015854": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationscontractorcontractorIdB9AD9350"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/{contractorId}/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorcontractorIdGETApiPermissionShramSetuJobApplicationsStackJobApplicationsApi36459EC8GETapplicationscontractorcontractorIdF462C821": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetContractorApplicationsFunctionD92A2A6D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/",
+       {
+        "Ref": "JobApplicationsApiDeploymentStageprod23B5C8C5"
+       },
+       "/GET/applications/contractor/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/{contractorId}/GET/ApiPermission.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.GET..applications.contractor.{contractorId}"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorcontractorIdGETApiPermissionTestShramSetuJobApplicationsStackJobApplicationsApi36459EC8GETapplicationscontractorcontractorIdFBF12F57": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetContractorApplicationsFunctionD92A2A6D",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/test-invoke-stage/GET/applications/contractor/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/{contractorId}/GET/ApiPermission.Test.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.GET..applications.contractor.{contractorId}"
+   }
+  },
+  "JobApplicationsApiapplicationscontractorcontractorIdGET2C60265F": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "GetContractorApplicationsFunctionD92A2A6D",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationscontractorcontractorIdB9AD9350"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/contractor/{contractorId}/GET/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationId852976E2": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplications15BAF511"
+    },
+    "PathPart": "{applicationId}",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationIdOPTIONS2C96E24F": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationsapplicationId852976E2"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationIdstatus7A1C881D": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "JobApplicationsApiapplicationsapplicationId852976E2"
+    },
+    "PathPart": "status",
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/status/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationIdstatusOPTIONSE193C665": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,Accept,Authorization'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationsapplicationIdstatus7A1C881D"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/status/OPTIONS/Resource"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationIdstatusPUTApiPermissionShramSetuJobApplicationsStackJobApplicationsApi36459EC8PUTapplicationsapplicationIdstatus92D8502E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "UpdateApplicationStatusFunction2F7843B7",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/",
+       {
+        "Ref": "JobApplicationsApiDeploymentStageprod23B5C8C5"
+       },
+       "/PUT/applications/*/status"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/status/PUT/ApiPermission.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.PUT..applications.{applicationId}.status"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationIdstatusPUTApiPermissionTestShramSetuJobApplicationsStackJobApplicationsApi36459EC8PUTapplicationsapplicationIdstatusDC6B1D04": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "UpdateApplicationStatusFunction2F7843B7",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:aws:execute-api:ap-south-1:808840719701:",
+       {
+        "Ref": "JobApplicationsApiF3431E18"
+       },
+       "/test-invoke-stage/PUT/applications/*/status"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/status/PUT/ApiPermission.Test.ShramSetuJobApplicationsStackJobApplicationsApi36459EC8.PUT..applications.{applicationId}.status"
+   }
+  },
+  "JobApplicationsApiapplicationsapplicationIdstatusPUTA685ABD2": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "PUT",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "UpdateApplicationStatusFunction2F7843B7",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "JobApplicationsApiapplicationsapplicationIdstatus7A1C881D"
+    },
+    "RestApiId": {
+     "Ref": "JobApplicationsApiF3431E18"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/JobApplicationsApi/Default/applications/{applicationId}/status/PUT/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02OQW+DMAyFf0vvwevgMO1IN/U2raK7VyZ4LAUShJ0hFPHfp4RO7el99rOfnUNevMJ+hzNnuumy3tQQzoK6UzjzJTSLxcE1NYQvrHtSb982wap6HOoGIRy91WKcjdYjn2gaDLNxdlUGBwiV2/aTnlxv9JLmEq2KiwsykzCUURQXcPC6Izkgk8LRtCg04wKhIpZyNCnrjqXWzltR7zT2bhnISuw+VGfBNj2wQUXs/KQpxX+Q/Lgmmjf6d29HEq/rvZ1+jEHGtnHm08voZVXWNQRXfvrNc3h+gf3uysZkk7diBoJq0z8O32DKdQEAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "ShramSetuJobApplicationsStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "JobApplicationsApiEndpointD1762F95": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "JobApplicationsApiF3431E18"
+      },
+      ".execute-api.ap-south-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "JobApplicationsApiDeploymentStageprod23B5C8C5"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "JobApplicationsApiUrl": {
+   "Description": "Job Applications API Gateway URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "JobApplicationsApiF3431E18"
+      },
+      ".execute-api.ap-south-1.",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "JobApplicationsApiDeploymentStageprod23B5C8C5"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "JobApplicationsTableName": {
+   "Description": "Job Applications DynamoDB Table Name",
+   "Value": {
+    "Ref": "JobApplicationsTable22D2998F"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

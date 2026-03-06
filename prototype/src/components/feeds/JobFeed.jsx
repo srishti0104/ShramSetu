@@ -6,104 +6,155 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import ContractorProfile from '../contractors/ContractorProfile';
 import './JobFeed.css';
 
 /**
- * Mock job data with coordinates - In real app, this would come from API
+ * Jharkhand cities with coordinates
  */
-const MOCK_JOBS = [
-  {
-    id: 1,
-    title: 'Construction Worker',
-    company: 'BuildTech Solutions',
-    location: 'Mumbai, Maharashtra',
-    coordinates: { lat: 19.0760, lng: 72.8777 }, // Mumbai coordinates
-    salary: '₹15,000 - ₹25,000',
-    type: 'Full-time',
-    experience: '1-3 years',
-    skills: ['Construction', 'Safety Protocols', 'Physical Fitness'],
-    description: 'Looking for experienced construction workers for residential project.',
-    postedDate: '2024-03-01',
-    urgent: true,
-    positions: 5
-  },
-  {
-    id: 2,
-    title: 'Electrical Technician',
-    company: 'PowerGrid Services',
-    location: 'Sector 15, Noida',
-    coordinates: { lat: 28.5355, lng: 77.3910 }, // Noida coordinates
-    salary: '₹18,000 - ₹30,000',
-    type: 'Contract',
-    experience: '2-5 years',
-    skills: ['Electrical Wiring', 'Circuit Testing', 'Safety'],
-    description: 'Electrical technician needed for industrial maintenance work.',
-    postedDate: '2024-02-28',
-    urgent: false,
-    positions: 3,
-    duration: '3 months'
-  },
-  {
-    id: 3,
-    title: 'Painter',
-    company: 'Home Decor Plus',
-    location: 'Delhi, NCR',
-    coordinates: { lat: 28.7041, lng: 77.1025 }, // Delhi coordinates
-    salary: '₹12,000 - ₹20,000',
-    type: 'Part-time',
-    experience: '0-2 years',
-    skills: ['Wall Painting', 'Color Mixing', 'Surface Preparation'],
-    description: 'Residential painting work for multiple projects across Delhi.',
-    postedDate: '2024-02-27',
-    urgent: false,
-    positions: 2
-  },
-  {
-    id: 4,
-    title: 'Plumber',
-    company: 'AquaFix Solutions',
-    location: 'Bangalore, Karnataka',
-    coordinates: { lat: 12.9716, lng: 77.5946 }, // Bangalore coordinates
-    salary: '₹16,000 - ₹28,000',
-    type: 'Full-time',
-    experience: '1-4 years',
-    skills: ['Pipe Installation', 'Leak Repair', 'Drainage Systems'],
-    description: 'Experienced plumber for residential and commercial projects.',
-    postedDate: '2024-02-26',
-    urgent: true,
-    positions: 4
-  },
-  {
-    id: 5,
-    title: 'Carpenter',
-    company: 'WoodCraft Industries',
-    location: 'Chennai, Tamil Nadu',
-    coordinates: { lat: 13.0827, lng: 80.2707 }, // Chennai coordinates
-    salary: '₹14,000 - ₹24,000',
-    type: 'Full-time',
-    experience: '2-6 years',
-    skills: ['Wood Working', 'Furniture Making', 'Tool Handling'],
-    description: 'Skilled carpenter for custom furniture and interior work.',
-    postedDate: '2024-02-25',
-    urgent: false,
-    positions: 1
-  },
-  {
-    id: 6,
-    title: 'Welder',
-    company: 'MetalWorks Ltd',
-    location: 'Hyderabad, Telangana',
-    coordinates: { lat: 17.3850, lng: 78.4867 }, // Hyderabad coordinates
-    salary: '₹20,000 - ₹35,000',
-    type: 'Full-time',
-    experience: '3-7 years',
-    skills: ['Arc Welding', 'Gas Welding', 'Metal Fabrication'],
-    description: 'Experienced welder for industrial manufacturing projects.',
-    postedDate: '2024-02-24',
-    urgent: true,
-    positions: 2
-  }
+const JHARKHAND_CITIES = [
+  { name: 'Ranchi', lat: 23.3441, lng: 85.3096 },
+  { name: 'Jamshedpur', lat: 22.8046, lng: 86.2029 },
+  { name: 'Dhanbad', lat: 23.7957, lng: 86.4304 },
+  { name: 'Bokaro', lat: 23.6693, lng: 86.1511 },
+  { name: 'Deoghar', lat: 24.4823, lng: 86.6961 },
+  { name: 'Phusro', lat: 23.7939, lng: 86.0326 },
+  { name: 'Hazaribagh', lat: 23.9929, lng: 85.3647 },
+  { name: 'Giridih', lat: 24.1901, lng: 86.3008 },
+  { name: 'Ramgarh', lat: 23.6309, lng: 85.5169 },
+  { name: 'Medininagar', lat: 24.0174, lng: 84.0736 },
+  { name: 'Chirkunda', lat: 23.7280, lng: 86.7219 },
+  { name: 'Chaibasa', lat: 22.5541, lng: 85.8066 }
 ];
+
+/**
+ * Job titles and categories - STRICT KEYWORDS ONLY
+ */
+const JOB_CATEGORIES = {
+  construction: ['Construction Worker', 'Mason', 'Building Helper', 'Site Supervisor', 'Concrete Mixer'],
+  welder: ['Welder', 'Arc Welder', 'Gas Welder', 'Metal Fabricator', 'Cutting Operator'],
+  electrician: ['Electrician', 'Electrical Helper', 'Wiring Technician', 'Electrical Supervisor', 'Panel Operator'],
+  painter: ['Painter', 'Wall Painter', 'Spray Painter', 'Texture Artist', 'Color Mixer'],
+  carpenter: ['Carpenter', 'Wood Worker', 'Furniture Maker', 'Cabinet Installer', 'Flooring Specialist']
+};
+
+/**
+ * Company names for Jharkhand
+ */
+const COMPANIES = [
+  'Jharkhand Construction Ltd', 'Ranchi Builders', 'Tata Steel Projects', 'SAIL Contractors',
+  'Coal India Services', 'Jharkhand Infrastructure', 'Bokaro Steel Works', 'Hindalco Projects',
+  'Adani Mining Services', 'Vedanta Resources', 'JSW Steel Contractors', 'NTPC Projects',
+  'Ranchi Municipal Corp', 'Jamshedpur Development', 'Dhanbad Coal Services', 'Hazaribagh Builders',
+  'Giridih Stone Works', 'Deoghar Tourism Dept', 'Ramgarh Industries', 'Chaibasa Tribal Dev',
+  'Jharkhand Road Construction', 'State Electricity Board', 'Water Supply Department', 'Forest Department',
+  'Rural Development Corp', 'Urban Development Authority', 'Industrial Development Corp', 'Mining Corporation',
+  'Agricultural Development', 'Transport Corporation', 'Housing Board', 'Public Works Department',
+  'Skill Development Mission', 'Employment Exchange', 'Labour Department', 'Tribal Welfare Dept',
+  'Women Development Corp', 'Youth Development', 'Sports Authority', 'Tourism Development',
+  'Handicrafts Board', 'Handloom Corporation', 'Sericulture Department', 'Fisheries Department',
+  'Animal Husbandry Dept', 'Dairy Development', 'Horticulture Department', 'Watershed Development',
+  'MGNREGA Projects', 'Swachh Bharat Mission', 'Digital India Initiative', 'Skill India Mission'
+];
+
+/**
+ * Generate mock jobs data - INTRACITY FOCUS
+ */
+function generateMockJobs() {
+  const jobs = [];
+  const jobTypes = ['Daily Wage', 'Contract']; // Removed Full-time and Part-time for short-term focus
+  const experienceLevels = ['0-1 years', '1-3 years', '2-5 years'];
+  
+  // Generate jobs for each city separately to keep them intracity
+  JHARKHAND_CITIES.forEach((city, cityIndex) => {
+    const jobsPerCity = Math.floor(200 / JHARKHAND_CITIES.length); // Distribute jobs evenly across cities
+    
+    for (let i = 1; i <= jobsPerCity; i++) {
+      const categoryKeys = Object.keys(JOB_CATEGORIES);
+      const randomCategory = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+      const jobTitles = JOB_CATEGORIES[randomCategory];
+      const randomTitle = jobTitles[Math.floor(Math.random() * jobTitles.length)];
+      const randomCompany = COMPANIES[Math.floor(Math.random() * COMPANIES.length)];
+      
+      // Generate salary based on job category
+      const salaryRanges = {
+        construction: [800, 1500], // Daily wage rates
+        welder: [1200, 2200],
+        electrician: [1000, 2000],
+        painter: [700, 1300],
+        carpenter: [800, 1600]
+      };
+      
+      const [minSalary, maxSalary] = salaryRanges[randomCategory];
+      const adjustedMin = minSalary + Math.floor(Math.random() * 200);
+      const adjustedMax = maxSalary + Math.floor(Math.random() * 300);
+      
+      // Generate skills based on category
+      const skillSets = {
+        construction: ['Construction', 'Safety Protocols', 'Physical Fitness', 'Tool Handling', 'Blueprint Reading'],
+        welder: ['Arc Welding', 'Gas Welding', 'Metal Fabrication', 'Safety', 'Blueprint Reading'],
+        electrician: ['Electrical Wiring', 'Circuit Testing', 'Safety', 'Troubleshooting', 'Panel Installation'],
+        painter: ['Wall Painting', 'Color Mixing', 'Surface Preparation', 'Spray Painting', 'Texture Work'],
+        carpenter: ['Wood Working', 'Furniture Making', 'Tool Handling', 'Measurement', 'Finishing']
+      };
+      
+      const categorySkills = skillSets[randomCategory];
+      const jobSkills = categorySkills.slice(0, Math.floor(Math.random() * 3) + 2);
+      
+      // Generate posting date (last 7 days for recent jobs)
+      const daysAgo = Math.floor(Math.random() * 7);
+      const postDate = new Date();
+      postDate.setDate(postDate.getDate() - daysAgo);
+      
+      // Generate duration - mostly 1 day, some 3-5 days max
+      const durationOptions = [
+        '1 day', '1 day', '1 day', '1 day', '1 day', '1 day', // 60% are 1 day
+        '2 days', '2 days', // 20% are 2 days
+        '3 days', '4 days', '5 days' // 20% are 3-5 days
+      ];
+      const randomDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
+      
+      const globalJobId = cityIndex * jobsPerCity + i;
+      
+      jobs.push({
+        id: globalJobId,
+        title: randomTitle,
+        company: randomCompany,
+        location: `${city.name}, Jharkhand`, // All jobs within the same city
+        coordinates: { 
+          // Add small random offset within city (±0.01 degrees ≈ ±1km)
+          lat: city.lat + (Math.random() - 0.5) * 0.02, 
+          lng: city.lng + (Math.random() - 0.5) * 0.02 
+        },
+        salary: `₹${adjustedMin.toLocaleString()}/day`, // Daily wage format
+        type: jobTypes[Math.floor(Math.random() * jobTypes.length)],
+        experience: experienceLevels[Math.floor(Math.random() * experienceLevels.length)],
+        skills: jobSkills,
+        description: `Looking for ${randomTitle.toLowerCase()} for ${randomDuration} ${randomCategory} work in ${city.name}. ${randomDuration === '1 day' ? 'Same day payment.' : 'Payment on completion.'}`,
+        postedDate: postDate.toISOString().split('T')[0],
+        urgent: Math.random() < 0.4, // 40% chance of being urgent for short-term work
+        positions: Math.floor(Math.random() * 5) + 1, // 1-5 positions
+        duration: randomDuration,
+        category: randomCategory,
+        contractorId: `contractor_${Math.floor(Math.random() * 50) + 1}`,
+        contactNumber: `+91 ${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+        workingHours: randomDuration === '1 day' ? 
+          ['8 hours', '10 hours', '12 hours'][Math.floor(Math.random() * 3)] :
+          '8-10 hours/day',
+        benefits: Math.random() < 0.3 ? 
+          ['Food provided', 'Transport', 'Tools provided'][Math.floor(Math.random() * 3)] : null,
+        cityFocus: city.name // Track which city this job belongs to
+      });
+    }
+  });
+  
+  return jobs;
+}
+
+/**
+ * Mock job data with 200 jobs in Jharkhand cities
+ */
+const MOCK_JOBS = generateMockJobs();
 
 /**
  * Job Feed Component
@@ -124,7 +175,47 @@ export default function JobFeed() {
 
   // Load jobs on mount
   useEffect(() => {
-    loadJobs();
+    const loadJobsAsync = async () => {
+      try {
+        setLoading(true);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay
+        
+        let jobsWithDistance = [...MOCK_JOBS];
+        
+        // Calculate distances if user location is available
+        if (useRealLocation && userLocation) {
+          jobsWithDistance = MOCK_JOBS.map(job => {
+            const distance = calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              job.coordinates.lat,
+              job.coordinates.lng
+            );
+            
+            return {
+              ...job,
+              distance: distance < 1 ? 
+                `${Math.round(distance * 1000)}m away` : 
+                `${distance.toFixed(1)}km away`,
+              distanceKm: distance
+            };
+          });
+          
+          // Sort by distance when using real location
+          jobsWithDistance.sort((a, b) => a.distanceKm - b.distanceKm);
+        }
+        
+        setJobs(jobsWithDistance);
+      } catch (error) {
+        console.error('Failed to load jobs:', error);
+        setJobs(MOCK_JOBS); // Fallback to original jobs
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadJobsAsync();
     
     // Check for AI-suggested filters from sessionStorage
     const storedFilters = sessionStorage.getItem('job_search_filters');
@@ -187,6 +278,7 @@ export default function JobFeed() {
         address: locationData.address,
         city: locationData.city,
         state: locationData.state,
+        coordinates: locationData.coordinates,
         accuracy: position.coords.accuracy
       });
 
@@ -218,10 +310,35 @@ export default function JobFeed() {
   };
 
   /**
+   * Find closest Jharkhand city to user's location
+   */
+  const findClosestCity = (userLat, userLng) => {
+    let closestCity = JHARKHAND_CITIES[0];
+    let minDistance = calculateDistance(userLat, userLng, closestCity.lat, closestCity.lng);
+
+    for (let i = 1; i < JHARKHAND_CITIES.length; i++) {
+      const city = JHARKHAND_CITIES[i];
+      const distance = calculateDistance(userLat, userLng, city.lat, city.lng);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestCity = city;
+      }
+    }
+
+    return {
+      name: closestCity.name,
+      distance: minDistance
+    };
+  };
+
+  /**
    * Reverse geocode coordinates to get address
    */
   const reverseGeocode = async (latitude, longitude) => {
     try {
+      // Find closest Jharkhand city
+      const closestCity = findClosestCity(latitude, longitude);
+      
       // Using OpenStreetMap Nominatim API (free, no API key required)
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
@@ -240,16 +357,23 @@ export default function JobFeed() {
       console.log('🗺️ Geocoding result:', data);
 
       const address = data.display_name || 'Unknown location';
-      const city = data.address?.city || data.address?.town || data.address?.village || 'Unknown city';
-      const state = data.address?.state || 'Unknown state';
+      const state = data.address?.state || 'Jharkhand';
 
-      return { address, city, state };
+      return { 
+        address, 
+        city: closestCity.name, // Use closest Jharkhand city
+        state: state,
+        coordinates: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+      };
     } catch (error) {
       console.error('❌ Geocoding error:', error);
+      // Fallback to closest city even on error
+      const closestCity = findClosestCity(latitude, longitude);
       return {
-        address: `Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
-        city: 'Unknown city',
-        state: 'Unknown state'
+        address: `Location near ${closestCity.name}`,
+        city: closestCity.name,
+        state: 'Jharkhand',
+        coordinates: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
       };
     }
   };
@@ -284,7 +408,7 @@ export default function JobFeed() {
     try {
       setLoading(true);
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       let jobsWithDistance = [...MOCK_JOBS];
       
@@ -314,6 +438,7 @@ export default function JobFeed() {
       setJobs(jobsWithDistance);
     } catch (error) {
       console.error('Failed to load jobs:', error);
+      setJobs(MOCK_JOBS); // Fallback
     } finally {
       setLoading(false);
     }
@@ -338,12 +463,11 @@ export default function JobFeed() {
 
     const matchesFilter = filter === 'all' || 
       (filter === 'urgent' && job.urgent) ||
-      (filter === 'fulltime' && job.type === 'Full-time') ||
-      (filter === 'parttime' && job.type === 'Part-time') ||
+      (filter === 'dailywage' && job.type === 'Daily Wage') ||
       (filter === 'contract' && job.type === 'Contract');
 
     const matchesCategory = selectedCategory === 'all' || 
-      job.title.toLowerCase().includes(selectedCategory.toLowerCase());
+      job.category === selectedCategory;
 
     const matchesWage = minWage === '' || 
       parseInt(job.salary.replace(/[^\d]/g, '')) >= parseInt(minWage);
@@ -400,6 +524,9 @@ export default function JobFeed() {
               <span className="job-feed__location-success">
                 ✅ {userLocation.city}, {userLocation.state}
               </span>
+              <div className="job-feed__coordinates">
+                📍 {userLocation.coordinates}
+              </div>
             </div>
           )}
           
@@ -430,11 +557,10 @@ export default function JobFeed() {
           >
             <option value="all">{t('jobs:allCategories', 'All Categories')}</option>
             <option value="construction">{t('jobs:construction', 'Construction')}</option>
-            <option value="electrical">{t('jobs:electrical', 'Electrical')}</option>
-            <option value="plumber">{t('jobs:plumbing', 'Plumbing')}</option>
-            <option value="painter">{t('jobs:painting', 'Painting')}</option>
-            <option value="carpenter">{t('jobs:carpentry', 'Carpentry')}</option>
-            <option value="welder">{t('jobs:welding', 'Welding')}</option>
+            <option value="welder">{t('jobs:welder', 'Welder')}</option>
+            <option value="electrician">{t('jobs:electrician', 'Electrician')}</option>
+            <option value="painter">{t('jobs:painter', 'Painter')}</option>
+            <option value="carpenter">{t('jobs:carpenter', 'Carpenter')}</option>
           </select>
 
           <input
@@ -490,16 +616,16 @@ export default function JobFeed() {
             🔥 {t('jobs:urgent', 'Urgent')}
           </button>
           <button
-            className={`job-feed__filter ${filter === 'fulltime' ? 'active' : ''}`}
-            onClick={() => setFilter('fulltime')}
+            className={`job-feed__filter ${filter === 'dailywage' ? 'active' : ''}`}
+            onClick={() => setFilter('dailywage')}
           >
-            {t('jobs:fullTime', 'Full-time')}
+            {t('jobs:dailyWage', 'Daily Wage')}
           </button>
           <button
-            className={`job-feed__filter ${filter === 'parttime' ? 'active' : ''}`}
-            onClick={() => setFilter('parttime')}
+            className={`job-feed__filter ${filter === 'contract' ? 'active' : ''}`}
+            onClick={() => setFilter('contract')}
           >
-            {t('jobs:partTime', 'Part-time')}
+            {t('jobs:contract', 'Contract')}
           </button>
         </div>
       </div>
@@ -528,95 +654,239 @@ export default function JobFeed() {
  */
 function JobCard({ job, useRealLocation }) {
   const { t } = useTranslation();
+  const [showContractorProfile, setShowContractorProfile] = useState(false);
+  const [contractorData, setContractorData] = useState(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   const handleViewDetails = () => {
-    // Mock view details functionality
     console.log(`Viewing details for ${job.title} at ${job.company}`);
   };
 
-  const handleApplyNow = () => {
-    // Mock apply functionality
-    alert(`Applied for ${job.title} at ${job.company}`);
+  const handleApplyNow = async () => {
+    try {
+      setIsApplying(true);
+      
+      // Get user profile data from localStorage
+      const userProfile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+      const onboardingData = JSON.parse(localStorage.getItem('onboarding_progress') || '{}');
+      
+      // Collect all profile information
+      const applicantProfile = {
+        // Basic Info
+        userId: userProfile.userId || `user_${Date.now()}`,
+        name: userProfile.name || onboardingData.profile?.name || 'Anonymous User',
+        phoneNumber: userProfile.phoneNumber || onboardingData.phoneNumber || '',
+        email: userProfile.email || '',
+        age: userProfile.age || onboardingData.profile?.age || null,
+        gender: userProfile.gender || onboardingData.profile?.gender || '',
+        
+        // Location
+        location: {
+          city: userProfile.location?.city || onboardingData.location?.city || '',
+          state: userProfile.location?.state || onboardingData.location?.state || '',
+          pincode: userProfile.location?.pincode || onboardingData.location?.pincode || '',
+          address: userProfile.location?.address || onboardingData.location?.address || '',
+          coordinates: {
+            latitude: userProfile.location?.latitude || onboardingData.location?.latitude || null,
+            longitude: userProfile.location?.longitude || onboardingData.location?.longitude || null
+          }
+        },
+        
+        // Skills and Experience
+        skills: userProfile.skills || onboardingData.skills || [],
+        customSkills: userProfile.customSkills || onboardingData.customSkills || {},
+        experience: userProfile.experience || '',
+        
+        // Profile Photo
+        photo: userProfile.photo || onboardingData.profile?.photo || null,
+        
+        // Language Preference
+        preferredLanguage: localStorage.getItem('app_language') || 'en',
+        
+        // Application Metadata
+        appliedAt: new Date().toISOString(),
+        deviceInfo: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language
+        }
+      };
+
+      // Prepare application data
+      const applicationData = {
+        jobId: job.id.toString(),
+        contractorId: job.contractorId,
+        applicantProfile,
+        jobDetails: {
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          salary: job.salary,
+          type: job.type,
+          category: job.category,
+          skills: job.skills,
+          description: job.description
+        },
+        location: applicantProfile.location
+      };
+
+      console.log('📝 Submitting job application:', applicationData);
+
+      // Import and use the job applications service
+      const { default: jobApplicationsService } = await import('../../services/aws/jobApplicationsService');
+      
+      const result = await jobApplicationsService.submitApplication(applicationData);
+      
+      // Show success message
+      alert(`✅ Application submitted successfully!\n\nJob: ${job.title}\nCompany: ${job.company}\nApplication ID: ${result.applicationId}\n\nThe contractor will review your application and contact you soon.`);
+      
+      console.log('✅ Application submitted:', result);
+      
+    } catch (error) {
+      console.error('❌ Error submitting application:', error);
+      
+      // Show error message
+      alert(`❌ Failed to submit application: ${error.message}\n\nPlease check your internet connection and try again.`);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleViewContractor = async () => {
+    try {
+      // Import contractor data dynamically
+      const { CONTRACTORS_DATA } = await import('../../data/contractorsData');
+      
+      // Find contractor by ID
+      const contractor = CONTRACTORS_DATA.find(c => c.id === job.contractorId);
+      if (contractor) {
+        setContractorData(contractor);
+        setShowContractorProfile(true);
+      } else {
+        console.warn('Contractor not found:', job.contractorId);
+      }
+    } catch (error) {
+      console.error('Error loading contractor data:', error);
+    }
+  };
+
+  const handleContactContractor = (contractor) => {
+    alert(`Contacting ${contractor.name} at ${contractor.contactNumber}`);
+    setShowContractorProfile(false);
   };
 
   return (
-    <div className="job-card">
-      <div className="job-card__header">
-        <div className="job-card__title-section">
-          <h3 className="job-card__title">{job.title}</h3>
-          <div className="job-card__company">{job.company}</div>
-        </div>
-        {job.urgent && (
-          <div className="job-card__urgent-badge">
-            {t('jobs:urgent', 'Urgent')}
+    <>
+      <div className="job-card">
+        <div className="job-card__header">
+          <div className="job-card__title-section">
+            <h3 className="job-card__title">{job.title}</h3>
+            <div className="job-card__company">{job.company}</div>
           </div>
-        )}
-      </div>
-
-      <div className="job-card__location-info">
-        <div className="job-card__location">
-          <span className="job-card__location-icon">📍</span>
-          <span>{job.location}</span>
+          {job.urgent && (
+            <div className="job-card__urgent-badge">
+              {t('jobs:urgent', 'Urgent')}
+            </div>
+          )}
         </div>
-        {useRealLocation && job.distance && (
-          <div className="job-card__distance">
-            <span className="job-card__distance-icon">🚶</span>
-            <span>{job.distance}</span>
+
+        <div className="job-card__location-info">
+          <div className="job-card__location">
+            <span className="job-card__location-icon">📍</span>
+            <span>{job.location}</span>
           </div>
-        )}
-      </div>
+          {useRealLocation && job.distance && (
+            <div className="job-card__distance">
+              <span className="job-card__distance-icon">🚶</span>
+              <span>{job.distance}</span>
+            </div>
+          )}
+        </div>
 
-      <div className="job-card__details">
-        <div className="job-card__detail">
-          <span className="job-card__detail-icon">💰</span>
-          <span>{job.salary}</span>
-        </div>
-        <div className="job-card__detail">
-          <span className="job-card__detail-icon">⏰</span>
-          <span>{job.type}</span>
-        </div>
-        {job.duration && (
+        <div className="job-card__details">
           <div className="job-card__detail">
-            <span className="job-card__detail-icon">📅</span>
-            <span>{t('jobs:duration', 'Duration')}: {job.duration}</span>
+            <span className="job-card__detail-icon">💰</span>
+            <span>{job.salary}</span>
           </div>
-        )}
-        {job.positions && (
           <div className="job-card__detail">
-            <span className="job-card__detail-icon">👥</span>
-            <span>{job.positions} {t('jobs:of', 'of')} {job.positions} {t('jobs:positionsAvailable', 'positions available')}</span>
+            <span className="job-card__detail-icon">⏰</span>
+            <span>{job.type}</span>
           </div>
-        )}
-      </div>
+          {job.duration && (
+            <div className="job-card__detail">
+              <span className="job-card__detail-icon">📅</span>
+              <span>{t('jobs:duration', 'Duration')}: {job.duration}</span>
+            </div>
+          )}
+          {job.positions && (
+            <div className="job-card__detail">
+              <span className="job-card__detail-icon">👥</span>
+              <span>{job.positions} {t('jobs:positionsAvailable', 'positions available')}</span>
+            </div>
+          )}
+          {job.workingHours && (
+            <div className="job-card__detail">
+              <span className="job-card__detail-icon">🕐</span>
+              <span>{job.workingHours}</span>
+            </div>
+          )}
+          {job.benefits && (
+            <div className="job-card__detail">
+              <span className="job-card__detail-icon">🎁</span>
+              <span>{job.benefits}</span>
+            </div>
+          )}
+        </div>
 
-      <div className="job-card__skills">
-        {job.skills.slice(0, 3).map((skill, index) => (
-          <span key={index} className="job-card__skill">
-            {skill}
+        <div className="job-card__skills">
+          {job.skills.slice(0, 3).map((skill, index) => (
+            <span key={index} className="job-card__skill">
+              {skill}
+            </span>
+          ))}
+          {job.skills.length > 3 && (
+            <span className="job-card__skill job-card__skill--more">
+              +{job.skills.length - 3} more
+            </span>
+          )}
+        </div>
+
+        <p className="job-card__description">{job.description}</p>
+
+        <div className="job-card__footer">
+          <span className="job-card__posted">
+            {t('jobs:posted', 'Posted')}: {new Date(job.postedDate).toLocaleDateString()}
           </span>
-        ))}
-        {job.skills.length > 3 && (
-          <span className="job-card__skill job-card__skill--more">
-            +{job.skills.length - 3} more
-          </span>
-        )}
-      </div>
-
-      <p className="job-card__description">{job.description}</p>
-
-      <div className="job-card__footer">
-        <span className="job-card__posted">
-          {t('jobs:posted', 'Posted')}: {new Date(job.postedDate).toLocaleDateString()}
-        </span>
-        <div className="job-card__actions">
-          <button className="job-card__view-btn" onClick={handleViewDetails}>
-            {t('jobs:viewDetails', 'View Details')}
-          </button>
-          <button className="job-card__apply-btn" onClick={handleApplyNow}>
-            {t('jobs:applyNow', 'Apply Now')}
-          </button>
+          <div className="job-card__actions">
+            <button className="job-card__view-btn" onClick={handleViewDetails}>
+              {t('jobs:viewDetails', 'View Details')}
+            </button>
+            <button className="job-card__contractor-btn" onClick={handleViewContractor}>
+              👤 Contractor
+            </button>
+            <button 
+              className="job-card__apply-btn" 
+              onClick={handleApplyNow}
+              disabled={isApplying}
+              style={{ 
+                opacity: isApplying ? 0.7 : 1,
+                cursor: isApplying ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isApplying ? '⏳ Applying...' : t('jobs:applyNow', 'Apply Now')}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Contractor Profile Modal */}
+      {showContractorProfile && contractorData && (
+        <ContractorProfile
+          contractor={contractorData}
+          onClose={() => setShowContractorProfile(false)}
+          onContact={handleContactContractor}
+        />
+      )}
+    </>
   );
 }
