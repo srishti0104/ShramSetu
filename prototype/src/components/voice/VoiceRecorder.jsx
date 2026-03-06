@@ -81,6 +81,10 @@ export default function VoiceRecorder({
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      // CRITICAL: Stop any ongoing speech synthesis
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     };
   }, []);
 
@@ -355,9 +359,25 @@ export default function VoiceRecorder({
       
       // Text-to-speech
       if ('speechSynthesis' in window && response) {
+        // CRITICAL: Cancel any existing speech to prevent double voices
+        window.speechSynthesis.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(response);
         utterance.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-IN';
         utterance.rate = 0.9;
+        
+        utterance.onstart = () => {
+          console.log('🔊 Started speaking response');
+        };
+        
+        utterance.onend = () => {
+          console.log('🔊 Finished speaking response');
+        };
+        
+        utterance.onerror = (error) => {
+          console.error('🔊 Speech synthesis error:', error);
+        };
+        
         window.speechSynthesis.speak(utterance);
       }
       
@@ -370,38 +390,69 @@ export default function VoiceRecorder({
   };
 
   /**
-   * Generate response based on transcribed text
+   * Generate response based on transcribed text with enhanced keyword matching
    * @param {string} text
    * @returns {Object}
    */
   const generateResponseFromText = (text) => {
     const lowerText = text.toLowerCase();
     
-    if (lowerText.includes('job') || lowerText.includes('work') || lowerText.includes('काम') || lowerText.includes('नौकरी')) {
+    // Enhanced job keyword matching with more synonyms
+    const jobKeywords = [
+      'job', 'work', 'काम', 'नौकरी', 'employment', 'रोजगार',
+      'mason', 'मिस्त्री', 'राजमिस्त्री', 'construction', 'निर्माण', 'builder', 'बिल्डर',
+      'plumber', 'प्लंबर', 'नल मिस्त्री', 'pipe', 'पाइप', 'water', 'पानी',
+      'electrician', 'बिजली मिस्त्री', 'इलेक्ट्रीशियन', 'wiring', 'वायरिंग', 'light', 'लाइट',
+      'painter', 'पेंटर', 'painting', 'पेंटिंग', 'रंगाई', 'color', 'रंग',
+      'carpenter', 'बढ़ई', 'furniture', 'फर्नीचर', 'wood', 'लकड़ी'
+    ];
+    
+    const attendanceKeywords = [
+      'attendance', 'उपस्थिति', 'हाजिरी', 'mark', 'दर्ज', 'present', 'उपस्थित'
+    ];
+    
+    const paymentKeywords = [
+      'payment', 'salary', 'wage', 'वेतन', 'पैसा', 'रुपया', 'money', 'पेमेंट', 'तनख्वाह'
+    ];
+    
+    const grievanceKeywords = [
+      'complaint', 'grievance', 'शिकायत', 'problem', 'समस्या', 'issue', 'मुद्दा'
+    ];
+    
+    // Check for job-related queries
+    if (jobKeywords.some(keyword => lowerText.includes(keyword))) {
       return {
         translation: 'Looking for work/job',
         response: 'I found 5 construction jobs near you. The closest one is at Sector 15, paying ₹600 per day.',
         action: 'job_search'
       };
-    } else if (lowerText.includes('attendance') || lowerText.includes('उपस्थिति') || lowerText.includes('हाजिरी')) {
+    } 
+    // Check for attendance queries
+    else if (attendanceKeywords.some(keyword => lowerText.includes(keyword))) {
       return {
         translation: 'Mark attendance',
         response: 'Your attendance has been marked for today. Session code: 4582',
         action: 'mark_attendance'
       };
-    } else if (lowerText.includes('payment') || lowerText.includes('salary') || lowerText.includes('वेतन') || lowerText.includes('पैसा')) {
+    } 
+    // Check for payment queries
+    else if (paymentKeywords.some(keyword => lowerText.includes(keyword))) {
       return {
         translation: 'Check payment/salary',
         response: 'Your pending payment of ₹4,200 for 7 days of work will be processed on Friday.',
         action: 'check_payment'
       };
-    } else if (lowerText.includes('complaint') || lowerText.includes('grievance') || lowerText.includes('शिकायत')) {
+    } 
+    // Check for grievance queries
+    else if (grievanceKeywords.some(keyword => lowerText.includes(keyword))) {
       return {
         translation: 'File complaint/grievance',
         response: 'I understand you want to file a complaint. Please describe the issue and I will help you.',
         action: 'file_grievance'
       };
-    } else {
+    } 
+    // Default response
+    else {
       return {
         translation: text,
         response: 'I heard you. How can I help you with jobs, attendance, payments, or complaints?',
