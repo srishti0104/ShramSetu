@@ -216,11 +216,12 @@ class LocationService {
   }
 
   /**
-   * Get major Indian cities with coordinates
+   * Get major Indian cities with coordinates, including Jharkhand cities
    * @returns {Array} List of major cities
    */
   getMajorCities() {
     return [
+      // Major Indian cities
       { name: 'Mumbai', state: 'Maharashtra', latitude: 19.0760, longitude: 72.8777 },
       { name: 'Delhi', state: 'Delhi', latitude: 28.7041, longitude: 77.1025 },
       { name: 'Bangalore', state: 'Karnataka', latitude: 12.9716, longitude: 77.5946 },
@@ -230,7 +231,19 @@ class LocationService {
       { name: 'Pune', state: 'Maharashtra', latitude: 18.5204, longitude: 73.8567 },
       { name: 'Ahmedabad', state: 'Gujarat', latitude: 23.0225, longitude: 72.5714 },
       { name: 'Jaipur', state: 'Rajasthan', latitude: 26.9124, longitude: 75.7873 },
-      { name: 'Lucknow', state: 'Uttar Pradesh', latitude: 26.8467, longitude: 80.9462 }
+      { name: 'Lucknow', state: 'Uttar Pradesh', latitude: 26.8467, longitude: 80.9462 },
+      
+      // Jharkhand cities
+      { name: 'Jamshedpur', state: 'Jharkhand', latitude: 22.8046, longitude: 86.2029 },
+      { name: 'Ranchi', state: 'Jharkhand', latitude: 23.3441, longitude: 85.3096 },
+      { name: 'Dhanbad', state: 'Jharkhand', latitude: 23.7957, longitude: 86.4304 },
+      { name: 'Bokaro', state: 'Jharkhand', latitude: 23.6693, longitude: 85.9606 },
+      { name: 'Deoghar', state: 'Jharkhand', latitude: 24.4823, longitude: 86.6961 },
+      { name: 'Hazaribagh', state: 'Jharkhand', latitude: 23.9929, longitude: 85.3647 },
+      { name: 'Giridih', state: 'Jharkhand', latitude: 24.1901, longitude: 86.3009 },
+      { name: 'Ramgarh', state: 'Jharkhand', latitude: 23.6315, longitude: 85.5197 },
+      { name: 'Medininagar', state: 'Jharkhand', latitude: 24.0174, longitude: 84.0736 },
+      { name: 'Chatra', state: 'Jharkhand', latitude: 24.2069, longitude: 84.8728 }
     ];
   }
 }
