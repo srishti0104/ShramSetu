@@ -1,0 +1,233 @@
+=================================================================
+JOBS API DEPLOYMENT GUIDE - Shram-Setu
+=================================================================
+
+This guide explains how the Jobs API works in different environments
+and how to deploy it to production.
+
+=================================================================
+ARCHITECTURE OVERVIEW
+=================================================================
+
+LOCAL DEVELOPMENT:
+------------------
+React App (localhost:5173)
+    ↓ HTTP
+Jobs Server (localhost:3003) [Express.js]
+    ↓ AWS SDK
+DynamoDB (AWS Cloud)
+
+PRODUCTION:
+-----------
+React App (Deployed PWA)
+    ↓ HTTPS
+API Gateway (AWS)
+    ↓ Lambda Proxy
+Lambda Functions (AWS)
+    ↓ AWS SDK
+DynamoDB (AWS Cloud)
+
+=================================================================
+WHY TWO DIFFERENT SETUPS?
+=================================================================
+
+1. LOCAL DEVELOPMENT (jobs-server.cjs):
+   - Fast development without deploying to AWS
+   - Easy debugging with console.logs
+   - No Lambda cold starts
+   - Direct connection to DynamoDB
+   - Run: npm run jobs-server
+
+2. PRODUCTION (Lambda + API Gateway):
+   - Serverless (no server management)
+   - Auto-scaling
+   - Pay only for requests
+   - Integrated with AWS ecosystem
+   - Deploy: npm run deploy:jobs
+
+=================================================================
+CURRENT STATUS
+=================================================================
+
+✅ DynamoDB Table: Created and Active
+   - Table Name: Shram-setu-jobs
+   - Region: ap-south-1
+   - Status: ACTIVE
+
+✅ Local Development: Working
+   - Server: http://localhost:3003
+   - Frontend: http://localhost:5173
+
+⏳ Production: Ready to Deploy
+   - Lambda functions: Created
+   - CDK Stack: Ready
+   - Need to run deployment
+
+=================================================================
+HOW TO DEPLOY TO PRODUCTION
+=================================================================
+
+STEP 1: Build and Deploy Lambda Stack
+--------------------------------------
+cd ShramSetu/prototype/infrastructure
+
+# Windows:
+deploy-jobs.bat
+
+# Linux/Mac:
+chmod +x deploy-jobs.sh
+./deploy-jobs.sh
+
+# Or using npm:
+npm run build
+npm run deploy:jobs
+
+STEP 2: Get API Gateway URL
+----------------------------
+After deployment completes, you'll see output like:
+
+Outputs:
+ShramSetuJobsStack.JobsApiUrl = https://abc123xyz.execute-api.ap-south-1.amazonaws.com/prod/
+
+Copy this URL!
+
+STEP 3: Update Environment Variable
+------------------------------------
+Open: ShramSetu/prototype/.env.production
+
+Update this line:
+VITE_JOBS_API_URL=https://abc123xyz.execute-api.ap-south-1.amazonaws.com/prod
+
+STEP 4: Rebuild Frontend for Production
+----------------------------------------
+cd ShramSetu/prototype
+npm run build
+
+The build will use .env.production automatically.
+
+STEP 5: Deploy Frontend
+------------------------
+Deploy the 'dist' folder to your hosting:
+- Vercel
+- Netlify
+- AWS S3 + CloudFront
+- Firebase Hosting
+
+=================================================================
+ENVIRONMENT VARIABLES EXPLAINED
+=================================================================
+
+.env (Local Development):
+--------------------------
+VITE_JOBS_API_URL=http://localhost:3003
+↑ Points to local Express server
+
+.env.production (Production):
+------------------------------
+VITE_JOBS_API_URL=https://your-api-gateway-url.amazonaws.com/prod
+↑ Points to AWS Lambda via API Gateway
+
+The React app automatically uses the correct URL based on:
+- npm run dev → uses .env
+- npm run build → uses .env.production
+
+=================================================================
+TESTING
+=================================================================
+
+LOCAL TESTING:
+--------------
+1. Start jobs server: npm run jobs-server
+2. Start frontend: npm run dev
+3. Open: http://localhost:5173
+4. Create a job through the UI
+5. Check DynamoDB in AWS Console
+
+PRODUCTION TESTING:
+-------------------
+1. Deploy Lambda: npm run deploy:jobs
+2. Update .env.production with API URL
+3. Build: npm run build
+4. Deploy dist folder
+5. Test on production URL
+
+=================================================================
+COST ESTIMATION
+=================================================================
+
+DynamoDB:
+- Billing: PAY_PER_REQUEST
+- Free Tier: 25 GB storage, 25 WCU, 25 RCU
+- Cost: ~₹0-50/month for testing
+
+Lambda:
+- Free Tier: 1M requests/month, 400,000 GB-seconds
+- Cost: ~₹0-20/month for testing
+
+API Gateway:
+- Free Tier: 1M requests/month (first 12 months)
+- Cost: ~₹0-30/month after free tier
+
+Total: ~₹0-100/month for moderate usage
+
+=================================================================
+TROUBLESHOOTING
+=================================================================
+
+Q: Jobs not saving to DynamoDB?
+A: Check if table exists: node check-jobs-table.cjs
+
+Q: CORS errors in production?
+A: API Gateway has CORS enabled. Check browser console.
+
+Q: Lambda timeout?
+A: Increase timeout in jobs-lambda-stack.ts (currently 30s)
+
+Q: Can't connect to local server?
+A: Make sure jobs-server is running: npm run jobs-server
+
+=================================================================
+USEFUL COMMANDS
+=================================================================
+
+# Check DynamoDB table status
+node check-jobs-table.cjs
+
+# Create table (if needed)
+node create-jobs-table.cjs
+
+# Start local jobs server
+npm run jobs-server
+
+# Deploy to AWS
+cd infrastructure
+npm run deploy:jobs
+
+# View CloudWatch logs
+aws logs tail /aws/lambda/ShramSetu-CreateJob --follow
+
+# Delete stack (careful!)
+cd infrastructure
+cdk destroy ShramSetuJobsStack
+
+=================================================================
+NEXT STEPS
+=================================================================
+
+1. ✅ DynamoDB table created
+2. ✅ Local development working
+3. ⏳ Deploy Lambda to AWS
+4. ⏳ Update production environment variables
+5. ⏳ Deploy frontend to production
+
+=================================================================
+SUPPORT
+=================================================================
+
+For issues or questions:
+1. Check AWS CloudWatch logs
+2. Review Lambda function code in lambda/jobs/
+3. Check API Gateway configuration
+4. Verify DynamoDB table permissions
+
+=================================================================
