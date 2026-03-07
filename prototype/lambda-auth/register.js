@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 const dynamoClient = new DynamoDBClient({ region: process.env.REGION || 'ap-south-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -15,9 +16,19 @@ exports.handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body);
-    const { phoneNumber, name, role, occupation, location, eShramId } = body;
+    const { 
+      phoneNumber, 
+      password,
+      role, 
+      language,
+      location,
+      skills,
+      customSkills,
+      profile
+    } = body;
 
-    if (!phoneNumber || !name || !role) {
+    // Validate required fields
+    if (!phoneNumber || !password || !role) {
       return {
         statusCode: 400,
         headers: {
@@ -26,7 +37,7 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           success: false,
-          error: 'Phone number, name, and role are required'
+          error: 'Phone number, password, and role are required'
         })
       };
     }
@@ -39,30 +50,40 @@ exports.handler = async (event) => {
 
     if (existingUser.Item) {
       return {
-        statusCode: 400,
+        statusCode: 409,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
         body: JSON.stringify({
           success: false,
-          error: 'User already exists'
+          error: 'PHONE_ALREADY_REGISTERED',
+          message: 'This phone number is already registered'
         })
       };
     }
 
-    // Create new user
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate unique user ID
     const userId = generateUserId();
+    const timestamp = new Date().toISOString();
+
+    // Create new user with all signup details
     const user = {
       userId,
       phoneNumber,
-      name,
-      role, // 'worker' or 'employer'
-      occupation: occupation || null,
+      password: hashedPassword,
+      role,
+      language: language || 'en',
       location: location || null,
-      eShramId: eShramId || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      skills: skills || [],
+      customSkills: customSkills || {},
+      profile: profile || {},
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      lastLoginAt: timestamp,
       isActive: true
     };
 
@@ -71,8 +92,8 @@ exports.handler = async (event) => {
       Item: user
     }));
 
-    // Remove sensitive data before returning
-    const { ...userData } = user;
+    // Remove password before returning
+    const { password: _, ...userData } = user;
 
     return {
       statusCode: 201,
@@ -83,7 +104,8 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         success: true,
         message: 'User registered successfully',
-        user: userData
+        user: userData,
+        token: 'jwt_token_placeholder' // Add JWT generation later
       })
     };
 
@@ -98,7 +120,8 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         success: false,
-        error: error.message
+        error: 'Registration failed',
+        message: error.message
       })
     };
   }

@@ -6,9 +6,9 @@
 
 import { useState, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
-import { useVoiceRecognition } from '../../../hooks/useVoiceNarration';
+import authService from '../../../services/aws/authService';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './PhoneNumberEntry.css';
 
@@ -19,34 +19,16 @@ export default function PhoneNumberEntry() {
   const { state, updateState, nextStep, previousStep } = useOnboarding();
   const [phoneNumber, setPhoneNumber] = useState(state.phoneNumber?.replace('+91', '') || '');
   const [isValid, setIsValid] = useState(false);
-  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState('');
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
 
   const isHindi = state.language === 'hi';
 
-  // Voice recognition for phone number input
-  const {
-    startListening,
-    stopListening,
-    isListening,
-    transcript,
-    isSupported
-  } = useVoiceRecognition(isHindi ? 'hi-IN' : 'en-IN', {
-    onResult: ({ transcript: text }) => {
-      // Extract digits from voice input
-      const digits = text.replace(/\D/g, '');
-      if (digits.length > 0) {
-        setPhoneNumber(digits.slice(0, 10));
-      }
-    },
-    onError: (err) => {
-      console.error('Voice recognition error:', err);
-      setError(isHindi 
-        ? 'आवाज़ पहचान विफल। कृपया पुनः प्रयास करें।'
-        : 'Voice recognition failed. Please try again.');
-    }
-  });
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = isHindi
+    ? 'अपना 10 अंकों का मोबाइल नंबर दर्ज करें।'
+    : 'Enter your 10-digit mobile number.';
 
   // Validate phone number whenever it changes
   useEffect(() => {
@@ -76,64 +58,40 @@ export default function PhoneNumberEntry() {
   };
 
   /**
-   * Handle send OTP
+   * Handle continue (skip OTP)
    */
-  const handleSendOTP = async () => {
+  const handleContinue = () => {
     if (!isValid) return;
 
-    setIsSending(true);
-    setError('');
-
-    try {
-      // MOCK: Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('[MOCK] Sending OTP to:', `+91${phoneNumber}`);
-      
-      // Update state and move to OTP verification
-      updateState({ phoneNumber: `+91${phoneNumber}` });
-      nextStep();
-    } catch (err) {
-      setError(isHindi 
-        ? 'OTP भेजने में विफल। कृपया पुनः प्रयास करें।' 
-        : 'Failed to send OTP. Please try again.');
-    } finally {
-      setIsSending(false);
-    }
+    // Skip OTP verification - go directly to password creation
+    updateState({ 
+      phoneNumber: `+91${phoneNumber}`,
+      otpVerified: true // Mark as verified to skip OTP screen
+    });
+    nextStep();
   };
 
   /**
-   * Handle voice input
+   * Handle voice input - recognize phone number
    */
-  const handleVoiceInput = () => {
-    if (!isSupported) {
-      setError(isHindi 
-        ? 'आवाज़ इनपुट समर्थित नहीं है'
-        : 'Voice input not supported');
-      return;
-    }
-
-    if (isListening) {
-      stopListening();
-    } else {
+  const handleVoiceInputPhone = (transcript) => {
+    console.log('Voice input received:', transcript);
+    
+    // Extract digits from voice input
+    const digits = transcript.replace(/\D/g, '');
+    if (digits.length > 0) {
+      setPhoneNumber(digits.slice(0, 10));
       setError('');
-      startListening();
     }
-  };
-
-  /**
-   * Handle voice assist
-   */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    console.log('[MOCK] Voice narration: Enter your 10-digit mobile number');
   };
 
   return (
     <div className="phone-number-entry">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        onVoiceInput={handleVoiceInputPhone}
+        voiceInputPrompt={isHindi ? 'नंबर बोलें...' : 'Speak number...'}
       />
       <BackButton onClick={previousStep} />
       
@@ -148,8 +106,8 @@ export default function PhoneNumberEntry() {
         </h1>
         <p className="phone-number-entry__subtitle">
           {isHindi 
-            ? 'हम आपको एक OTP भेजेंगे' 
-            : "We'll send you an OTP"}
+            ? 'अपना 10 अंकों का मोबाइल नंबर दर्ज करें' 
+            : 'Enter your 10-digit mobile number'}
         </p>
 
         <div className="phone-number-entry__form">
@@ -189,46 +147,12 @@ export default function PhoneNumberEntry() {
 
           <button
             type="button"
-            onClick={handleSendOTP}
-            disabled={!isValid || isSending}
+            onClick={handleContinue}
+            disabled={!isValid}
             className="phone-number-entry__button"
           >
-            {isSending ? (
-              <>
-                <span className="spinner" aria-hidden="true"></span>
-                {isHindi ? 'भेजा जा रहा है...' : 'Sending...'}
-              </>
-            ) : (
-              isHindi ? 'OTP भेजें' : 'Send OTP'
-            )}
+            {isHindi ? 'जारी रखें' : 'Continue'}
           </button>
-
-          <button
-            type="button"
-            onClick={handleVoiceInput}
-            className={`phone-number-entry__voice-button ${isListening ? 'phone-number-entry__voice-button--listening' : ''}`}
-            aria-label="Use voice input"
-            disabled={!isSupported}
-          >
-            {isListening ? (
-              <>
-                <span className="pulse-dot" aria-hidden="true"></span>
-                {isHindi ? 'सुन रहे हैं...' : 'Listening...'}
-              </>
-            ) : (
-              <>
-                🎤 {isHindi ? 'आवाज़ से दर्ज करें' : 'Voice Input'}
-              </>
-            )}
-          </button>
-
-          {isListening && (
-            <p className="phone-number-entry__voice-hint">
-              {isHindi 
-                ? 'अपना 10 अंकों का मोबाइल नंबर बोलें'
-                : 'Speak your 10-digit mobile number'}
-            </p>
-          )}
         </div>
       </div>
     </div>

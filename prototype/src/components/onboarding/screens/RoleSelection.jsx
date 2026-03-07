@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './RoleSelection.css';
 
@@ -17,7 +17,13 @@ import './RoleSelection.css';
 export default function RoleSelection() {
   const { state, updateState, nextStep, previousStep } = useOnboarding();
   const [selectedRole, setSelectedRole] = useState(state.role);
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = state.language === 'hi' 
+    ? 'अपनी भूमिका चुनें। श्रमिक या नियोक्ता?'
+    : 'Select your role. Worker or Employer?';
 
   /**
    * Handle role selection
@@ -33,12 +39,29 @@ export default function RoleSelection() {
   };
 
   /**
-   * Handle voice assist
+   * Handle voice input - recognize role
    */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    // TODO: Implement voice narration
-    console.log('[MOCK] Voice narration: Select your role - Worker or Employer');
+  const handleVoiceInput = (transcript) => {
+    console.log('Voice input received:', transcript);
+    
+    const lowerTranscript = transcript.toLowerCase();
+    
+    // Check for worker keywords
+    if (lowerTranscript.includes('worker') || 
+        lowerTranscript.includes('श्रमिक') || 
+        lowerTranscript.includes('labour') ||
+        lowerTranscript.includes('labor')) {
+      handleRoleSelect('worker');
+    }
+    // Check for employer keywords
+    else if (lowerTranscript.includes('employer') || 
+             lowerTranscript.includes('नियोक्ता') || 
+             lowerTranscript.includes('contractor') ||
+             lowerTranscript.includes('boss')) {
+      handleRoleSelect('employer');
+    } else {
+      console.log('No role matched for transcript:', transcript);
+    }
   };
 
   /**
@@ -50,9 +73,11 @@ export default function RoleSelection() {
 
   return (
     <div className="role-selection">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        onVoiceInput={handleVoiceInput}
+        voiceInputPrompt={state.language === 'hi' ? 'सुन रहे हैं...' : 'Listening...'}
       />
       <BackButton onClick={handleBack} />
       

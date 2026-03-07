@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './OccupationSelection.css';
 
@@ -41,6 +41,13 @@ export default function OccupationSelection() {
   const [filteredOccupations, setFilteredOccupations] = useState(OCCUPATIONS);
 
   const isHindi = state.language === 'hi';
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = isHindi
+    ? 'अपने कौशल चुनें।'
+    : 'Select your skills.';
 
   /**
    * Filter occupations based on search query
@@ -99,24 +106,40 @@ export default function OccupationSelection() {
   };
 
   /**
-   * Handle voice search (mock)
+   * Handle voice input - recognize skill names
    */
-  const handleVoiceSearch = () => {
-    console.log('[MOCK] Voice search activated');
-    // TODO: Integrate with voice recognition service
-  };
+  const handleVoiceInputSkill = (transcript) => {
+    console.log('Voice input received:', transcript);
+    
+    const lowerTranscript = transcript.toLowerCase();
+    
+    // Try to match transcript with occupation names
+    const matchedOccupations = OCCUPATIONS.filter(occ => 
+      lowerTranscript.includes(occ.nameEn.toLowerCase()) ||
+      lowerTranscript.includes(occ.nameHi)
+    );
 
-  /**
-   * Voice narration on mount
-   */
-  useEffect(() => {
-    console.log('[MOCK] Voice narration: Select your skills');
-  }, []);
+    if (matchedOccupations.length > 0) {
+      // Add all matched occupations
+      matchedOccupations.forEach(occ => {
+        if (!selectedSkills.includes(occ.id)) {
+          handleToggleSkill(occ.id);
+        }
+      });
+    } else {
+      console.log('No occupation matched for transcript:', transcript);
+    }
+  };
 
   return (
     <div className="occupation-selection">
-      <VoiceAssistButton />
-      <ProgressIndicator step={7} total={10} />
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        onVoiceInput={handleVoiceInputSkill}
+        voiceInputPrompt={isHindi ? 'अपने कौशल बोलें...' : 'Speak your skills...'}
+      />
+      <ProgressIndicator step={state.currentStep} total={state.totalSteps} />
       <BackButton onClick={previousStep} />
 
       <div className="occupation-selection__content">
@@ -137,13 +160,6 @@ export default function OccupationSelection() {
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label={isHindi ? 'कौशल खोजें' : 'Search skills'}
           />
-          <button
-            className="occupation-selection__voice-search"
-            onClick={handleVoiceSearch}
-            aria-label={isHindi ? 'आवाज से खोजें' : 'Voice search'}
-          >
-            🎤
-          </button>
         </div>
 
         {/* Occupation Grid */}

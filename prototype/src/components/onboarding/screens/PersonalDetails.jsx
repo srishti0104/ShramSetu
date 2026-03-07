@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './PersonalDetails.css';
 
@@ -23,9 +23,15 @@ export default function PersonalDetails() {
     photo: state.profile.photo || null
   });
   const [errors, setErrors] = useState({});
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
 
   const isHindi = state.language === 'hi';
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = isHindi
+    ? 'अपनी प्रोफ़ाइल पूरी करें।'
+    : 'Complete your profile.';
 
   /**
    * Validate form
@@ -89,19 +95,12 @@ export default function PersonalDetails() {
     nextStep();
   };
 
-  /**
-   * Handle voice assist
-   */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    console.log('[MOCK] Voice narration: Complete your profile with name, age, and gender');
-  };
-
   return (
     <div className="personal-details">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        showMicrophone={false}
       />
       <BackButton onClick={previousStep} />
       

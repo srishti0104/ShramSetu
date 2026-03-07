@@ -5,6 +5,7 @@
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import authService from '../services/aws/authService';
 
 const UserProfileContext = createContext(null);
 
@@ -30,7 +31,27 @@ export function UserProfileProvider({ children }) {
     try {
       setIsLoading(true);
       
-      // First try to get from onboarding data
+      // First priority: Get authenticated user data from authService
+      const authenticatedUser = authService.getUser();
+      if (authenticatedUser && authService.isAuthenticated()) {
+        setUserProfile({
+          name: authenticatedUser.profile?.name || authenticatedUser.name || 'User',
+          firstName: (authenticatedUser.profile?.name || authenticatedUser.name || 'User').split(' ')[0],
+          role: authenticatedUser.role,
+          location: authenticatedUser.location || {},
+          skills: authenticatedUser.skills || [],
+          phoneNumber: authenticatedUser.phoneNumber,
+          age: authenticatedUser.profile?.age,
+          gender: authenticatedUser.profile?.gender,
+          photo: authenticatedUser.profile?.photo,
+          userId: authenticatedUser.userId,
+          ...authenticatedUser.profile
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Second priority: Try to get from onboarding data
       const onboardingData = localStorage.getItem('onboarding_progress');
       if (onboardingData) {
         const parsed = JSON.parse(onboardingData);
@@ -42,6 +63,9 @@ export function UserProfileProvider({ children }) {
             location: parsed.location,
             skills: parsed.skills || [],
             phoneNumber: parsed.phoneNumber,
+            age: parsed.profile.age,
+            gender: parsed.profile.gender,
+            photo: parsed.profile.photo,
             ...parsed.profile
           });
           setIsLoading(false);
