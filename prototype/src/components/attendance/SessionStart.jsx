@@ -1,10 +1,12 @@
 /**
  * SessionStart Component
- * Allows contractors to create jobs and work sessions
+ * Allows contractors to create jobs and work sessions with voice input
  */
 
 import { useState } from 'react';
 import jobsAPI from '../../services/api/jobsAPI';
+import VoiceFormField from '../voice/VoiceFormField';
+import VoiceInput from '../voice/VoiceInput';
 import './SessionStart.css';
 
 const SessionStart = ({ contractorId, onSessionCreated }) => {
@@ -191,38 +193,28 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
 
       <form onSubmit={handleSubmit} className="session-start-form">
         {/* Job Title */}
-        <div className="form-group">
-          <label htmlFor="title">
-            नौकरी का शीर्षक / Job Title <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            required
-            placeholder="e.g., Construction Worker, Plumber, Electrician"
-            aria-required="true"
-          />
-        </div>
+        <VoiceFormField
+          label="नौकरी का शीर्षक / Job Title"
+          name="title"
+          value={formData.title}
+          onChange={handleInputChange}
+          placeholder="e.g., Construction Worker, Plumber, Electrician"
+          required={true}
+          language="hi-IN"
+        />
 
         {/* Job Description */}
-        <div className="form-group">
-          <label htmlFor="description">
-            नौकरी का विवरण / Job Description <span className="required">*</span>
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            required
-            placeholder="Describe the job responsibilities and requirements..."
-            rows="4"
-            aria-required="true"
-          />
-        </div>
+        <VoiceFormField
+          label="नौकरी का विवरण / Job Description"
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          placeholder="Describe the job responsibilities and requirements..."
+          required={true}
+          type="textarea"
+          rows={4}
+          language="hi-IN"
+        />
 
         {/* Location */}
         <div className="form-group">
@@ -249,42 +241,41 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
             >
               {loadingLocation ? '⏳' : '📍'} {loadingLocation ? 'Getting...' : 'Get Location'}
             </button>
+            <div className="voice-input-inline">
+              <VoiceInput
+                onTranscription={(text) => {
+                  setFormData(prev => ({ ...prev, location: text }));
+                }}
+                language="hi-IN"
+                placeholder="Speak address"
+              />
+            </div>
           </div>
         </div>
 
         {/* City and State */}
         <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="city">
-              शहर / City <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleInputChange}
-              required
-              placeholder="Mumbai"
-              aria-required="true"
-            />
-          </div>
+          <VoiceFormField
+            label="शहर / City"
+            name="city"
+            value={formData.city}
+            onChange={handleInputChange}
+            placeholder="Mumbai"
+            required={true}
+            language="hi-IN"
+            className="form-group"
+          />
 
-          <div className="form-group">
-            <label htmlFor="state">
-              राज्य / State <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="state"
-              name="state"
-              value={formData.state}
-              onChange={handleInputChange}
-              required
-              placeholder="Maharashtra"
-              aria-required="true"
-            />
-          </div>
+          <VoiceFormField
+            label="राज्य / State"
+            name="state"
+            value={formData.state}
+            onChange={handleInputChange}
+            placeholder="Maharashtra"
+            required={true}
+            language="hi-IN"
+            className="form-group"
+          />
         </div>
 
         {/* Wage Rate and Type */}
@@ -293,18 +284,33 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
             <label htmlFor="wageRate">
               वेतन दर / Wage Rate (₹) <span className="required">*</span>
             </label>
-            <input
-              type="number"
-              id="wageRate"
-              name="wageRate"
-              value={formData.wageRate}
-              onChange={handleInputChange}
-              required
-              min="0"
-              step="0.01"
-              placeholder="500"
-              aria-required="true"
-            />
+            <div className="wage-input-group">
+              <input
+                type="number"
+                id="wageRate"
+                name="wageRate"
+                value={formData.wageRate}
+                onChange={handleInputChange}
+                required
+                min="0"
+                step="0.01"
+                placeholder="500"
+                aria-required="true"
+              />
+              <div className="voice-input-inline">
+                <VoiceInput
+                  onTranscription={(text) => {
+                    // Extract numbers from voice input
+                    const numbers = text.match(/\d+/g);
+                    if (numbers && numbers.length > 0) {
+                      setFormData(prev => ({ ...prev, wageRate: numbers[0] }));
+                    }
+                  }}
+                  language="hi-IN"
+                  placeholder="Speak wage amount"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="form-group">
@@ -340,8 +346,8 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
               name="duration"
               value={formData.duration}
               onChange={handleInputChange}
-              required
               placeholder="e.g., 1 week, 2 months, 6 days"
+              required
               aria-required="true"
             />
           </div>
@@ -350,17 +356,32 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
             <label htmlFor="workersNeeded">
               आवश्यक कर्मचारी / Workers Needed <span className="required">*</span>
             </label>
-            <input
-              type="number"
-              id="workersNeeded"
-              name="workersNeeded"
-              value={formData.workersNeeded}
-              onChange={handleInputChange}
-              required
-              min="1"
-              placeholder="5"
-              aria-required="true"
-            />
+            <div className="wage-input-group">
+              <input
+                type="number"
+                id="workersNeeded"
+                name="workersNeeded"
+                value={formData.workersNeeded}
+                onChange={handleInputChange}
+                required
+                min="1"
+                placeholder="5"
+                aria-required="true"
+              />
+              <div className="voice-input-inline">
+                <VoiceInput
+                  onTranscription={(text) => {
+                    // Extract numbers from voice input
+                    const numbers = text.match(/\d+/g);
+                    if (numbers && numbers.length > 0) {
+                      setFormData(prev => ({ ...prev, workersNeeded: numbers[0] }));
+                    }
+                  }}
+                  language="hi-IN"
+                  placeholder="Speak number of workers"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -407,6 +428,15 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
             >
               जोड़ें / Add
             </button>
+            <div className="voice-input-inline">
+              <VoiceInput
+                onTranscription={(text) => {
+                  setSkillInput(text);
+                }}
+                language="hi-IN"
+                placeholder="Speak skill name"
+              />
+            </div>
           </div>
 
           {formData.skillsRequired.length > 0 && (

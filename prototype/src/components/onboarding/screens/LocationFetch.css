@@ -69,6 +69,41 @@
   cursor: not-allowed;
 }
 
+/* Button variants */
+.location-fetch__button--primary {
+  background-color: #1976d2;
+}
+
+.location-fetch__button--primary:hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+.location-fetch__button--secondary {
+  background-color: #4caf50;
+}
+
+.location-fetch__button--secondary:hover:not(:disabled) {
+  background-color: #43a047;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.location-fetch__button-icon {
+  font-size: 1.5rem;
+}
+
+/* Location options container */
+.location-fetch__options {
+  margin-top: 2rem;
+}
+
+.location-fetch__options-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
 .location-fetch__manual-link {
   background: none;
   border: none;

@@ -1,0 +1,150 @@
+/* Voice Form Field Component Styles */
+
+.voice-form-field {
+  margin-bottom: 20px;
+}
+
+.voice-form-field__label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.voice-form-field__label .required {
+  color: #dc3545;
+  margin-left: 4px;
+}
+
+.voice-form-field__input-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.voice-form-field__input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.voice-form-field__input,
+.voice-form-field__textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  transition: all 0.2s ease;
+  resize: vertical;
+}
+
+.voice-form-field__input:focus,
+.voice-form-field__textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.voice-form-field__input.voice-success,
+.voice-form-field__textarea.voice-success {
+  border-color: #28a745;
+  background: #f8fff9;
+  animation: voiceSuccess 0.3s ease;
+}
+
+.voice-form-field__voice-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.voice-form-field__voice-input {
+  width: 100%;
+}
+
+.voice-success-indicator {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  font-size: 11px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+  z-index: 10;
+}
+
+.success-icon {
+  font-size: 12px;
+}
+
+.success-text {
+  white-space: nowrap;
+}
+
+/* Animations */
+@keyframes voiceSuccess {
+  0% {
+    background: #f8fff9;
+    border-color: #28a745;
+  }
+  50% {
+    background: #d4edda;
+    border-color: #28a745;
+  }
+  100% {
+    background: #f8fff9;
+    border-color: #28a745;
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .voice-form-field__input-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .voice-form-field__voice-wrapper {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .voice-success-indicator {
+    position: static;
+    margin-top: 8px;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .voice-form-field__input,
+  .voice-form-field__textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .voice-form-field__label {
+    font-size: 13px;
+  }
+}

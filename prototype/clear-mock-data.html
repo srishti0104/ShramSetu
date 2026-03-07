@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Mock Data - ShramSetu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .info {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Mock Data</h1>
+        
+        <div class="info">
+            <strong>Note:</strong> This will clear all stored mock applications from localStorage and allow fresh mock data to load.
+        </div>
+
+        <button onclick="clearMockData()">Clear Mock Applications</button>
+        <button onclick="viewMockData()">View Current Data</button>
+        <button onclick="window.location.href='http://localhost:5174'">Go to App</button>
+
+        <div id="success" class="success"></div>
+        <div id="output" style="margin-top: 20px; padding: 10px; background: #f9f9f9; border-radius: 5px; max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        function clearMockData() {
+            localStorage.removeItem('mock_applications');
+            showSuccess('✅ Mock applications cleared! Refresh the app to see new data.');
+        }
+
+        function viewMockData() {
+            const data = localStorage.getItem('mock_applications');
+            const output = document.getElementById('output');
+            
+            if (data) {
+                const parsed = JSON.parse(data);
+                output.innerHTML = `<strong>Stored Applications (${parsed.length}):</strong><pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+            } else {
+                output.innerHTML = '<strong>No stored applications found.</strong>';
+            }
+        }
+
+        function showSuccess(message) {
+            const success = document.getElementById('success');
+            success.textContent = message;
+            success.style.display = 'block';
+            setTimeout(() => {
+                success.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

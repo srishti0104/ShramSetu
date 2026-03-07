@@ -2,6 +2,7 @@
  * Job Application Service
  * 
  * Handles job application submissions and retrieval
+ * Version: 2.0 - Updated mock data with realistic job categories
  */
 
 import notificationService from '../notificationService';
@@ -9,6 +10,8 @@ import notificationService from '../notificationService';
 class ApplicationService {
   constructor() {
     this.baseUrl = import.meta.env.VITE_JOB_APPLICATIONS_API_URL || 'https://sxainxmb4h.execute-api.ap-south-1.amazonaws.com/prod';
+    this.version = '1.0';
+    console.log('🔄 ApplicationService initialized - Version', this.version);
   }
 
   /**
@@ -173,17 +176,58 @@ class ApplicationService {
    * Mock contractor applications for demo
    */
   mockGetContractorApplications(contractorId) {
-    // Get stored applications or use default mock data
+    // Try to get stored applications first
     const storedApplications = JSON.parse(localStorage.getItem('mock_applications') || '[]');
+    
+    // If we have stored applications, use them
+    if (storedApplications.length > 0) {
+      console.log('📊 Using stored applications:', storedApplications.length);
+      const contractorApplications = storedApplications.filter(app => 
+        app.contractorId === contractorId || contractorId === 'employer_demo_123'
+      );
+      
+      // Group by status
+      const applicationsByStatus = {
+        pending: [],
+        reviewed: [],
+        accepted: [],
+        rejected: []
+      };
+
+      contractorApplications.forEach(app => {
+        const status = app.status || 'pending';
+        if (applicationsByStatus[status]) {
+          applicationsByStatus[status].push(app);
+        }
+      });
+
+      return {
+        success: true,
+        applications: contractorApplications,
+        applicationsByStatus,
+        count: contractorApplications.length,
+        summary: {
+          total: contractorApplications.length,
+          pending: applicationsByStatus.pending.length,
+          reviewed: applicationsByStatus.reviewed.length,
+          accepted: applicationsByStatus.accepted.length,
+          rejected: applicationsByStatus.rejected.length
+        }
+      };
+    }
+    
+    // Otherwise use fresh mock data
     const mockApplications = this.getMockApplicationsData();
     
-    // Combine stored and mock applications
-    const allApplications = [...storedApplications, ...mockApplications];
+    console.log('📊 Generated mock applications:', mockApplications.length);
+    console.log('📊 First application:', mockApplications[0]);
     
     // Filter by contractor ID
-    const contractorApplications = allApplications.filter(app => 
+    const contractorApplications = mockApplications.filter(app => 
       app.contractorId === contractorId || contractorId === 'employer_demo_123'
     );
+
+    console.log('📊 Filtered applications:', contractorApplications.length);
 
     // Group by status
     const applicationsByStatus = {
@@ -200,7 +244,14 @@ class ApplicationService {
       }
     });
 
-    return {
+    console.log('📊 Applications by status:', {
+      pending: applicationsByStatus.pending.length,
+      reviewed: applicationsByStatus.reviewed.length,
+      accepted: applicationsByStatus.accepted.length,
+      rejected: applicationsByStatus.rejected.length
+    });
+
+    const result = {
       success: true,
       applications: contractorApplications,
       applicationsByStatus,
@@ -213,6 +264,10 @@ class ApplicationService {
         rejected: applicationsByStatus.rejected.length
       }
     };
+
+    console.log('📊 Returning result with', result.applications.length, 'applications');
+    
+    return result;
   }
 
   /**
@@ -233,13 +288,18 @@ class ApplicationService {
   }
 
   /**
-   * Get mock applications data focused on Jamshedpur/Jharkhand
+   * Get mock applications data with realistic job categories
    */
   getMockApplicationsData() {
+    const now = new Date();
+    const yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    const twoDaysAgo = new Date(now - 2 * 24 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(now - 3 * 24 * 60 * 60 * 1000);
+
     return [
       {
         applicationId: 'app_001',
-        jobId: 'job_steel_001',
+        jobId: 'job_construction_001',
         contractorId: 'employer_demo_123',
         applicantProfile: {
           userId: 'worker_001',
@@ -247,23 +307,23 @@ class ApplicationService {
           phoneNumber: '+91-9876543210',
           location: 'Jamshedpur, Jharkhand',
           experience: '8 years',
-          skills: ['Steel Fabrication', 'Welding', 'Heavy Machinery'],
+          skills: ['Construction', 'Masonry', 'Concrete Work', 'Brick Laying'],
           rating: 4.9,
           completedJobs: 78
         },
         jobDetails: {
-          title: 'Steel Worker',
-          location: 'Tata Steel Plant, Jamshedpur',
+          title: 'Construction Worker',
+          location: 'Residential Project, Jamshedpur',
           wage: 500,
           wageType: 'daily'
         },
         status: 'pending',
-        appliedAt: '2024-03-07T08:30:00Z',
-        updatedAt: '2024-03-07T08:30:00Z'
+        appliedAt: now.toISOString(),
+        updatedAt: now.toISOString()
       },
       {
         applicationId: 'app_002',
-        jobId: 'job_electrical_001',
+        jobId: 'job_plumber_001',
         contractorId: 'employer_demo_123',
         applicantProfile: {
           userId: 'worker_002',
@@ -271,23 +331,23 @@ class ApplicationService {
           phoneNumber: '+91-9876543211',
           location: 'Jamshedpur, Jharkhand',
           experience: '5 years',
-          skills: ['Industrial Wiring', 'Circuit Installation', 'Maintenance'],
+          skills: ['Plumbing', 'Pipe Installation', 'Leak Repair', 'Bathroom Fitting'],
           rating: 4.8,
           completedJobs: 45
         },
         jobDetails: {
-          title: 'Electrical Technician',
-          location: 'Industrial Area, Jamshedpur',
+          title: 'Plumber',
+          location: 'Commercial Complex, Jamshedpur',
           wage: 420,
           wageType: 'daily'
         },
         status: 'reviewed',
-        appliedAt: '2024-03-06T14:15:00Z',
-        updatedAt: '2024-03-07T09:00:00Z'
+        appliedAt: yesterday.toISOString(),
+        updatedAt: now.toISOString()
       },
       {
         applicationId: 'app_003',
-        jobId: 'job_construction_001',
+        jobId: 'job_electrician_001',
         contractorId: 'employer_demo_123',
         applicantProfile: {
           userId: 'worker_003',
@@ -295,23 +355,23 @@ class ApplicationService {
           phoneNumber: '+91-9876543212',
           location: 'Ranchi, Jharkhand',
           experience: '6 years',
-          skills: ['Construction', 'Masonry', 'Concrete Work'],
+          skills: ['Electrical Work', 'Wiring', 'Circuit Installation', 'Maintenance'],
           rating: 4.7,
           completedJobs: 52
         },
         jobDetails: {
-          title: 'Construction Worker',
-          location: 'Residential Project, Ranchi',
-          wage: 380,
+          title: 'Electrician',
+          location: 'Industrial Area, Ranchi',
+          wage: 450,
           wageType: 'daily'
         },
         status: 'accepted',
-        appliedAt: '2024-03-05T11:45:00Z',
-        updatedAt: '2024-03-06T16:30:00Z'
+        appliedAt: twoDaysAgo.toISOString(),
+        updatedAt: yesterday.toISOString()
       },
       {
         applicationId: 'app_004',
-        jobId: 'job_mining_001',
+        jobId: 'job_carpenter_001',
         contractorId: 'employer_demo_123',
         applicantProfile: {
           userId: 'worker_004',
@@ -319,23 +379,23 @@ class ApplicationService {
           phoneNumber: '+91-9876543213',
           location: 'Bokaro, Jharkhand',
           experience: '10 years',
-          skills: ['Mining Operations', 'Heavy Equipment', 'Safety Management'],
+          skills: ['Carpentry', 'Furniture Making', 'Wood Work', 'Door & Window Installation'],
           rating: 4.9,
           completedJobs: 89
         },
         jobDetails: {
-          title: 'Mining Technician',
-          location: 'Coal Mine, Bokaro',
-          wage: 600,
+          title: 'Carpenter',
+          location: 'Residential Project, Bokaro',
+          wage: 480,
           wageType: 'daily'
         },
         status: 'pending',
-        appliedAt: '2024-03-07T07:20:00Z',
-        updatedAt: '2024-03-07T07:20:00Z'
+        appliedAt: now.toISOString(),
+        updatedAt: now.toISOString()
       },
       {
         applicationId: 'app_005',
-        jobId: 'job_plumber_001',
+        jobId: 'job_painter_001',
         contractorId: 'employer_demo_123',
         applicantProfile: {
           userId: 'worker_005',
@@ -343,19 +403,91 @@ class ApplicationService {
           phoneNumber: '+91-9876543214',
           location: 'Jamshedpur, Jharkhand',
           experience: '4 years',
-          skills: ['Pipe Installation', 'Leak Repair', 'Bathroom Fitting'],
+          skills: ['Painting', 'Wall Finishing', 'Spray Painting', 'Color Mixing'],
           rating: 4.6,
           completedJobs: 38
         },
         jobDetails: {
-          title: 'Plumber',
-          location: 'Residential Complex, Jamshedpur',
-          wage: 320,
+          title: 'Painter',
+          location: 'Office Building, Jamshedpur',
+          wage: 380,
           wageType: 'daily'
         },
         status: 'rejected',
-        appliedAt: '2024-03-04T16:10:00Z',
-        updatedAt: '2024-03-05T10:15:00Z'
+        appliedAt: threeDaysAgo.toISOString(),
+        updatedAt: twoDaysAgo.toISOString()
+      },
+      {
+        applicationId: 'app_006',
+        jobId: 'job_welder_001',
+        contractorId: 'employer_demo_123',
+        applicantProfile: {
+          userId: 'worker_006',
+          name: 'विकास यादव',
+          phoneNumber: '+91-9876543215',
+          location: 'Jamshedpur, Jharkhand',
+          experience: '7 years',
+          skills: ['Welding', 'Metal Fabrication', 'Arc Welding', 'Gas Welding'],
+          rating: 4.8,
+          completedJobs: 65
+        },
+        jobDetails: {
+          title: 'Welder',
+          location: 'Steel Plant, Jamshedpur',
+          wage: 550,
+          wageType: 'daily'
+        },
+        status: 'accepted',
+        appliedAt: twoDaysAgo.toISOString(),
+        updatedAt: yesterday.toISOString()
+      },
+      {
+        applicationId: 'app_007',
+        jobId: 'job_mason_001',
+        contractorId: 'employer_demo_123',
+        applicantProfile: {
+          userId: 'worker_007',
+          name: 'गीता कुमारी',
+          phoneNumber: '+91-9876543216',
+          location: 'Dhanbad, Jharkhand',
+          experience: '5 years',
+          skills: ['Masonry', 'Tile Work', 'Plastering', 'Stone Work'],
+          rating: 4.7,
+          completedJobs: 42
+        },
+        jobDetails: {
+          title: 'Mason',
+          location: 'Housing Project, Dhanbad',
+          wage: 420,
+          wageType: 'daily'
+        },
+        status: 'reviewed',
+        appliedAt: yesterday.toISOString(),
+        updatedAt: now.toISOString()
+      },
+      {
+        applicationId: 'app_008',
+        jobId: 'job_helper_001',
+        contractorId: 'employer_demo_123',
+        applicantProfile: {
+          userId: 'worker_008',
+          name: 'संजय कुमार',
+          phoneNumber: '+91-9876543217',
+          location: 'Jamshedpur, Jharkhand',
+          experience: '2 years',
+          skills: ['General Labor', 'Material Handling', 'Site Cleaning', 'Assistance'],
+          rating: 4.5,
+          completedJobs: 25
+        },
+        jobDetails: {
+          title: 'Construction Helper',
+          location: 'Multiple Sites, Jamshedpur',
+          wage: 320,
+          wageType: 'daily'
+        },
+        status: 'pending',
+        appliedAt: now.toISOString(),
+        updatedAt: now.toISOString()
       }
     ];
   }

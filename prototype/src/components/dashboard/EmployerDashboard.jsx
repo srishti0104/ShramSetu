@@ -78,23 +78,26 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
           </div>
         );
       
-      case 'grievance':
-        return <GrievanceForm />;
-      
       case 'rating':
         return (
-          <RatingForm
-            jobId="job_demo_789"
-            raterId="employer_demo_123"
-            rateeId="worker_demo_456"
-            raterType="contractor"
-            rateeName="Demo Worker"
-            onSuccess={(data) => {
-              console.log('Rating submitted:', data);
-              alert(t('rating:submitRating'));
-            }}
-          />
+          <div className="rating-panel-wrapper">
+            <h2 className="section-title">{t('dashboard:rating', 'Rating')}</h2>
+            <RatingForm
+              jobId="manual_rating"
+              raterId="employer_demo_123"
+              rateeId="" // Empty - user must enter Employee ID
+              raterType="employer"
+              rateeName=""
+              onSuccess={(result) => {
+                console.log('✅ Rating submitted to DynamoDB:', result);
+                alert('रेटिंग सफलतापूर्वक जमा की गई! / Rating submitted successfully!');
+              }}
+            />
+          </div>
         );
+      
+      case 'grievance':
+        return <GrievanceForm />;
       
       case 'sync':
         return <OfflineSync />;
@@ -133,8 +136,8 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
     { id: 'home', label: t('dashboard:postedJobs', 'Posted Jobs'), icon: '📋' },
     { id: 'applications', label: t('dashboard:applications', 'Applications'), icon: '📝' },
     { id: 'post-job', label: t('dashboard:postJob', 'Post a Job'), icon: '➕' },
-    { id: 'grievance', label: t('dashboard:grievance', 'Grievance'), icon: '🛡️' },
     { id: 'rating', label: t('dashboard:rating', 'Rating'), icon: '⭐' },
+    { id: 'grievance', label: t('dashboard:grievance', 'Grievance'), icon: '🛡️' },
     { id: 'sync', label: t('dashboard:sync', 'Sync'), icon: '📱' },
     { id: 'ai-assistant', label: t('common:labels.ai', 'AI Assistant'), icon: '🤖' },
     { id: 'profile', label: t('nav:profile', 'Profile'), icon: '👤' },

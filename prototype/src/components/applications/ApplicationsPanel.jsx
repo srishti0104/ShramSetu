@@ -1,7 +1,7 @@
 /**
  * Applications Panel Component
  * 
- * @fileoverview Displays job applications for employers with management capabilities
+ * @fileoverview Displays job applications for employers with management capabilities and rating system
  */
 
 import { useState, useEffect } from 'react';

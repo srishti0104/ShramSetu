@@ -47,29 +47,75 @@ export default function LocationFetch() {
         async (position) => {
           const { latitude, longitude } = position.coords;
           
-          // MOCK: Reverse geocoding
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          const mockLocation = {
-            latitude,
-            longitude,
-            city: 'Mumbai',
-            state: 'Maharashtra',
-            pincode: '400001',
-            address: 'Mumbai, Maharashtra'
-          };
+          try {
+            // Use OpenStreetMap Nominatim for reverse geocoding (free, no API key needed)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+              {
+                headers: {
+                  'Accept-Language': 'en'
+                }
+              }
+            );
+            
+            if (!response.ok) {
+              throw new Error('Reverse geocoding failed');
+            }
+            
+            const data = await response.json();
+            console.log('📍 Reverse geocoding result:', data);
+            
+            // Extract location details from OpenStreetMap response
+            const address = data.address || {};
+            const city = address.city || address.town || address.village || address.county || 'Unknown City';
+            const state = address.state || 'Unknown State';
+            const pincode = address.postcode || '';
+            
+            const realLocation = {
+              latitude,
+              longitude,
+              city,
+              state,
+              pincode,
+              address: `${city}, ${state}`
+            };
 
-          setLocation(mockLocation);
-          setHasPermission(true);
-          setIsFetching(false);
+            console.log('✅ Real location detected:', realLocation);
+            setLocation(realLocation);
+            setHasPermission(true);
+            setIsFetching(false);
+          } catch (geocodeError) {
+            console.error('Reverse geocoding error:', geocodeError);
+            // Fallback: Use coordinates only
+            const fallbackLocation = {
+              latitude,
+              longitude,
+              city: `Lat: ${latitude.toFixed(4)}`,
+              state: `Lon: ${longitude.toFixed(4)}`,
+              pincode: '',
+              address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+            };
+            
+            setLocation(fallbackLocation);
+            setHasPermission(true);
+            setIsFetching(false);
+            setError(isHindi 
+              ? '⚠️ स्थान का नाम प्राप्त नहीं हो सका, लेकिन निर्देशांक सहेजे गए' 
+              : '⚠️ Could not get location name, but coordinates saved');
+          }
         },
         (err) => {
           console.error('Geolocation error:', err);
           setError(isHindi 
-            ? 'स्थान प्राप्त करने में विफल' 
-            : 'Failed to get location');
+            ? 'स्थान प्राप्त करने में विफल। कृपया मैन्युअल रूप से दर्ज करें।' 
+            : 'Failed to get location. Please enter manually.');
           setIsFetching(false);
           setManualEntry(true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     } catch (err) {
@@ -116,28 +162,40 @@ export default function LocationFetch() {
                 ? 'आपके पास नौकरियां खोजने के लिए हमें आपके स्थान की आवश्यकता है' 
                 : 'We need your location to find jobs near you'}
             </p>
-            <button
-              type="button"
-              onClick={requestPermission}
-              disabled={isFetching}
-              className="location-fetch__button"
-            >
-              {isFetching ? (
-                <>
-                  <span className="spinner"></span>
-                  {isHindi ? 'स्थान प्राप्त कर रहे हैं...' : 'Getting location...'}
-                </>
-              ) : (
-                isHindi ? 'स्थान की अनुमति दें' : 'Allow Location'
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setManualEntry(true)}
-              className="location-fetch__manual-link"
-            >
-              {isHindi ? 'मैन्युअल रूप से दर्ज करें' : 'Enter Manually'}
-            </button>
+            
+            <div className="location-fetch__options">
+              <p className="location-fetch__options-title">
+                {isHindi ? 'स्थान कैसे प्रदान करें:' : 'Choose how to provide location:'}
+              </p>
+              
+              <button
+                type="button"
+                onClick={requestPermission}
+                disabled={isFetching}
+                className="location-fetch__button location-fetch__button--primary"
+              >
+                {isFetching ? (
+                  <>
+                    <span className="spinner"></span>
+                    {isHindi ? 'स्थान प्राप्त कर रहे हैं...' : 'Getting location...'}
+                  </>
+                ) : (
+                  <>
+                    <span className="location-fetch__button-icon">📍</span>
+                    {isHindi ? 'वास्तविक स्थान का उपयोग करें (GPS)' : 'Use Real Location (GPS)'}
+                  </>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setManualEntry(true)}
+                className="location-fetch__button location-fetch__button--secondary"
+              >
+                <span className="location-fetch__button-icon">✏️</span>
+                {isHindi ? 'मैन्युअल रूप से दर्ज करें' : 'Enter Manually'}
+              </button>
+            </div>
           </div>
         ) : isFetching ? (
           <div className="location-fetch__loading">
