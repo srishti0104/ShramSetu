@@ -6,8 +6,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
+import authService from '../../../services/aws/authService';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './OTPVerification.css';
 
@@ -24,10 +25,25 @@ export default function OTPVerification() {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(RESEND_TIMEOUT);
   const [canResend, setCanResend] = useState(false);
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
+  const [attemptsLeft, setAttemptsLeft] = useState(5);
   const inputRefs = useRef([]);
 
   const isHindi = state.language === 'hi';
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = isHindi
+    ? '6 अंकों का OTP दर्ज करें।'
+    : 'Enter 6-digit OTP.';
+
+  // Update attempts left on mount
+  useEffect(() => {
+    if (state.phoneNumber) {
+      const remaining = authService.getRemainingOTPAttempts(state.phoneNumber);
+      setAttemptsLeft(remaining);
+    }
+  }, [state.phoneNumber]);
 
   // Countdown timer
   useEffect(() => {
@@ -93,22 +109,34 @@ export default function OTPVerification() {
     setError('');
 
     try {
-      // MOCK: Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call real AuthService
+      await authService.verifyOTP(state.phoneNumber, otpValue);
       
-      console.log('[MOCK] Verifying OTP:', otpValue);
+      console.log('[OTP] Verified successfully');
       
-      // Mock success
-      updateState({ 
-        otpVerified: true,
-        userId: 'user-' + Date.now(),
-        accessToken: 'mock-token-' + Date.now()
-      });
+      // Update state and move to password creation
+      updateState({ otpVerified: true });
       nextStep();
     } catch (err) {
-      setError(isHindi 
-        ? 'गलत OTP। कृपया पुनः प्रयास करें।' 
-        : 'Invalid OTP. Please try again.');
+      console.error('[OTP] Verification error:', err);
+      
+      // Update attempts left
+      const remaining = authService.getRemainingOTPAttempts(state.phoneNumber);
+      setAttemptsLeft(remaining);
+      
+      // Handle specific errors
+      if (err.message.includes('locked')) {
+        setError(err.message);
+      } else if (err.message.includes('expired')) {
+        setError(isHindi 
+          ? 'OTP समाप्त हो गया है। कृपया नया OTP मांगें।'
+          : 'OTP has expired. Please request a new one.');
+      } else {
+        setError(isHindi 
+          ? `गलत OTP। ${remaining} प्रयास शेष।`
+          : `Invalid OTP. ${remaining} attempts remaining.`);
+      }
+      
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -123,19 +151,26 @@ export default function OTPVerification() {
     if (!canResend) return;
 
     try {
-      // MOCK: Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call real AuthService
+      await authService.sendOTP(state.phoneNumber);
       
-      console.log('[MOCK] Resending OTP to:', state.phoneNumber);
+      console.log('[OTP] Resent to:', state.phoneNumber);
       
       setTimeLeft(RESEND_TIMEOUT);
       setCanResend(false);
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
+      setError('');
     } catch (err) {
-      setError(isHindi 
-        ? 'OTP पुनः भेजने में विफल' 
-        : 'Failed to resend OTP');
+      console.error('[OTP] Resend error:', err);
+      
+      if (err.message.includes('Too many')) {
+        setError(err.message);
+      } else {
+        setError(isHindi 
+          ? 'OTP पुनः भेजने में विफल' 
+          : 'Failed to resend OTP');
+      }
     }
   };
 
@@ -157,18 +192,37 @@ export default function OTPVerification() {
   };
 
   /**
-   * Handle voice assist
+   * Handle voice input - recognize OTP digits
    */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    console.log('[MOCK] Voice narration: Enter the 6-digit OTP sent to your phone');
+  const handleVoiceInputOTP = (transcript) => {
+    console.log('Voice input received:', transcript);
+    
+    // Extract digits from transcript
+    const digits = transcript.replace(/\D/g, '').slice(0, OTP_LENGTH);
+    
+    if (digits.length === OTP_LENGTH) {
+      const newOtp = digits.split('');
+      setOtp(newOtp);
+      inputRefs.current[OTP_LENGTH - 1]?.focus();
+      handleVerifyOTP(digits);
+    } else if (digits.length > 0) {
+      // Partial OTP - fill what we have
+      const newOtp = [...otp];
+      for (let i = 0; i < Math.min(digits.length, OTP_LENGTH); i++) {
+        newOtp[i] = digits[i];
+      }
+      setOtp(newOtp);
+      inputRefs.current[Math.min(digits.length, OTP_LENGTH - 1)]?.focus();
+    }
   };
 
   return (
     <div className="otp-verification">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        onVoiceInput={handleVoiceInputOTP}
+        voiceInputPrompt={isHindi ? 'OTP बोलें...' : 'Speak OTP...'}
       />
       <BackButton onClick={previousStep} />
       
@@ -208,6 +262,14 @@ export default function OTPVerification() {
           {error && (
             <p className="otp-verification__error" role="alert">
               {error}
+            </p>
+          )}
+
+          {attemptsLeft < 5 && attemptsLeft > 0 && !error.includes('locked') && (
+            <p className="otp-verification__warning">
+              {isHindi 
+                ? `${attemptsLeft} प्रयास शेष`
+                : `${attemptsLeft} attempts remaining`}
             </p>
           )}
 

@@ -1,0 +1,206 @@
+/* Voice Interaction Component Styles */
+
+.voice-interaction {
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.voice-interaction__buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.voice-interaction__button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+  color: var(--primary-blue);
+}
+
+.voice-interaction__button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.voice-interaction__button:active {
+  transform: scale(0.95);
+}
+
+.voice-interaction__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-interaction__button:disabled:hover {
+  transform: none;
+}
+
+/* Speaker button specific styles */
+.voice-interaction__button--speaker {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.voice-interaction__button--speaker:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #63408b 100%);
+}
+
+/* Microphone button specific styles */
+.voice-interaction__button--microphone {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.voice-interaction__button--microphone:hover {
+  background: linear-gradient(135deg, #d97ce0 0%, #dc4a5d 100%);
+}
+
+/* Active state */
+.voice-interaction__button--active {
+  animation: pulse-button 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-button {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Icon */
+.voice-interaction__icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Pulse effect */
+.voice-interaction__pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Status display */
+.voice-interaction__status {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 300px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.voice-interaction__status-text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.voice-interaction__status-text--listening {
+  color: var(--primary-blue);
+  font-weight: 500;
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.voice-interaction__status-text--transcript {
+  color: var(--text-primary);
+}
+
+.voice-interaction__status-text--error {
+  color: var(--error-red);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .voice-interaction {
+    top: var(--space-3);
+    right: var(--space-3);
+  }
+
+  .voice-interaction__button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .voice-interaction__icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .voice-interaction__status {
+    max-width: 250px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .voice-interaction__status-text {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .voice-interaction__button--active,
+  .voice-interaction__pulse,
+  .voice-interaction__status-text--listening {
+    animation: none;
+  }
+
+  .voice-interaction__button:hover {
+    transform: none;
+  }
+}

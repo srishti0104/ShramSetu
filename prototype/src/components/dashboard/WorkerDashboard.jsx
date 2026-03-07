@@ -235,12 +235,67 @@ function WorkerProfile({ userProfile }) {
       <div className="worker-profile__content">
         <div className="profile-card">
           <div className="profile-card__avatar">
-            {userProfile?.name?.charAt(0) || 'U'}
+            {userProfile?.photo ? (
+              <img src={userProfile.photo} alt={userProfile.name} />
+            ) : (
+              <div className="profile-card__avatar-placeholder">
+                {userProfile?.name?.charAt(0) || 'U'}
+              </div>
+            )}
           </div>
           <div className="profile-card__info">
             <h3>{userProfile?.name || 'User'}</h3>
-            <p>{userProfile?.phoneNumber || 'Phone not provided'}</p>
-            <p>{userProfile?.location?.city || 'Location not set'}</p>
+            <p className="profile-card__role">
+              {userProfile?.role === 'worker' ? t('profile:worker', 'Worker') : t('profile:employer', 'Employer')}
+            </p>
+          </div>
+        </div>
+        
+        <div className="profile-details">
+          <h4>{t('profile:personalInfo', 'Personal Information')}</h4>
+          <div className="profile-details__grid">
+            <div className="profile-detail-item">
+              <span className="profile-detail-label">{t('profile:phone', 'Phone Number')}</span>
+              <span className="profile-detail-value">{userProfile?.phoneNumber || 'Not provided'}</span>
+            </div>
+            
+            {userProfile?.age && (
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">{t('profile:age', 'Age')}</span>
+                <span className="profile-detail-value">{userProfile.age}</span>
+              </div>
+            )}
+            
+            {userProfile?.gender && (
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">{t('profile:gender', 'Gender')}</span>
+                <span className="profile-detail-value">
+                  {userProfile.gender === 'male' ? t('profile:male', 'Male') : 
+                   userProfile.gender === 'female' ? t('profile:female', 'Female') : 
+                   t('profile:other', 'Other')}
+                </span>
+              </div>
+            )}
+            
+            {userProfile?.location && (
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">{t('profile:location', 'Location')}</span>
+                <span className="profile-detail-value">
+                  {[
+                    userProfile.location.city,
+                    userProfile.location.state,
+                    userProfile.location.pincode
+                  ].filter(Boolean).join(', ') || 'Not set'}
+                </span>
+              </div>
+            )}
+            
+            {userProfile?.location?.address && (
+              <div className="profile-detail-item profile-detail-item--full">
+                <span className="profile-detail-label">{t('profile:address', 'Address')}</span>
+                <span className="profile-detail-value">{userProfile.location.address}</span>
+              </div>
+            )}
           </div>
         </div>
         

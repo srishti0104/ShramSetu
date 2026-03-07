@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './DisclaimerScreen.css';
 
@@ -49,11 +49,20 @@ const KEY_POINTS = [
  * Disclaimer Screen Component
  */
 export default function DisclaimerScreen() {
-  const { state, updateState, previousStep, completeOnboarding } = useOnboarding();
+  const { state, updateState, previousStep, completeOnboarding, handleRegistration } = useOnboarding();
   const [hasAccepted, setHasAccepted] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [error, setError] = useState('');
 
   const isHindi = state.language === 'hi';
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = isHindi
+    ? 'नियम और शर्तें पढ़ें।'
+    : 'Read terms and conditions.';
 
   /**
    * Handle scroll to track if user has read content
@@ -71,13 +80,43 @@ export default function DisclaimerScreen() {
   /**
    * Handle accept and continue
    */
-  const handleAcceptAndContinue = () => {
-    if (hasAccepted) {
-      updateState({ termsAccepted: true });
-      // Complete onboarding
-      console.log('[MOCK] Onboarding completed, redirecting to dashboard...');
+  const handleAcceptAndContinue = async () => {
+    if (!hasAccepted) return;
+    
+    updateState({ termsAccepted: true });
+    
+    // If signup flow, register the user
+    if (state.authMethod === 'signup') {
+      setIsRegistering(true);
+      setError('');
       
-      // Use completeOnboarding to trigger the callback
+      try {
+        console.log('[REGISTRATION] Starting registration with data:', {
+          phoneNumber: state.phoneNumber,
+          role: state.role,
+          language: state.language,
+          hasLocation: !!state.location,
+          hasSkills: state.skills?.length > 0,
+          hasProfile: !!state.profile
+        });
+        
+        await handleRegistration();
+        console.log('[REGISTRATION] Success, completing onboarding...');
+        completeOnboarding();
+      } catch (err) {
+        console.error('[REGISTRATION] Error:', err);
+        console.error('[REGISTRATION] Error details:', {
+          message: err.message,
+          stack: err.stack
+        });
+        setError(err.message || (isHindi 
+          ? 'पंजीकरण विफल। कृपया पुनः प्रयास करें।'
+          : 'Registration failed. Please try again.'));
+        setIsRegistering(false);
+      }
+    } else {
+      // Login flow - already authenticated, just complete
+      console.log('[LOGIN] Completing onboarding...');
       completeOnboarding();
     }
   };
@@ -98,17 +137,14 @@ export default function DisclaimerScreen() {
     // TODO: Open modal or navigate to privacy policy page
   };
 
-  /**
-   * Voice narration on mount
-   */
-  useEffect(() => {
-    console.log('[MOCK] Voice narration: Important information');
-  }, []);
-
   return (
     <div className="disclaimer-screen">
-      <VoiceAssistButton />
-      <ProgressIndicator step={10} total={10} />
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        showMicrophone={false}
+      />
+      <ProgressIndicator step={state.currentStep} total={state.totalSteps} />
       <BackButton onClick={previousStep} />
 
       <div className="disclaimer-screen__content">
@@ -190,13 +226,27 @@ export default function DisclaimerScreen() {
           </label>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <p className="disclaimer-screen__error" role="alert">
+            {error}
+          </p>
+        )}
+
         {/* Accept Button */}
         <button
           className="disclaimer-screen__accept"
           onClick={handleAcceptAndContinue}
-          disabled={!hasAccepted}
+          disabled={!hasAccepted || isRegistering}
         >
-          {isHindi ? 'स्वीकार करें और जारी रखें' : 'Accept & Continue'}
+          {isRegistering ? (
+            <>
+              <span className="spinner" aria-hidden="true"></span>
+              {isHindi ? 'पंजीकरण हो रहा है...' : 'Registering...'}
+            </>
+          ) : (
+            isHindi ? 'स्वीकार करें और जारी रखें' : 'Accept & Continue'
+          )}
         </button>
       </div>
     </div>

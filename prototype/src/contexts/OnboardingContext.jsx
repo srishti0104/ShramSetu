@@ -6,6 +6,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { saveRole, clearRole } from '../utils/roleManager';
+import authService from '../services/aws/authService';
 
 const OnboardingContext = createContext(null);
 
@@ -17,7 +18,7 @@ const EXPIRY_HOURS = 24;
  */
 const initialState = {
   currentStep: 1,
-  totalSteps: 10,
+  totalSteps: 10, // Updated: removed OTP screen
   
   // Step 1: Language
   language: null,
@@ -25,15 +26,20 @@ const initialState = {
   // Step 2: Role
   role: null, // 'worker' | 'employer'
   
-  // Step 3-5: Authentication
-  authMethod: null, // 'phone' | 'eshram'
+  // Step 3: Auth Method Selection (NEW)
+  authMethod: null, // 'login' | 'signup'
+  
+  // Step 4-6: Authentication
   phoneNumber: null,
   eShramCard: null,
   otpVerified: false,
+  password: null, // Temporary storage for signup flow
   userId: null,
   accessToken: null,
+  isAuthenticated: false,
+  authError: null,
   
-  // Step 6: Location
+  // Step 7: Location
   location: {
     latitude: null,
     longitude: null,
@@ -43,11 +49,11 @@ const initialState = {
     address: null
   },
   
-  // Step 7: Occupation (workers only)
+  // Step 8: Occupation (workers only)
   skills: [],
   customSkills: {}, // Map of custom skill IDs to names
   
-  // Step 8: Personal Details
+  // Step 9: Personal Details
   profile: {
     name: null,
     age: null,
@@ -55,7 +61,7 @@ const initialState = {
     photo: null
   },
   
-  // Step 9-10: Tutorial
+  // Step 10-11: Tutorial
   benefitsViewed: false,
   termsAccepted: false,
   
@@ -171,6 +177,90 @@ export function OnboardingProvider({ children, onComplete }) {
     clearProgress();
   };
 
+  /**
+   * Set authentication method
+   */
+  const setAuthMethod = (method) => {
+    updateState({ authMethod: method });
+  };
+
+  /**
+   * Set password (temporary storage for signup flow)
+   */
+  const setPassword = (password) => {
+    updateState({ password });
+  };
+
+  /**
+   * Clear password from state
+   */
+  const clearPassword = () => {
+    updateState({ password: null });
+  };
+
+  /**
+   * Handle login (for existing users)
+   */
+  const handleLogin = async (phoneNumber, password) => {
+    try {
+      const result = await authService.login(phoneNumber, password);
+      
+      updateState({
+        userId: result.user.userId,
+        accessToken: result.token,
+        isAuthenticated: true,
+        phoneNumber: result.user.phoneNumber,
+        authError: null
+      });
+      
+      return result;
+    } catch (error) {
+      updateState({
+        authError: error.message,
+        isAuthenticated: false
+      });
+      throw error;
+    }
+  };
+
+  /**
+   * Handle registration (for new users after completing onboarding)
+   */
+  const handleRegistration = async () => {
+    try {
+      // Prepare registration data
+      const registrationData = {
+        phoneNumber: state.phoneNumber,
+        password: state.password,
+        role: state.role,
+        language: state.language,
+        location: state.location,
+        skills: state.skills,
+        profile: state.profile
+      };
+      
+      const result = await authService.register(registrationData);
+      
+      updateState({
+        userId: result.user.userId,
+        accessToken: result.token,
+        isAuthenticated: true,
+        authError: null
+      });
+      
+      // Clear password from state after successful registration
+      clearPassword();
+      
+      return result;
+    } catch (error) {
+      updateState({
+        authError: error.message,
+        isAuthenticated: false
+      });
+      throw error;
+    }
+  };
+
   const value = {
     state,
     updateState,
@@ -178,7 +268,12 @@ export function OnboardingProvider({ children, onComplete }) {
     previousStep,
     goToStep,
     completeOnboarding,
-    resetOnboarding
+    resetOnboarding,
+    setAuthMethod,
+    setPassword,
+    clearPassword,
+    handleLogin,
+    handleRegistration
   };
 
   return (

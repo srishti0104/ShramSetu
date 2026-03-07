@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './LocationFetch.css';
 
@@ -21,9 +21,15 @@ export default function LocationFetch() {
   const [location, setLocation] = useState(state.location);
   const [manualEntry, setManualEntry] = useState(false);
   const [error, setError] = useState('');
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
 
   const isHindi = state.language === 'hi';
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = isHindi
+    ? 'अपना स्थान साझा करें।'
+    : 'Share your location.';
 
   /**
    * Request location permission
@@ -80,27 +86,15 @@ export default function LocationFetch() {
    */
   const handleConfirmLocation = () => {
     updateState({ location });
-    
-    // Skip occupation selection for employers
-    if (state.role === 'employer') {
-      updateState({ currentStep: 8 }); // Jump to personal details
-    }
     nextStep();
-  };
-
-  /**
-   * Handle voice assist
-   */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    console.log('[MOCK] Voice narration: Allow location access to find nearby jobs');
   };
 
   return (
     <div className="location-fetch">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        showMicrophone={false}
       />
       <BackButton onClick={previousStep} />
       

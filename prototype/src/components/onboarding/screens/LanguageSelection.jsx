@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import './LanguageSelection.css';
 
 /**
@@ -34,7 +34,11 @@ export default function LanguageSelection() {
   const { state, updateState, nextStep } = useOnboarding();
   const { setLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState(state.language);
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
+
+  /**
+   * Narration text for this screen
+   */
+  const narrationText = "Choose your language. अपनी भाषा चुनें।";
 
   /**
    * Handle language selection
@@ -67,19 +71,33 @@ export default function LanguageSelection() {
   };
 
   /**
-   * Handle voice assist
+   * Handle voice input - recognize language name
    */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    // TODO: Implement voice narration
-    console.log('[MOCK] Voice narration: Choose your preferred language');
+  const handleVoiceInput = (transcript) => {
+    console.log('Voice input received:', transcript);
+    
+    // Try to match transcript with language names
+    const lowerTranscript = transcript.toLowerCase();
+    const matchedLanguage = LANGUAGES.find(lang => 
+      lowerTranscript.includes(lang.nativeName.toLowerCase()) ||
+      lowerTranscript.includes(lang.name.toLowerCase()) ||
+      lowerTranscript.includes(lang.code)
+    );
+
+    if (matchedLanguage) {
+      handleLanguageSelect(matchedLanguage.code);
+    } else {
+      console.log('No language matched for transcript:', transcript);
+    }
   };
 
   return (
     <div className="language-selection">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language="en"
+        onVoiceInput={handleVoiceInput}
+        voiceInputPrompt="Say your language name..."
       />
       
       <ProgressIndicator 

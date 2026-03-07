@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import './BenefitsScreen.css';
 
 /**
@@ -59,6 +59,15 @@ export default function BenefitsScreen() {
 
   const isHindi = state.language === 'hi';
   const isLastSlide = currentSlide === BENEFITS.length - 1;
+
+  /**
+   * Get narration text for current slide
+   */
+  const getNarrationText = () => {
+    const benefit = BENEFITS[currentSlide];
+    const title = isHindi ? benefit.titleHi : benefit.titleEn;
+    return title;
+  };
 
   /**
    * Handle next slide
@@ -119,14 +128,16 @@ export default function BenefitsScreen() {
    * Voice narration on slide change
    */
   useEffect(() => {
-    const benefit = BENEFITS[currentSlide];
-    const title = isHindi ? benefit.titleHi : benefit.titleEn;
-    console.log(`[MOCK] Voice narration: ${title}`);
+    // Narration will be handled by VoiceInteraction component
   }, [currentSlide, isHindi]);
 
   return (
     <div className="benefits-screen">
-      <VoiceAssistButton />
+      <VoiceInteraction
+        narrationText={getNarrationText()}
+        language={state.language || 'en'}
+        showMicrophone={false}
+      />
       <ProgressIndicator step={9} total={10} />
 
       <div className="benefits-screen__content">

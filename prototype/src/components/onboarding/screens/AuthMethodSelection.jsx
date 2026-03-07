@@ -1,13 +1,12 @@
 /**
  * Auth Method Selection Screen
  * 
- * @fileoverview Third screen - allows user to choose authentication method
+ * @fileoverview Screen for choosing between login and signup
  */
 
-import { useState } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
-import VoiceAssistButton from '../shared/VoiceAssistButton';
+import VoiceInteraction from '../shared/VoiceInteraction';
 import BackButton from '../shared/BackButton';
 import './AuthMethodSelection.css';
 
@@ -16,37 +15,41 @@ import './AuthMethodSelection.css';
  */
 export default function AuthMethodSelection() {
   const { state, updateState, nextStep, previousStep } = useOnboarding();
-  const [selectedMethod, setSelectedMethod] = useState(state.authMethod);
-  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
-
-  const isWorker = state.role === 'worker';
   const isHindi = state.language === 'hi';
 
+  const narrationText = isHindi
+    ? 'लॉगिन करें या नया खाता बनाएं।'
+    : 'Login or create new account.';
+
   /**
-   * Handle auth method selection
+   * Handle method selection
    */
   const handleMethodSelect = (method) => {
-    setSelectedMethod(method);
-    
-    setTimeout(() => {
-      updateState({ authMethod: method });
-      nextStep();
-    }, 300);
+    updateState({ authMethod: method });
+    nextStep();
   };
 
   /**
-   * Handle voice assist
+   * Handle voice input
    */
-  const handleVoiceAssist = () => {
-    setIsVoicePlaying(!isVoicePlaying);
-    console.log('[MOCK] Voice narration: Choose how to login');
+  const handleVoiceInput = (transcript) => {
+    const lowerTranscript = transcript.toLowerCase();
+    
+    if (lowerTranscript.includes('login') || lowerTranscript.includes('लॉगिन') || lowerTranscript.includes('log in')) {
+      handleMethodSelect('login');
+    } else if (lowerTranscript.includes('sign up') || lowerTranscript.includes('signup') || 
+               lowerTranscript.includes('साइन अप') || lowerTranscript.includes('register')) {
+      handleMethodSelect('signup');
+    }
   };
 
   return (
     <div className="auth-method-selection">
-      <VoiceAssistButton 
-        onClick={handleVoiceAssist}
-        isPlaying={isVoicePlaying}
+      <VoiceInteraction
+        narrationText={narrationText}
+        language={state.language || 'en'}
+        onVoiceInput={handleVoiceInput}
+        voiceInputPrompt={isHindi ? 'सुन रहे हैं...' : 'Listening...'}
       />
       <BackButton onClick={previousStep} />
       
@@ -57,66 +60,52 @@ export default function AuthMethodSelection() {
 
       <div className="auth-method-selection__content">
         <h1 className="auth-method-selection__title">
-          {isHindi ? 'लॉगिन कैसे करें?' : 'How to Login?'}
+          {isHindi ? 'आगे बढ़ें' : 'Continue'}
         </h1>
         <p className="auth-method-selection__subtitle">
           {isHindi 
-            ? 'अपनी पसंदीदा विधि चुनें' 
-            : 'Choose your preferred method'}
+            ? 'क्या आपके पास पहले से खाता है?' 
+            : 'Do you already have an account?'}
         </p>
 
-        <div className="auth-method-selection__cards">
-          <AuthMethodCard
-            method="phone"
-            title={isHindi ? 'फोन नंबर' : 'Phone Number'}
-            description={isHindi 
-              ? 'मोबाइल नंबर और OTP से लॉगिन करें' 
-              : 'Login with mobile number and OTP'}
-            icon="📱"
-            selected={selectedMethod === 'phone'}
-            onSelect={handleMethodSelect}
-          />
-          
-          {isWorker && (
-            <AuthMethodCard
-              method="eshram"
-              title={isHindi ? 'ई-श्रम कार्ड' : 'E-Shram Card'}
-              description={isHindi 
-                ? 'सत्यापित श्रमिक क्रेडेंशियल्स से लॉगिन करें' 
-                : 'Login with verified worker credentials'}
-              icon="🆔"
-              selected={selectedMethod === 'eshram'}
-              onSelect={handleMethodSelect}
-            />
-          )}
+        <div className="auth-method-selection__options">
+          <button
+            type="button"
+            onClick={() => handleMethodSelect('login')}
+            className="auth-method-selection__option auth-method-selection__option--login"
+          >
+            <div className="auth-method-selection__option-icon">
+              🔑
+            </div>
+            <h2 className="auth-method-selection__option-title">
+              {isHindi ? 'लॉगिन करें' : 'Login'}
+            </h2>
+            <p className="auth-method-selection__option-description">
+              {isHindi 
+                ? 'मौजूदा खाते के साथ जारी रखें' 
+                : 'Continue with existing account'}
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleMethodSelect('signup')}
+            className="auth-method-selection__option auth-method-selection__option--signup"
+          >
+            <div className="auth-method-selection__option-icon">
+              ✨
+            </div>
+            <h2 className="auth-method-selection__option-title">
+              {isHindi ? 'साइन अप करें' : 'Sign Up'}
+            </h2>
+            <p className="auth-method-selection__option-description">
+              {isHindi 
+                ? 'नया खाता बनाएं' 
+                : 'Create a new account'}
+            </p>
+          </button>
         </div>
       </div>
     </div>
-  );
-}
-
-/**
- * Auth Method Card Component
- */
-function AuthMethodCard({ method, title, description, icon, selected, onSelect }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(method)}
-      className={`auth-method-card ${selected ? 'auth-method-card--selected' : ''}`}
-      aria-label={title}
-      aria-pressed={selected}
-    >
-      <div className="auth-method-card__icon" aria-hidden="true">
-        {icon}
-      </div>
-      <h2 className="auth-method-card__title">{title}</h2>
-      <p className="auth-method-card__description">{description}</p>
-      {selected && (
-        <div className="auth-method-card__checkmark" aria-hidden="true">
-          ✓
-        </div>
-      )}
-    </button>
   );
 }
