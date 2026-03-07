@@ -9,6 +9,7 @@ import './EmployerDashboard.css';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useUserProfile } from '../../contexts/UserProfileContext';
 import LanguageSwitcher from '../LanguageSwitcher';
+import NotificationBell from '../notifications/NotificationBell';
 
 // Import feature components
 import VoiceRecorder from '../voice/VoiceRecorder';
@@ -21,6 +22,7 @@ import RatingForm from '../ratings/RatingForm';
 import OfflineSync from '../sync/OfflineSync';
 import AIAssistant from '../ai/AIAssistant';
 import WorkerFeed from '../feeds/WorkerFeed';
+import ApplicationsPanel from '../applications/ApplicationsPanel';
 
 /**
  * Employer Dashboard Component
@@ -111,6 +113,9 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
       case 'ai-assistant':
         return <AIAssistant />;
 
+      case 'applications':
+        return <ApplicationsPanel />;
+
       case 'profile':
         return <EmployerProfile userProfile={userProfile} />;
 
@@ -142,7 +147,8 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
     { id: 'home', label: t('nav:home', 'Home'), icon: '🏠' },
     { id: 'voice', label: t('common:labels.voice', 'Voice Assistant'), icon: '🎤' },
     { id: 'talent-search', label: t('dashboard:talentSearch', 'Talent Search'), icon: '🔍' },
-    { id: 'session-start', label: t('dashboard:sessionStart', 'Start Session'), icon: '📋' },
+    { id: 'applications', label: t('dashboard:applications', 'Applications'), icon: '📋' },
+    { id: 'session-start', label: t('dashboard:sessionStart', 'Start Session'), icon: '📅' },
     { id: 'ledger', label: t('dashboard:ledger', 'E-Khata'), icon: '💰' },
     { id: 'grievance', label: t('dashboard:grievance', 'Grievance'), icon: '🛡️' },
     { id: 'rating', label: t('dashboard:rating', 'Rating'), icon: '⭐' },
@@ -193,6 +199,7 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
               </p>
             </div>
             <div className="employer-dashboard__header-actions">
+              <NotificationBell />
               <LanguageSwitcher 
                 variant="dropdown" 
                 className="employer-dashboard__language-switcher" 
