@@ -22,6 +22,9 @@ class JobsAPI {
    */
   async createJob(jobData) {
     try {
+      console.log('🔵 Creating job with URL:', JOBS_API_URL);
+      console.log('🔵 Job data:', jobData);
+      
       const response = await fetch(`${JOBS_API_URL}/jobs`, {
         method: 'POST',
         headers: {
@@ -30,14 +33,24 @@ class JobsAPI {
         body: JSON.stringify(jobData)
       });
 
+      console.log('🔵 Response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('🔴 Server error:', error);
         throw new Error(error.message || 'Failed to create job');
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('✅ Job created successfully:', result);
+      return result;
     } catch (error) {
-      console.error('Error creating job:', error);
+      console.error('🔴 Error creating job:', error);
+      console.error('🔴 Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   }

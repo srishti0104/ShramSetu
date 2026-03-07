@@ -84,17 +84,20 @@ export default function WorkerDashboard({ onRestartOnboarding }) {
       
       case 'rating':
         return (
-          <RatingForm
-            jobId="job_demo_789"
-            raterId="worker_demo_456"
-            rateeId="employer_demo_123"
-            raterType="worker"
-            rateeName="Demo Employer"
-            onSuccess={(data) => {
-              console.log('Rating submitted:', data);
-              alert('Rating submitted successfully!');
-            }}
-          />
+          <div className="rating-panel-wrapper">
+            <h2 className="section-title">{t('dashboard:rating', 'Rating')}</h2>
+            <RatingForm
+              jobId="manual_rating"
+              raterId="worker_demo_456"
+              rateeId="" // Empty - user must enter Employer ID
+              raterType="worker"
+              rateeName=""
+              onSuccess={(result) => {
+                console.log('✅ Rating submitted to DynamoDB:', result);
+                alert('रेटिंग सफलतापूर्वक जमा की गई! / Rating submitted successfully!');
+              }}
+            />
+          </div>
         );
       
       case 'sync':

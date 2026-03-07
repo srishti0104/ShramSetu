@@ -65,9 +65,9 @@ export class TranscribeLambdaStack extends cdk.Stack {
       restApiName: 'Shram Setu Transcribe API',
       description: 'API for AWS Transcribe service with proper CORS',
       defaultCorsPreflightOptions: {
-        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'https://your-domain.com'],
+        allowOrigins: ['*'], // Allow all origins for development
         allowMethods: ['GET', 'POST', 'OPTIONS'],
-        allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token'],
+        allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'x-api-key'],
         allowCredentials: false,
       },
       deployOptions: {
@@ -78,9 +78,46 @@ export class TranscribeLambdaStack extends cdk.Stack {
     // Add Lambda integration
     const lambdaIntegration = new apigateway.LambdaIntegration(transcribeLambda, {
       requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
+      proxy: true, // Enable proxy integration
     });
 
-    // Add POST method to root
+    // Add /transcribe resource
+    const transcribeResource = api.root.addResource('transcribe', {
+      defaultCorsPreflightOptions: {
+        allowOrigins: ['*'], // Allow all origins
+        allowMethods: ['POST', 'OPTIONS'],
+        allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token', 'x-api-key'],
+        allowCredentials: false,
+      },
+    });
+
+    // Add POST method to /transcribe
+    transcribeResource.addMethod('POST', lambdaIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+            'method.response.header.Access-Control-Allow-Headers': true,
+            'method.response.header.Access-Control-Allow-Methods': true,
+          },
+        },
+        {
+          statusCode: '400',
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        },
+        {
+          statusCode: '500',
+          responseParameters: {
+            'method.response.header.Access-Control-Allow-Origin': true,
+          },
+        },
+      ],
+    });
+
+    // Also add POST method to root for backward compatibility
     api.root.addMethod('POST', lambdaIntegration);
 
     // Output the API URL

@@ -91,7 +91,10 @@
     "grievance": "Grievance",
     "rating": "Rating",
     "sync": "Sync",
-    "sessionStart": "Start Session"
+    "sessionStart": "Start Session",
+    "postedJobs": "Posted Jobs",
+    "applications": "Applications",
+    "postJob": "Post Job"
   },
   "jobs": {
     "title": "Job Marketplace",

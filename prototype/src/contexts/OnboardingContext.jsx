@@ -213,6 +213,10 @@ export function OnboardingProvider({ children, onComplete }) {
         authError: null
       });
       
+      // Trigger profile reload
+      console.log('🔄 Dispatching profile reload event after login');
+      window.dispatchEvent(new Event('reloadUserProfile'));
+      
       return result;
     } catch (error) {
       updateState({
@@ -228,16 +232,27 @@ export function OnboardingProvider({ children, onComplete }) {
    */
   const handleRegistration = async () => {
     try {
-      // Prepare registration data
+      // Prepare registration data with name at top level for backend compatibility
       const registrationData = {
         phoneNumber: state.phoneNumber,
         password: state.password,
         role: state.role,
+        name: state.profile?.name || '', // Extract name from profile
         language: state.language,
         location: state.location,
         skills: state.skills,
         profile: state.profile
       };
+      
+      console.log('[REGISTRATION] Prepared data:', {
+        hasPhoneNumber: !!registrationData.phoneNumber,
+        hasPassword: !!registrationData.password,
+        hasRole: !!registrationData.role,
+        hasName: !!registrationData.name,
+        phoneNumber: registrationData.phoneNumber,
+        role: registrationData.role,
+        name: registrationData.name
+      });
       
       const result = await authService.register(registrationData);
       
@@ -250,6 +265,10 @@ export function OnboardingProvider({ children, onComplete }) {
       
       // Clear password from state after successful registration
       clearPassword();
+      
+      // Trigger profile reload
+      console.log('🔄 Dispatching profile reload event after registration');
+      window.dispatchEvent(new Event('reloadUserProfile'));
       
       return result;
     } catch (error) {

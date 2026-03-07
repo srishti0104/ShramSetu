@@ -12,8 +12,26 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
   const [categoryScores, setCategoryScores] = useState({});
   const [comment, setComment] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
+  const [targetUserId, setTargetUserId] = useState(rateeId || ''); // Employee ID (employer) or Employer ID (worker)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Get the label for the ID field based on rater type
+  const getIdFieldLabel = () => {
+    if (raterType === 'employer' || raterType === 'contractor') {
+      return 'कर्मचारी आईडी / Employee ID';
+    } else {
+      return 'नियोक्ता आईडी / Employer ID';
+    }
+  };
+
+  const getIdFieldPlaceholder = () => {
+    if (raterType === 'employer' || raterType === 'contractor') {
+      return 'कर्मचारी की आईडी दर्ज करें / Enter employee ID';
+    } else {
+      return 'नियोक्ता की आईडी दर्ज करें / Enter employer ID';
+    }
+  };
 
   // Rating categories based on rater type
   const categories = raterType === 'worker' ? {
@@ -22,7 +40,7 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
     communication: 'संवाद / Communication',
     fairness: 'निष्पक्षता / Fairness',
     respect: 'सम्मान / Respect'
-  } : {
+  } : { // employer or contractor
     punctuality: 'समयनिष्ठा / Punctuality',
     quality: 'गुणवत्ता / Quality',
     professionalism: 'व्यावसायिकता / Professionalism',
@@ -75,6 +93,15 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validation
+    if (!targetUserId || targetUserId.trim() === '') {
+      setError((raterType === 'employer' || raterType === 'contractor')
+        ? 'कृपया कर्मचारी आईडी दर्ज करें / Please enter employee ID'
+        : 'कृपया नियोक्ता आईडी दर्ज करें / Please enter employer ID'
+      );
+      return;
+    }
+
     if (overallScore === 0) {
       setError('कृपया रेटिंग चुनें / Please select a rating');
       return;
@@ -84,26 +111,35 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
     setError(null);
 
     try {
+      // Convert 'employer' to 'contractor' for API compatibility
+      const apiRaterType = (raterType === 'employer') ? 'contractor' : raterType;
+      
       const ratingData = {
-        jobId,
-        raterId,
-        rateeId,
-        raterType,
+        jobId: jobId || 'manual_rating',
+        raterId: raterId || 'unknown_rater',
+        rateeId: targetUserId.trim(), // Use the entered ID
+        raterType: apiRaterType, // Use 'contractor' instead of 'employer'
         score: overallScore,
         feedback: {
           categories: categoryScores,
           comment,
           tags: selectedTags
-        }
+        },
+        timestamp: new Date().toISOString()
       };
 
+      console.log('📤 Submitting rating to DynamoDB:', ratingData);
+
       const result = await submitRating(ratingData);
+      
+      console.log('✅ Rating submitted successfully:', result);
       
       if (onSuccess) {
         onSuccess(result);
       }
 
     } catch (err) {
+      console.error('❌ Rating submission error:', err);
       setError(err.message || 'Failed to submit rating');
     } finally {
       setLoading(false);
@@ -140,6 +176,28 @@ const RatingForm = ({ jobId, raterId, rateeId, raterType, rateeName, onSuccess, 
       </div>
 
       <form onSubmit={handleSubmit}>
+        {/* Target User ID Field (Employee ID for employer, Employer ID for worker) */}
+        <div className="form-section">
+          <label htmlFor="targetUserId" className="section-label">
+            {getIdFieldLabel()} <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="targetUserId"
+            value={targetUserId}
+            onChange={(e) => setTargetUserId(e.target.value)}
+            placeholder={getIdFieldPlaceholder()}
+            className="id-input"
+            required
+          />
+          <p className="field-hint">
+            {(raterType === 'employer' || raterType === 'contractor')
+              ? 'जिस कर्मचारी को आप रेट कर रहे हैं उसकी आईडी / ID of the employee you are rating'
+              : 'जिस नियोक्ता को आप रेट कर रहे हैं उसकी आईडी / ID of the employer you are rating'
+            }
+          </p>
+        </div>
+
         {/* Overall Rating */}
         <div className="form-section">
           <label className="section-label">

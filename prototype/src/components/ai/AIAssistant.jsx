@@ -10,7 +10,7 @@ import groqService from '../../services/ai/groqService';
 import geminiService from '../../services/ai/geminiService';
 import pollyService from '../../services/aws/pollyService';
 
-export default function AIAssistant({ onTabChange, contextPage, contextPrompt }) {
+export default function AIAssistant({ onTabChange, contextPage, contextPrompt, onSpeakingChange, onStopSpeakingCallback }) {
   console.log('🤖 AIAssistant rendering, onTabChange:', typeof onTabChange);
   console.log('📍 Context page:', contextPage);
   
@@ -61,6 +61,20 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
   // Ref for chat messages container to enable auto-scroll
   const messagesEndRef = useRef(null);
   const chatMessagesRef = useRef(null);
+  
+  // Notify parent when speaking state changes
+  useEffect(() => {
+    if (onSpeakingChange) {
+      onSpeakingChange(isSpeaking);
+    }
+  }, [isSpeaking, onSpeakingChange]);
+  
+  // Pass stop speaking callback to parent
+  useEffect(() => {
+    if (onStopSpeakingCallback) {
+      onStopSpeakingCallback(stopSpeaking);
+    }
+  }, [onStopSpeakingCallback]);
   
   // Save chat history to sessionStorage whenever messages change
   useEffect(() => {
@@ -545,7 +559,12 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
 
   const quickActions = [
     { id: 'payslip', label: '💰 पेस्लिप विश्लेषण / Analyze Payslip', prompt: 'मेरी पेस्लिप समझने और वेतन सही है या नहीं चेक करने में मदद करें / Help me understand my payslip and check if my wages are correct' },
-    { id: 'jobs', label: '🔍 नौकरी खोजें / Find Jobs', prompt: 'मैं नौकरी की तलाश में हूं। क्या आप उपयुक्त अवसर खोजने में मदद कर सकते हैं? / I am looking for a job. Can you help me find suitable opportunities?' },
+    { 
+      id: 'jobs', 
+      label: '🔍 नौकरी खोजें / Find Jobs', 
+      prompt: 'find me a job', // Simple prompt that triggers general job search (no filters)
+      directAction: true // Flag to indicate this should directly switch tabs without AI processing
+    },
     { id: 'grievance', label: '📝 शिकायत लिखें / Write Grievance', prompt: 'मेरी कार्यक्षेत्र में समस्या है और औपचारिक शिकायत लिखने में मदद चाहिए / I have a workplace issue and need help writing a formal complaint' },
     { id: 'rights', label: '⚖️ मजदूर अधिकार / Worker Rights', prompt: 'भारत में मजदूर के रूप में मेरे क्या अधिकार हैं? / What are my rights as a worker in India?' },
     { id: 'skills', label: '🎓 कौशल विकास / Skill Development', prompt: 'बेहतर नौकरी पाने के लिए मैं अपने कौशल कैसे सुधार सकता हूं? / How can I improve my skills to get better jobs?' },
@@ -714,10 +733,16 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
       // Small delay to ensure cleanup
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      setIsSpeaking(true);
-      console.log('🔊 Speaking with AWS Polly (Hindi):', text);
+      // FILTER OUT EMOJIS - Remove all emoji characters before speaking
+      const textWithoutEmojis = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2B55}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]/gu, '');
       
-      await pollyService.speak(text, 'hi-IN', {
+      console.log('🔊 Original text:', text.substring(0, 50));
+      console.log('🔊 Text without emojis:', textWithoutEmojis.substring(0, 50));
+      
+      setIsSpeaking(true);
+      console.log('🔊 Speaking with AWS Polly (Hindi):', textWithoutEmojis);
+      
+      await pollyService.speak(textWithoutEmojis, 'hi-IN', {
         rate: 0.8, // Slower for Hindi clarity
         volume: 1,
         onStart: () => {
@@ -730,14 +755,15 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
           console.error('🔊 Polly error:', error);
           setIsSpeaking(false);
           // Fallback to browser TTS with Hindi
-          fallbackToWebSpeech(text);
+          fallbackToWebSpeech(textWithoutEmojis);
         }
       });
     } catch (error) {
       console.error('🔊 Speech error:', error);
       setIsSpeaking(false);
-      // Fallback to browser TTS with Hindi
-      fallbackToWebSpeech(text);
+      // Fallback to browser TTS with Hindi - filter emojis first
+      const textWithoutEmojis = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2B55}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]/gu, '');
+      fallbackToWebSpeech(textWithoutEmojis);
     }
   };
 
@@ -753,7 +779,9 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
     
     // Additional delay to ensure complete cancellation
     setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Filter emojis from text before speaking
+      const textWithoutEmojis = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2B55}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]/gu, '');
+      const utterance = new SpeechSynthesisUtterance(textWithoutEmojis);
       utterance.lang = 'hi-IN'; // Hindi (India) as primary
       utterance.rate = 0.8; // Slower for Hindi clarity
       utterance.pitch = 1;
@@ -835,69 +863,81 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
           const lowerMessage = message.toLowerCase();
           console.log('🔍 Analyzing message:', lowerMessage);
           
+          // CRITICAL: Check grievance FIRST to avoid false positives with job detection
+          // Grievance detection - extensive keywords (including Roman Hindi)
+          const isGrievanceIntent = lowerMessage.includes('grievance') || lowerMessage.includes('complaint') || lowerMessage.includes('complain') || lowerMessage.includes('शिकायत') || lowerMessage.includes('shikayat') || lowerMessage.includes('shikaayat') || lowerMessage.includes('dispute') || lowerMessage.includes('conflict') || lowerMessage.includes('harassment') || lowerMessage.includes('unfair') || lowerMessage.includes('injustice') || lowerMessage.includes('wrong') || lowerMessage.includes('abuse') || lowerMessage.includes('exploitation') || lowerMessage.includes('परेशानी') || lowerMessage.includes('pareshani') || lowerMessage.includes('दिक्कत') || lowerMessage.includes('dikkat') || lowerMessage.includes('विवाद') || lowerMessage.includes('vivad') || lowerMessage.includes('झगड़ा') || lowerMessage.includes('jhagda') || lowerMessage.includes('उत्पीड़न') || lowerMessage.includes('utpidan') || lowerMessage.includes('अन्याय') || lowerMessage.includes('anyay') || lowerMessage.includes('गलत') || lowerMessage.includes('galat') || lowerMessage.includes('शोषण') || lowerMessage.includes('shoshan') || lowerMessage.includes('धोखा') || lowerMessage.includes('dhokha') || lowerMessage.includes('ठगी') || lowerMessage.includes('thagi') || lowerMessage.includes('अत्याचार') || lowerMessage.includes('atyachar') || lowerMessage.includes('दुर्व्यवहार') || lowerMessage.includes('durvyavahar') || lowerMessage.includes('मारपीट') || lowerMessage.includes('marpeet') || lowerMessage.includes('गाली') || lowerMessage.includes('gali') || lowerMessage.includes('gaali') || lowerMessage.includes('अपमान') || lowerMessage.includes('apman') || lowerMessage.includes('भेदभाव') || lowerMessage.includes('bhedbhav') || lowerMessage.includes('discrimination') || lowerMessage.includes('violence') || lowerMessage.includes('threat') || lowerMessage.includes('unsafe') || lowerMessage.includes('danger') || lowerMessage.includes('खतरा') || lowerMessage.includes('khatra') || lowerMessage.includes('असुरक्षित') || lowerMessage.includes('asurakshit') || lowerMessage.includes('धमकी') || lowerMessage.includes('dhamki');
+          
+          if (isGrievanceIntent) {
+            console.log('✅ Detected grievance intent');
+            suggestedActions.push({ label: '📝 Go to Grievance Form', path: 'grievance' });
+          }
+          
           // Jobs detection - extensive keywords in English, Hindi, and Hinglish (all tenses)
-          if (lowerMessage.includes('job') || lowerMessage.includes('jobs') || lowerMessage.includes('work') || lowerMessage.includes('working') || lowerMessage.includes('worked') || lowerMessage.includes('employment') || lowerMessage.includes('employ') || lowerMessage.includes('employed') || lowerMessage.includes('नौकरी') || lowerMessage.includes('naukri') || lowerMessage.includes('nokri') || lowerMessage.includes('काम') || lowerMessage.includes('kaam') || lowerMessage.includes('kam') || lowerMessage.includes('रोजगार') || lowerMessage.includes('rojgar') || lowerMessage.includes('rozgar') || lowerMessage.includes('धंधा') || lowerMessage.includes('dhanda') || lowerMessage.includes('dhandha') || lowerMessage.includes('construction') || lowerMessage.includes('plumbing') || lowerMessage.includes('electrical') || lowerMessage.includes('painting') || lowerMessage.includes('carpentry') || lowerMessage.includes('mason') || lowerMessage.includes('plumber') || lowerMessage.includes('electrician') || lowerMessage.includes('painter') || lowerMessage.includes('carpenter') || lowerMessage.includes('मिस्त्री') || lowerMessage.includes('mistri') || lowerMessage.includes('mistry') || lowerMessage.includes('राजमिस्त्री') || lowerMessage.includes('rajmistri') || lowerMessage.includes('प्लंबर') || lowerMessage.includes('plumber') || lowerMessage.includes('बिजली') || lowerMessage.includes('bijli') || lowerMessage.includes('bijlee') || lowerMessage.includes('पेंटर') || lowerMessage.includes('painter') || lowerMessage.includes('pentar') || lowerMessage.includes('बढ़ई') || lowerMessage.includes('badhai') || lowerMessage.includes('barhai') || lowerMessage.includes('निर्माण') || lowerMessage.includes('nirman') || lowerMessage.includes('nirmaan') || lowerMessage.includes('कारीगर') || lowerMessage.includes('karigar') || lowerMessage.includes('kaarigar') || lowerMessage.includes('मजदूर') || lowerMessage.includes('majdur') || lowerMessage.includes('mazdoor') || lowerMessage.includes('majdoor') || lowerMessage.includes('श्रमिक') || lowerMessage.includes('shramik') || lowerMessage.includes('कामगार') || lowerMessage.includes('kamgar') || lowerMessage.includes('kaamgaar') || lowerMessage.includes('vacancy') || lowerMessage.includes('vacancies') || lowerMessage.includes('hiring') || lowerMessage.includes('hire') || lowerMessage.includes('hired') || lowerMessage.includes('recruit') || lowerMessage.includes('recruiting') || lowerMessage.includes('recruitment') || lowerMessage.includes('position') || lowerMessage.includes('positions') || lowerMessage.includes('opening') || lowerMessage.includes('openings') || lowerMessage.includes('opportunity') || lowerMessage.includes('opportunities') || lowerMessage.includes('भर्ती') || lowerMessage.includes('bharti') || lowerMessage.includes('bharati') || lowerMessage.includes('रिक्ति') || lowerMessage.includes('rikti') || lowerMessage.includes('रिक्त') || lowerMessage.includes('rikt') || lowerMessage.includes('अवसर') || lowerMessage.includes('avsar') || lowerMessage.includes('मौका') || lowerMessage.includes('mauka') || lowerMessage.includes('mouka') || lowerMessage.includes('find') || lowerMessage.includes('finding') || lowerMessage.includes('found') || lowerMessage.includes('search') || lowerMessage.includes('searching') || lowerMessage.includes('searched') || lowerMessage.includes('looking') || lowerMessage.includes('look') || lowerMessage.includes('need') || lowerMessage.includes('needed') || lowerMessage.includes('needing') || lowerMessage.includes('want') || lowerMessage.includes('wanted') || lowerMessage.includes('wanting') || lowerMessage.includes('ढूंढ') || lowerMessage.includes('dhundh') || lowerMessage.includes('dhund') || lowerMessage.includes('खोज') || lowerMessage.includes('khoj') || lowerMessage.includes('तलाश') || lowerMessage.includes('talash') || lowerMessage.includes('talaash') || lowerMessage.includes('चाहिए') || lowerMessage.includes('chahiye') || lowerMessage.includes('chahie') || lowerMessage.includes('चाहता') || lowerMessage.includes('chahta') || lowerMessage.includes('चाहती') || lowerMessage.includes('chahti')) {
+          // IMPORTANT: Skip job detection if this is a grievance intent
+          if (!isGrievanceIntent && (lowerMessage.includes('job') || lowerMessage.includes('jobs') || lowerMessage.includes('work') || lowerMessage.includes('working') || lowerMessage.includes('worked') || lowerMessage.includes('employment') || lowerMessage.includes('employ') || lowerMessage.includes('employed') || lowerMessage.includes('नौकरी') || lowerMessage.includes('naukri') || lowerMessage.includes('nokri') || lowerMessage.includes('काम') || lowerMessage.includes('kaam') || lowerMessage.includes('kam') || lowerMessage.includes('रोजगार') || lowerMessage.includes('rojgar') || lowerMessage.includes('rozgar') || lowerMessage.includes('धंधा') || lowerMessage.includes('dhanda') || lowerMessage.includes('dhandha') || lowerMessage.includes('construction') || lowerMessage.includes('plumbing') || lowerMessage.includes('electrical') || lowerMessage.includes('painting') || lowerMessage.includes('carpentry') || lowerMessage.includes('mason') || lowerMessage.includes('plumber') || lowerMessage.includes('electrician') || lowerMessage.includes('painter') || lowerMessage.includes('carpenter') || lowerMessage.includes('मिस्त्री') || lowerMessage.includes('mistri') || lowerMessage.includes('mistry') || lowerMessage.includes('राजमिस्त्री') || lowerMessage.includes('rajmistri') || lowerMessage.includes('प्लंबर') || lowerMessage.includes('plumber') || lowerMessage.includes('बिजली') || lowerMessage.includes('bijli') || lowerMessage.includes('bijlee') || lowerMessage.includes('पेंटर') || lowerMessage.includes('painter') || lowerMessage.includes('pentar') || lowerMessage.includes('बढ़ई') || lowerMessage.includes('badhai') || lowerMessage.includes('barhai') || lowerMessage.includes('निर्माण') || lowerMessage.includes('nirman') || lowerMessage.includes('nirmaan') || lowerMessage.includes('कारीगर') || lowerMessage.includes('karigar') || lowerMessage.includes('kaarigar') || lowerMessage.includes('मजदूर') || lowerMessage.includes('majdur') || lowerMessage.includes('mazdoor') || lowerMessage.includes('majdoor') || lowerMessage.includes('श्रमिक') || lowerMessage.includes('shramik') || lowerMessage.includes('कामगार') || lowerMessage.includes('kamgar') || lowerMessage.includes('kaamgaar') || lowerMessage.includes('vacancy') || lowerMessage.includes('vacancies') || lowerMessage.includes('hiring') || lowerMessage.includes('hire') || lowerMessage.includes('hired') || lowerMessage.includes('recruit') || lowerMessage.includes('recruiting') || lowerMessage.includes('recruitment') || lowerMessage.includes('position') || lowerMessage.includes('positions') || lowerMessage.includes('opening') || lowerMessage.includes('openings') || lowerMessage.includes('opportunity') || lowerMessage.includes('opportunities') || lowerMessage.includes('भर्ती') || lowerMessage.includes('bharti') || lowerMessage.includes('bharati') || lowerMessage.includes('रिक्ति') || lowerMessage.includes('rikti') || lowerMessage.includes('रिक्त') || lowerMessage.includes('rikt') || lowerMessage.includes('अवसर') || lowerMessage.includes('avsar') || lowerMessage.includes('मौका') || lowerMessage.includes('mauka') || lowerMessage.includes('mouka') || lowerMessage.includes('find') || lowerMessage.includes('finding') || lowerMessage.includes('found') || lowerMessage.includes('search') || lowerMessage.includes('searching') || lowerMessage.includes('searched') || lowerMessage.includes('looking') || lowerMessage.includes('look') || lowerMessage.includes('need') || lowerMessage.includes('needed') || lowerMessage.includes('needing') || lowerMessage.includes('want') || lowerMessage.includes('wanted') || lowerMessage.includes('wanting') || lowerMessage.includes('ढूंढ') || lowerMessage.includes('dhundh') || lowerMessage.includes('dhund') || lowerMessage.includes('खोज') || lowerMessage.includes('khoj') || lowerMessage.includes('तलाश') || lowerMessage.includes('talash') || lowerMessage.includes('talaash') || lowerMessage.includes('चाहिए') || lowerMessage.includes('chahiye') || lowerMessage.includes('chahie') || lowerMessage.includes('चाहता') || lowerMessage.includes('chahta') || lowerMessage.includes('चाहती') || lowerMessage.includes('chahti'))) {
             // Extract job details from message
             const jobDetails = extractJobDetails(message);
             console.log('📋 Extracted job details:', jobDetails);
             
-            // Check if user provided specific details
-            const hasDetails = jobDetails.jobType || jobDetails.location || jobDetails.skills;
-            console.log('✅ Has details:', hasDetails);
+            // CRITICAL: Check if user specified a specific job type/category
+            // Only apply filters if user explicitly mentions a job type (painter, mason, etc.)
+            const hasSpecificJobType = jobDetails.jobType && jobDetails.skills;
+            console.log('✅ Has specific job type:', hasSpecificJobType);
             
-            if (hasDetails) {
-              // User provided details - create filtered search URL
-              const queryParams = new URLSearchParams();
-              if (jobDetails.jobType) queryParams.set('jobType', jobDetails.jobType);
-              if (jobDetails.location) queryParams.set('location', jobDetails.location);
-              if (jobDetails.skills) queryParams.set('skills', jobDetails.skills);
-              
-              // Store filter params in sessionStorage for the JobSearch component to read
-              // IMPORTANT: Store category in lowercase to match CATEGORIES array
+            if (hasSpecificJobType) {
+              // User specified a job type - apply filters
               const filterData = {
-                category: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
+                category: jobDetails.jobType.toLowerCase(),
                 searchQuery: jobDetails.skills || '',
                 location: jobDetails.location || '',
-                enableLocation: true, // Enable location automatically
-                scrollToCategory: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null // Scroll to specific category
+                enableLocation: true, // Always enable location
+                scrollToCategory: jobDetails.jobType.toLowerCase()
               };
               
               sessionStorage.setItem('job_search_filters', JSON.stringify(filterData));
-              
-              const jobSearchUrl = `/jobs${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-              console.log('🔗 Job search URL:', jobSearchUrl);
-              console.log('💾 Stored enhanced filters in sessionStorage:', filterData);
+              console.log('💾 Stored filters for specific job type:', filterData);
               
               suggestedActions.push({ 
-                label: `🎯 Find ${jobDetails.skills || jobDetails.jobType || 'Jobs'}${jobDetails.location ? ` in ${jobDetails.location}` : ' Near You'}`, 
-                path: 'home',  // Navigate to home tab where JobFeed is displayed
+                label: `🎯 Find ${jobDetails.skills} Jobs${jobDetails.location ? ` in ${jobDetails.location}` : ' Near You'}`, 
+                path: 'home',
                 filters: filterData,
                 autoActions: {
                   enableLocation: true,
-                  scrollToCategory: jobDetails.jobType ? jobDetails.jobType.toLowerCase() : null,
+                  scrollToCategory: jobDetails.jobType.toLowerCase(),
+                  focusOnResults: true
+                }
+              });
+            } else {
+              // General job search - NO filters, just enable location
+              const filterData = {
+                category: null, // No category filter
+                searchQuery: '', // No search query
+                location: '', // No location filter
+                enableLocation: true, // Enable real location
+                scrollToCategory: null // No scrolling
+              };
+              
+              sessionStorage.setItem('job_search_filters', JSON.stringify(filterData));
+              console.log('💾 General job search - location enabled, no filters:', filterData);
+              
+              suggestedActions.push({ 
+                label: '🔍 Find Jobs Near You', 
+                path: 'home',
+                filters: filterData,
+                autoActions: {
+                  enableLocation: true,
+                  scrollToCategory: null,
                   focusOnResults: true
                 }
               });
             }
             
-            // Always provide option to browse all jobs
-            suggestedActions.push({ 
-              label: '📋 Browse All Jobs', 
-              path: 'home'  // Navigate to home tab where JobFeed is displayed
-            });
-            
             console.log('🎯 Suggested actions:', suggestedActions);
           }
           
-          // IMPORTANT: Check grievance FIRST before payslip to avoid false positives
-          // Grievance detection - extensive keywords (including Roman Hindi)
-          if (lowerMessage.includes('grievance') || lowerMessage.includes('complaint') || lowerMessage.includes('complain') || lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('dispute') || lowerMessage.includes('conflict') || lowerMessage.includes('harassment') || lowerMessage.includes('unfair') || lowerMessage.includes('injustice') || lowerMessage.includes('wrong') || lowerMessage.includes('abuse') || lowerMessage.includes('exploitation') || lowerMessage.includes('शिकायत') || lowerMessage.includes('shikayat') || lowerMessage.includes('shikaayat') || lowerMessage.includes('समस्या') || lowerMessage.includes('samasya') || lowerMessage.includes('परेशानी') || lowerMessage.includes('pareshani') || lowerMessage.includes('दिक्कत') || lowerMessage.includes('dikkat') || lowerMessage.includes('मुद्दा') || lowerMessage.includes('mudda') || lowerMessage.includes('गड़बड़') || lowerMessage.includes('gadbad') || lowerMessage.includes('विवाद') || lowerMessage.includes('vivad') || lowerMessage.includes('झगड़ा') || lowerMessage.includes('jhagda') || lowerMessage.includes('उत्पीड़न') || lowerMessage.includes('utpidan') || lowerMessage.includes('अन्याय') || lowerMessage.includes('anyay') || lowerMessage.includes('गलत') || lowerMessage.includes('galat') || lowerMessage.includes('शोषण') || lowerMessage.includes('shoshan') || lowerMessage.includes('धोखा') || lowerMessage.includes('dhokha') || lowerMessage.includes('ठगी') || lowerMessage.includes('thagi') || lowerMessage.includes('अत्याचार') || lowerMessage.includes('atyachar') || lowerMessage.includes('दुर्व्यवहार') || lowerMessage.includes('durvyavahar') || lowerMessage.includes('मारपीट') || lowerMessage.includes('marpeet') || lowerMessage.includes('गाली') || lowerMessage.includes('gali') || lowerMessage.includes('gaali') || lowerMessage.includes('अपमान') || lowerMessage.includes('apman') || lowerMessage.includes('भेदभाव') || lowerMessage.includes('bhedbhav') || lowerMessage.includes('discrimination') || lowerMessage.includes('violence') || lowerMessage.includes('threat') || lowerMessage.includes('unsafe') || lowerMessage.includes('danger') || lowerMessage.includes('खतरा') || lowerMessage.includes('khatra') || lowerMessage.includes('असुरक्षित') || lowerMessage.includes('asurakshit') || lowerMessage.includes('धमकी') || lowerMessage.includes('dhamki') || lowerMessage.includes('darj') || lowerMessage.includes('दर्ज') || lowerMessage.includes('karni') || lowerMessage.includes('करनी') || lowerMessage.includes('write') || lowerMessage.includes('likho') || lowerMessage.includes('लिखो') || lowerMessage.includes('file') || lowerMessage.includes('submit')) {
-            console.log('✅ Detected grievance intent');
-            suggestedActions.push({ label: '📝 Go to Grievance Form', path: 'grievance' });
-          }
           // Payslip detection - extensive keywords in English, Hindi, and Hinglish (all tenses)
           // Only trigger if NOT a grievance (to avoid "underpayment" triggering payslip)
-          else if (lowerMessage.includes('payslip') || lowerMessage.includes('pay slip') || lowerMessage.includes('salary') || lowerMessage.includes('salaries') || lowerMessage.includes('wage') || lowerMessage.includes('wages') || lowerMessage.includes('pay') || lowerMessage.includes('paid') || lowerMessage.includes('paying') || lowerMessage.includes('payment') || lowerMessage.includes('payments') || lowerMessage.includes('earning') || lowerMessage.includes('earnings') || lowerMessage.includes('earned') || lowerMessage.includes('income') || lowerMessage.includes('वेतन') || lowerMessage.includes('vetan') || lowerMessage.includes('wetan') || lowerMessage.includes('तनख्वाह') || lowerMessage.includes('tankhwah') || lowerMessage.includes('tankhwa') || lowerMessage.includes('tankhuah') || lowerMessage.includes('पगार') || lowerMessage.includes('pagaar') || lowerMessage.includes('pagar') || lowerMessage.includes('मजदूरी') || lowerMessage.includes('majduri') || lowerMessage.includes('mazdoori') || lowerMessage.includes('majdoori') || lowerMessage.includes('वेतनपत्र') || lowerMessage.includes('vetan patra') || lowerMessage.includes('पेस्लिप') || lowerMessage.includes('payslip') || lowerMessage.includes('peslip') || lowerMessage.includes('आय') || lowerMessage.includes('aay') || lowerMessage.includes('aaye') || lowerMessage.includes('कमाई') || lowerMessage.includes('kamai') || lowerMessage.includes('kamaayi') || lowerMessage.includes('kamayi') || lowerMessage.includes('भुगतान') || lowerMessage.includes('bhugtan') || lowerMessage.includes('bhugatan') || lowerMessage.includes('पैसा') || lowerMessage.includes('paisa') || lowerMessage.includes('paise') || lowerMessage.includes('पैसे') || lowerMessage.includes('रुपया') || lowerMessage.includes('rupaya') || lowerMessage.includes('rupya') || lowerMessage.includes('रुपये') || lowerMessage.includes('rupaye') || lowerMessage.includes('rupye') || lowerMessage.includes('पारिश्रमिक') || lowerMessage.includes('parishramik') || lowerMessage.includes('दैनिक') || lowerMessage.includes('dainik') || lowerMessage.includes('daily') || lowerMessage.includes('मासिक') || lowerMessage.includes('masik') || lowerMessage.includes('maasik') || lowerMessage.includes('monthly') || lowerMessage.includes('साप्ताहिक') || lowerMessage.includes('saptahik') || lowerMessage.includes('weekly') || lowerMessage.includes('daily wage') || lowerMessage.includes('monthly salary') || lowerMessage.includes('weekly pay') || lowerMessage.includes('overtime') || lowerMessage.includes('over time') || lowerMessage.includes('deduction') || lowerMessage.includes('deductions') || lowerMessage.includes('deducted') || lowerMessage.includes('कटौती') || lowerMessage.includes('katauti') || lowerMessage.includes('katoti') || lowerMessage.includes('ओवरटाइम') || lowerMessage.includes('overtime') || lowerMessage.includes('extra time') || lowerMessage.includes('check') || lowerMessage.includes('checking') || lowerMessage.includes('checked') || lowerMessage.includes('verify') || lowerMessage.includes('verifying') || lowerMessage.includes('verified') || lowerMessage.includes('audit') || lowerMessage.includes('auditing') || lowerMessage.includes('audited') || lowerMessage.includes('जांच') || lowerMessage.includes('jaanch') || lowerMessage.includes('janch') || lowerMessage.includes('देखना') || lowerMessage.includes('dekhna') || lowerMessage.includes('dekho')) {
+          if (!isGrievanceIntent && (lowerMessage.includes('payslip') || lowerMessage.includes('pay slip') || lowerMessage.includes('salary') || lowerMessage.includes('salaries') || lowerMessage.includes('wage') || lowerMessage.includes('wages') || lowerMessage.includes('pay') || lowerMessage.includes('paid') || lowerMessage.includes('paying') || lowerMessage.includes('payment') || lowerMessage.includes('payments') || lowerMessage.includes('earning') || lowerMessage.includes('earnings') || lowerMessage.includes('earned') || lowerMessage.includes('income') || lowerMessage.includes('वेतन') || lowerMessage.includes('vetan') || lowerMessage.includes('wetan') || lowerMessage.includes('तनख्वाह') || lowerMessage.includes('tankhwah') || lowerMessage.includes('tankhwa') || lowerMessage.includes('tankhuah') || lowerMessage.includes('पगार') || lowerMessage.includes('pagaar') || lowerMessage.includes('pagar') || lowerMessage.includes('मजदूरी') || lowerMessage.includes('majduri') || lowerMessage.includes('mazdoori') || lowerMessage.includes('majdoori') || lowerMessage.includes('वेतनपत्र') || lowerMessage.includes('vetan patra') || lowerMessage.includes('पेस्लिप') || lowerMessage.includes('payslip') || lowerMessage.includes('peslip') || lowerMessage.includes('आय') || lowerMessage.includes('aay') || lowerMessage.includes('aaye') || lowerMessage.includes('कमाई') || lowerMessage.includes('kamai') || lowerMessage.includes('kamaayi') || lowerMessage.includes('kamayi') || lowerMessage.includes('भुगतान') || lowerMessage.includes('bhugtan') || lowerMessage.includes('bhugatan') || lowerMessage.includes('पैसा') || lowerMessage.includes('paisa') || lowerMessage.includes('paise') || lowerMessage.includes('पैसे') || lowerMessage.includes('रुपया') || lowerMessage.includes('rupaya') || lowerMessage.includes('rupya') || lowerMessage.includes('रुपये') || lowerMessage.includes('rupaye') || lowerMessage.includes('rupye') || lowerMessage.includes('पारिश्रमिक') || lowerMessage.includes('parishramik') || lowerMessage.includes('दैनिक') || lowerMessage.includes('dainik') || lowerMessage.includes('daily') || lowerMessage.includes('मासिक') || lowerMessage.includes('masik') || lowerMessage.includes('maasik') || lowerMessage.includes('monthly') || lowerMessage.includes('साप्ताहिक') || lowerMessage.includes('saptahik') || lowerMessage.includes('weekly') || lowerMessage.includes('daily wage') || lowerMessage.includes('monthly salary') || lowerMessage.includes('weekly pay') || lowerMessage.includes('overtime') || lowerMessage.includes('over time') || lowerMessage.includes('deduction') || lowerMessage.includes('deductions') || lowerMessage.includes('deducted') || lowerMessage.includes('कटौती') || lowerMessage.includes('katauti') || lowerMessage.includes('katoti') || lowerMessage.includes('ओवरटाइम') || lowerMessage.includes('overtime') || lowerMessage.includes('extra time') || lowerMessage.includes('check') || lowerMessage.includes('checking') || lowerMessage.includes('checked') || lowerMessage.includes('verify') || lowerMessage.includes('verifying') || lowerMessage.includes('verified') || lowerMessage.includes('audit') || lowerMessage.includes('auditing') || lowerMessage.includes('audited') || lowerMessage.includes('जांच') || lowerMessage.includes('jaanch') || lowerMessage.includes('janch') || lowerMessage.includes('देखना') || lowerMessage.includes('dekhna') || lowerMessage.includes('dekho'))) {
             suggestedActions.push({ label: '💰 Go to Payslip Auditor', path: 'payslip' });
           }
           // Attendance detection - extensive keywords in English, Hindi, and Hinglish (all tenses)
@@ -1155,6 +1195,42 @@ Please be more specific about what you need help with, or use the quick action b
   };
 
   const handleQuickAction = (action) => {
+    // Check if this is a direct action (like "Find Jobs" button)
+    if (action.directAction && action.id === 'jobs') {
+      console.log('🔍 Direct action: Find Jobs - switching to home tab with location enabled');
+      
+      // Clear any existing filters and enable location only
+      const filterData = {
+        category: null,
+        searchQuery: '',
+        location: '',
+        enableLocation: true,
+        scrollToCategory: null
+      };
+      
+      sessionStorage.setItem('job_search_filters', JSON.stringify(filterData));
+      console.log('💾 Cleared filters, location enabled:', filterData);
+      
+      // Stop any ongoing speech
+      stopSpeaking();
+      
+      // Directly switch to home tab
+      if (onTabChange) {
+        setTimeout(() => {
+          onTabChange('home');
+          
+          // Trigger location enable after tab switch
+          setTimeout(() => {
+            console.log('📍 Auto-enabling location...');
+            window.dispatchEvent(new CustomEvent('enableLocation'));
+          }, 1000);
+        }, 100);
+      }
+      
+      return; // Don't send message to AI
+    }
+    
+    // For other quick actions, send message to AI as usual
     handleSendMessage(action.prompt);
   };
 
@@ -1430,6 +1506,15 @@ Please be more specific about what you need help with, or use the quick action b
                 >
                   {isLoading ? '⏳' : '📤'}
                 </button>
+                {isSpeaking && (
+                  <button
+                    onClick={stopSpeaking}
+                    className="voice-stop-btn"
+                    title="Stop voice output"
+                  >
+                    🔇 Stop
+                  </button>
+                )}
               </>
             )}
           </div>

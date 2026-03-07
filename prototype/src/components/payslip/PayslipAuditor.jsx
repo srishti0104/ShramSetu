@@ -63,7 +63,7 @@ export default function PayslipAuditor() {
   });
   const [uploadHistory, setUploadHistory] = useState([]);
   const [error, setError] = useState(null);
-  const [useRealTextract, setUseRealTextract] = useState(false);
+  const [useRealTextract, setUseRealTextract] = useState(true); // Default to AWS Textract
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (event) => {

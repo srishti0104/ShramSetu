@@ -149,6 +149,7 @@
 }
 
 /* Comment */
+.id-input,
 textarea {
   width: 100%;
   padding: 12px;
@@ -156,14 +157,29 @@ textarea {
   font-family: inherit;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  resize: vertical;
-  min-height: 100px;
   transition: border-color 0.2s;
 }
 
+.id-input {
+  margin-bottom: 8px;
+}
+
+.id-input:focus,
 textarea:focus {
   outline: none;
   border-color: #2196f3;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  font-style: italic;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .char-count {

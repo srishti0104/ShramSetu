@@ -64,7 +64,6 @@ export class JobsLambdaStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/jobs')),
       environment: {
         JOBS_TABLE: jobsTable.tableName,
-        AWS_REGION: this.region,
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
@@ -83,7 +82,6 @@ export class JobsLambdaStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/jobs')),
       environment: {
         JOBS_TABLE: jobsTable.tableName,
-        AWS_REGION: this.region,
       },
       timeout: cdk.Duration.seconds(10),
       memorySize: 128,
@@ -101,7 +99,6 @@ export class JobsLambdaStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../../lambda/jobs')),
       environment: {
         JOBS_TABLE: jobsTable.tableName,
-        AWS_REGION: this.region,
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
