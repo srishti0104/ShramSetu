@@ -8,7 +8,7 @@ import notificationService from '../notificationService';
 
 class ApplicationService {
   constructor() {
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://your-api-gateway-url.amazonaws.com/prod';
+    this.baseUrl = import.meta.env.VITE_JOB_APPLICATIONS_API_URL || 'https://sxainxmb4h.execute-api.ap-south-1.amazonaws.com/prod';
   }
 
   /**
@@ -20,7 +20,7 @@ class ApplicationService {
     try {
       console.log('📝 Submitting job application:', applicationData);
 
-      const response = await fetch(`${this.baseUrl}/job-applications`, {
+      const response = await fetch(`${this.baseUrl}/applications/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ class ApplicationService {
       console.error('❌ Application submission error:', error);
       
       // For demo purposes, return mock success if API is not available
-      if (error.message.includes('fetch')) {
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         console.log('🔄 API not available, using mock response');
         return this.mockSubmitApplication(applicationData);
       }
@@ -67,7 +67,7 @@ class ApplicationService {
     try {
       console.log('📋 Fetching applications for contractor:', contractorId);
 
-      const response = await fetch(`${this.baseUrl}/job-applications/contractor/${contractorId}`, {
+      const response = await fetch(`${this.baseUrl}/applications/contractor/${contractorId}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -87,7 +87,7 @@ class ApplicationService {
       console.error('❌ Error fetching applications:', error);
       
       // For demo purposes, return mock data if API is not available
-      if (error.message.includes('fetch')) {
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         console.log('🔄 API not available, using mock data');
         return this.mockGetContractorApplications(contractorId);
       }
@@ -105,7 +105,7 @@ class ApplicationService {
     try {
       console.log('📋 Fetching applications for user:', userId);
 
-      const response = await fetch(`${this.baseUrl}/job-applications/user/${userId}`, {
+      const response = await fetch(`${this.baseUrl}/applications/user/${userId}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -125,7 +125,7 @@ class ApplicationService {
       console.error('❌ Error fetching user applications:', error);
       
       // For demo purposes, return mock data if API is not available
-      if (error.message.includes('fetch')) {
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         console.log('🔄 API not available, using mock data');
         return this.mockGetUserApplications(userId);
       }
