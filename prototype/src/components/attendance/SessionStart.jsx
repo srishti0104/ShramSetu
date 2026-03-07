@@ -1,29 +1,83 @@
 /**
  * SessionStart Component
- * Allows contractors to create work sessions for attendance tracking
+ * Allows contractors to create jobs and work sessions
  */
 
 import { useState } from 'react';
+import jobsAPI from '../../services/api/jobsAPI';
 import './SessionStart.css';
 
 const SessionStart = ({ contractorId, onSessionCreated }) => {
   const [formData, setFormData] = useState({
-    jobId: '',
+    title: '',
+    description: '',
     location: '',
-    shiftType: 'full_day',
-    expectedWorkers: []
+    city: '',
+    state: '',
+    wageRate: '',
+    wageType: 'daily',
+    duration: '',
+    skillsRequired: [],
+    workersNeeded: 1,
+    startDate: '',
+    status: 'open'
   });
-  const [workerInput, setWorkerInput] = useState('');
+  const [skillInput, setSkillInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const shiftTypes = [
-    { value: 'morning', label: 'सुबह की पाली / Morning Shift', time: '6 AM - 12 PM' },
-    { value: 'afternoon', label: 'दोपहर की पाली / Afternoon Shift', time: '12 PM - 6 PM' },
-    { value: 'evening', label: 'शाम की पाली / Evening Shift', time: '6 PM - 12 AM' },
-    { value: 'night', label: 'रात की पाली / Night Shift', time: '12 AM - 6 AM' },
-    { value: 'full_day', label: 'पूरे दिन / Full Day', time: '8 AM - 6 PM' }
+  const wageTypes = [
+    { value: 'daily', label: 'दैनिक / Daily' },
+    { value: 'hourly', label: 'प्रति घंटा / Hourly' },
+    { value: 'piece_rate', label: 'टुकड़ा दर / Piece Rate' },
+    { value: 'contract', label: 'अनुबंध / Contract' }
   ];
+
+  const getCurrentLocation = () => {
+    setLoadingLocation(true);
+    setError(null);
+
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      setLoadingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Use reverse geocoding to get address
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await response.json();
+          
+          if (data && data.address) {
+            setFormData(prev => ({
+              ...prev,
+              location: data.display_name || '',
+              city: data.address.city || data.address.town || data.address.village || '',
+              state: data.address.state || ''
+            }));
+          }
+        } catch (err) {
+          console.error('Error getting address:', err);
+          setError('Could not fetch address from location');
+        } finally {
+          setLoadingLocation(false);
+        }
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        setError('Could not get your location. Please enable location access.');
+        setLoadingLocation(false);
+      }
+    );
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -33,20 +87,20 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
     }));
   };
 
-  const handleAddWorker = () => {
-    if (workerInput.trim()) {
+  const handleAddSkill = () => {
+    if (skillInput.trim() && !formData.skillsRequired.includes(skillInput.trim())) {
       setFormData(prev => ({
         ...prev,
-        expectedWorkers: [...prev.expectedWorkers, workerInput.trim()]
+        skillsRequired: [...prev.skillsRequired, skillInput.trim()]
       }));
-      setWorkerInput('');
+      setSkillInput('');
     }
   };
 
-  const handleRemoveWorker = (index) => {
+  const handleRemoveSkill = (index) => {
     setFormData(prev => ({
       ...prev,
-      expectedWorkers: prev.expectedWorkers.filter((_, i) => i !== index)
+      skillsRequired: prev.skillsRequired.filter((_, i) => i !== index)
     }));
   };
 
@@ -54,41 +108,62 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
-      // MOCK: API call to create session
-      const response = await fetch('/api/v1/attendance/create-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      // Prepare job data
+      const jobData = {
+        contractorId,
+        title: formData.title,
+        description: formData.description,
+        location: {
+          address: formData.location,
+          city: formData.city,
+          state: formData.state
         },
-        body: JSON.stringify({
-          contractorId,
-          ...formData
-        })
-      });
+        city: formData.city, // Add city at root level for GSI
+        status: 'open', // Add status at root level for GSI
+        wageRate: parseFloat(formData.wageRate),
+        wageType: formData.wageType,
+        duration: formData.duration,
+        skillsRequired: formData.skillsRequired,
+        workersNeeded: parseInt(formData.workersNeeded),
+        startDate: formData.startDate
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to create session');
-      }
+      // Create job in DynamoDB
+      const response = await jobsAPI.createJob(jobData);
 
-      const data = await response.json();
-      
-      // Reset form
-      setFormData({
-        jobId: '',
-        location: '',
-        shiftType: 'full_day',
-        expectedWorkers: []
-      });
+      if (response.success) {
+        setSuccess(`नौकरी सफलतापूर्वक बनाई गई! / Job created successfully! Job ID: ${response.job.jobId}`);
+        
+        // Reset form
+        setFormData({
+          title: '',
+          description: '',
+          location: '',
+          city: '',
+          state: '',
+          wageRate: '',
+          wageType: 'daily',
+          duration: '',
+          skillsRequired: [],
+          workersNeeded: 1,
+          startDate: '',
+          status: 'open'
+        });
 
-      // Notify parent component
-      if (onSessionCreated) {
-        onSessionCreated(data.session);
+        // Notify parent component
+        if (onSessionCreated) {
+          onSessionCreated(response.job);
+        }
+      } else {
+        throw new Error(response.message || 'Failed to create job');
       }
 
     } catch (err) {
-      setError(err.message);
+      console.error('Error creating job:', err);
+      setError(err.message || 'नौकरी बनाने में विफल / Failed to create job');
     } finally {
       setLoading(false);
     }
@@ -97,26 +172,43 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
   return (
     <div className="session-start">
       <div className="session-start-header">
-        <h2>नया सत्र शुरू करें / Start New Session</h2>
+        <h2>नई नौकरी बनाएं / Create New Job</h2>
         <p className="session-start-subtitle">
-          उपस्थिति ट्रैकिंग के लिए कार्य सत्र बनाएं
+          कर्मचारियों के लिए नौकरी पोस्ट करें / Post a job for workers
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="session-start-form">
-        {/* Job ID */}
+        {/* Job Title */}
         <div className="form-group">
-          <label htmlFor="jobId">
-            नौकरी आईडी / Job ID <span className="required">*</span>
+          <label htmlFor="title">
+            नौकरी का शीर्षक / Job Title <span className="required">*</span>
           </label>
           <input
             type="text"
-            id="jobId"
-            name="jobId"
-            value={formData.jobId}
+            id="title"
+            name="title"
+            value={formData.title}
             onChange={handleInputChange}
             required
-            placeholder="job_123456"
+            placeholder="e.g., Construction Worker, Plumber, Electrician"
+            aria-required="true"
+          />
+        </div>
+
+        {/* Job Description */}
+        <div className="form-group">
+          <label htmlFor="description">
+            नौकरी का विवरण / Job Description <span className="required">*</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            required
+            placeholder="Describe the job responsibilities and requirements..."
+            rows="4"
             aria-required="true"
           />
         </div>
@@ -124,80 +216,198 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
         {/* Location */}
         <div className="form-group">
           <label htmlFor="location">
-            स्थान / Location <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleInputChange}
-            required
-            placeholder="मुंबई, महाराष्ट्र / Mumbai, Maharashtra"
-            aria-required="true"
-          />
-        </div>
-
-        {/* Shift Type */}
-        <div className="form-group">
-          <label htmlFor="shiftType">
-            पाली का प्रकार / Shift Type <span className="required">*</span>
-          </label>
-          <select
-            id="shiftType"
-            name="shiftType"
-            value={formData.shiftType}
-            onChange={handleInputChange}
-            required
-            aria-required="true"
-          >
-            {shiftTypes.map(shift => (
-              <option key={shift.value} value={shift.value}>
-                {shift.label} ({shift.time})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Expected Workers */}
-        <div className="form-group">
-          <label htmlFor="workerInput">
-            अपेक्षित कर्मचारी / Expected Workers
+            पता / Address <span className="required">*</span>
           </label>
           <div className="worker-input-group">
             <input
               type="text"
-              id="workerInput"
-              value={workerInput}
-              onChange={(e) => setWorkerInput(e.target.value)}
-              placeholder="कर्मचारी आईडी दर्ज करें / Enter worker ID"
-              onKeyPress={(e) => {
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              required
+              placeholder="Full work site address"
+              aria-required="true"
+            />
+            <button
+              type="button"
+              onClick={getCurrentLocation}
+              className="btn-add-worker"
+              disabled={loadingLocation}
+              aria-label="Get current location"
+            >
+              {loadingLocation ? '⏳' : '📍'} {loadingLocation ? 'Getting...' : 'Get Location'}
+            </button>
+          </div>
+        </div>
+
+        {/* City and State */}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="city">
+              शहर / City <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              required
+              placeholder="Mumbai"
+              aria-required="true"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="state">
+              राज्य / State <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="state"
+              name="state"
+              value={formData.state}
+              onChange={handleInputChange}
+              required
+              placeholder="Maharashtra"
+              aria-required="true"
+            />
+          </div>
+        </div>
+
+        {/* Wage Rate and Type */}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="wageRate">
+              वेतन दर / Wage Rate (₹) <span className="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="wageRate"
+              name="wageRate"
+              value={formData.wageRate}
+              onChange={handleInputChange}
+              required
+              min="0"
+              step="0.01"
+              placeholder="500"
+              aria-required="true"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="wageType">
+              वेतन प्रकार / Wage Type <span className="required">*</span>
+            </label>
+            <select
+              id="wageType"
+              name="wageType"
+              value={formData.wageType}
+              onChange={handleInputChange}
+              required
+              aria-required="true"
+            >
+              {wageTypes.map(type => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Duration and Workers Needed */}
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="duration">
+              अवधि / Duration <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="duration"
+              name="duration"
+              value={formData.duration}
+              onChange={handleInputChange}
+              required
+              placeholder="e.g., 1 week, 2 months, 6 days"
+              aria-required="true"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="workersNeeded">
+              आवश्यक कर्मचारी / Workers Needed <span className="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="workersNeeded"
+              name="workersNeeded"
+              value={formData.workersNeeded}
+              onChange={handleInputChange}
+              required
+              min="1"
+              placeholder="5"
+              aria-required="true"
+            />
+          </div>
+        </div>
+
+        {/* Start Date */}
+        <div className="form-group">
+          <label htmlFor="startDate">
+            प्रारंभ तिथि / Start Date <span className="required">*</span>
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            value={formData.startDate}
+            onChange={handleInputChange}
+            required
+            aria-required="true"
+          />
+        </div>
+
+        {/* Skills Required */}
+        <div className="form-group">
+          <label htmlFor="skillInput">
+            आवश्यक कौशल / Skills Required
+          </label>
+          <div className="worker-input-group">
+            <input
+              type="text"
+              id="skillInput"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              placeholder="e.g., Masonry, Plumbing, Electrical"
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleAddWorker();
+                  handleAddSkill();
                 }
               }}
             />
             <button
               type="button"
-              onClick={handleAddWorker}
+              onClick={handleAddSkill}
               className="btn-add-worker"
-              aria-label="Add worker"
+              aria-label="Add skill"
             >
               जोड़ें / Add
             </button>
           </div>
 
-          {formData.expectedWorkers.length > 0 && (
+          {formData.skillsRequired.length > 0 && (
             <div className="worker-list">
-              {formData.expectedWorkers.map((workerId, index) => (
+              {formData.skillsRequired.map((skill, index) => (
                 <div key={index} className="worker-chip">
-                  <span>{workerId}</span>
+                  <span>{skill}</span>
                   <button
                     type="button"
-                    onClick={() => handleRemoveWorker(index)}
+                    onClick={() => handleRemoveSkill(index)}
                     className="btn-remove-worker"
-                    aria-label={`Remove ${workerId}`}
+                    aria-label={`Remove ${skill}`}
                   >
                     ×
                   </button>
@@ -206,6 +416,14 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
             </div>
           )}
         </div>
+
+        {/* Success Message */}
+        {success && (
+          <div className="success-message" role="alert">
+            <span className="success-icon">✅</span>
+            {success}
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -221,7 +439,7 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
           className="btn-submit"
           disabled={loading}
         >
-          {loading ? 'बना रहे हैं... / Creating...' : 'सत्र शुरू करें / Start Session'}
+          {loading ? 'बना रहे हैं... / Creating...' : 'नौकरी बनाएं / Create Job'}
         </button>
       </form>
     </div>

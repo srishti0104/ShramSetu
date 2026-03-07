@@ -1,5 +1,5 @@
 .session-start {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 24px;
   background: #ffffff;
@@ -31,6 +31,12 @@
   gap: 20px;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -48,16 +54,24 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   padding: 12px;
   font-size: 16px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #2196f3;
 }
@@ -81,6 +95,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .btn-add-worker:hover {
@@ -122,6 +137,22 @@
 
 .btn-remove-worker:hover {
   color: #e53935;
+}
+
+.success-message {
+  padding: 12px;
+  background: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  border-radius: 4px;
+  color: #2e7d32;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.success-icon {
+  font-size: 18px;
 }
 
 .error-message {
@@ -168,7 +199,8 @@
   }
 
   .form-group input,
-  .form-group select {
+  .form-group select,
+  .form-group textarea {
     border: 2px solid #000;
   }
 
@@ -187,6 +219,10 @@
     font-size: 20px;
   }
 
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
   .worker-input-group {
     flex-direction: column;
   }
@@ -199,6 +235,7 @@
 /* Accessibility - Focus Indicators */
 .form-group input:focus-visible,
 .form-group select:focus-visible,
+.form-group textarea:focus-visible,
 .btn-add-worker:focus-visible,
 .btn-remove-worker:focus-visible,
 .btn-submit:focus-visible {

@@ -17,7 +17,8 @@
     "textract-server": "node local-textract-server.js",
     "transcribe-server": "node local-transcribe-server.js",
     "bedrock-server": "node local-bedrock-server.cjs",
-    "ratings-server": "node mock-ratings-server.cjs"
+    "ratings-server": "node mock-ratings-server.cjs",
+    "jobs-server": "node jobs-server.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.995.0",
@@ -29,6 +30,7 @@
     "@aws-sdk/client-s3": "^3.995.0",
     "@aws-sdk/client-textract": "^3.995.0",
     "@aws-sdk/client-transcribe": "^3.995.0",
+    "@aws-sdk/lib-dynamodb": "^3.1004.0",
     "@aws-sdk/s3-request-presigner": "^3.995.0",
     "@aws-sdk/util-dynamodb": "^3.996.1",
     "cors": "^2.8.5",
