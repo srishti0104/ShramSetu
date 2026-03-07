@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import './JobSearch.css';
 import locationService from '../../services/aws/locationService';
+import applicationService from '../../services/aws/applicationService';
 
 // Mock job data
 const MOCK_JOBS = [
@@ -273,15 +274,59 @@ export default function JobSearch() {
     setFilteredJobs(filtered);
   };
 
-  const handleApply = (jobId) => {
-    if (appliedJobs.includes(jobId)) {
+  const handleApply = async (job) => {
+    if (appliedJobs.includes(job.id)) {
       alert('You have already applied for this job!');
       return;
     }
 
-    setAppliedJobs([...appliedJobs, jobId]);
-    alert('Application submitted successfully! The contractor will contact you soon.');
-    setSelectedJob(null);
+    try {
+      // Prepare application data
+      const applicationData = {
+        jobId: job.id,
+        contractorId: 'employer_demo_123', // In real app, get from job data
+        applicantProfile: {
+          userId: 'worker_demo_456', // In real app, get from user context
+          name: 'Demo Worker', // In real app, get from user profile
+          phoneNumber: '+91-9876543210',
+          location: userLocation ? 
+            `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}` : 
+            'Current Location',
+          experience: '5 years',
+          skills: ['Construction', 'Masonry', 'Safety Protocols'],
+          rating: 4.7,
+          completedJobs: 42
+        },
+        jobDetails: {
+          title: job.title,
+          location: job.location,
+          wage: job.wage,
+          wageType: job.wageType
+        },
+        location: userLocation,
+        deviceInfo: {
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      console.log('📝 Submitting application:', applicationData);
+
+      // Submit application
+      const result = await applicationService.submitApplication(applicationData);
+
+      if (result.success) {
+        setAppliedJobs([...appliedJobs, job.id]);
+        alert(`Application submitted successfully! Application ID: ${result.applicationId}`);
+        setSelectedJob(null);
+      } else {
+        throw new Error(result.error || 'Failed to submit application');
+      }
+
+    } catch (error) {
+      console.error('Application submission failed:', error);
+      alert(`Failed to submit application: ${error.message}`);
+    }
   };
 
   const formatWage = (wage, wageType) => {
@@ -422,7 +467,7 @@ export default function JobSearch() {
                   View Details
                 </button>
                 <button
-                  onClick={() => handleApply(job.id)}
+                  onClick={() => handleApply(job)}
                   disabled={appliedJobs.includes(job.id)}
                   className={`job-card__btn job-card__btn--apply ${
                     appliedJobs.includes(job.id) ? 'job-card__btn--applied' : ''
@@ -483,7 +528,7 @@ export default function JobSearch() {
             </div>
 
             <button
-              onClick={() => handleApply(selectedJob.id)}
+              onClick={() => handleApply(selectedJob)}
               disabled={appliedJobs.includes(selectedJob.id)}
               className={`job-modal__apply-btn ${
                 appliedJobs.includes(selectedJob.id) ? 'job-modal__apply-btn--applied' : ''
