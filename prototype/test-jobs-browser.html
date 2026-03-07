@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Jobs API</title>
+</head>
+<body>
+    <h1>Test Jobs API Connection</h1>
+    <button onclick="testConnection()">Test Health Endpoint</button>
+    <button onclick="testCreateJob()">Test Create Job</button>
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+
+        async function testConnection() {
+            output.textContent = 'Testing connection...\n';
+            try {
+                const response = await fetch('http://localhost:3003/health');
+                const data = await response.json();
+                output.textContent += 'SUCCESS! Health check:\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent += 'ERROR: ' + error.message + '\n';
+                output.textContent += 'Error details: ' + JSON.stringify(error, null, 2);
+            }
+        }
+
+        async function testCreateJob() {
+            output.textContent = 'Testing job creation...\n';
+            try {
+                const jobData = {
+                    contractorId: 'test_123',
+                    title: 'Browser Test Job',
+                    description: 'Testing from browser',
+                    location: {
+                        address: 'Test Address',
+                        city: 'Mumbai',
+                        state: 'Maharashtra'
+                    },
+                    city: 'Mumbai',
+                    status: 'open',
+                    wageRate: 500,
+                    wageType: 'daily',
+                    duration: '1 week',
+                    skillsRequired: ['Test'],
+                    workersNeeded: 1,
+                    startDate: '2026-03-10'
+                };
+
+                output.textContent += 'Sending request to http://localhost:3003/jobs\n';
+                
+                const response = await fetch('http://localhost:3003/jobs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jobData)
+                });
+
+                output.textContent += 'Response status: ' + response.status + '\n';
+                
+                const data = await response.json();
+                output.textContent += 'SUCCESS! Job created:\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                output.textContent += 'ERROR: ' + error.message + '\n';
+                output.textContent += 'Error name: ' + error.name + '\n';
+                output.textContent += 'Error stack: ' + error.stack;
+            }
+        }
+    </script>
+</body>
+</html>

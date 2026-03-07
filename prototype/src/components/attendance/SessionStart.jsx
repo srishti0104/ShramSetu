@@ -162,8 +162,19 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
       }
 
     } catch (err) {
-      console.error('Error creating job:', err);
-      setError(err.message || 'नौकरी बनाने में विफल / Failed to create job');
+      console.error('❌ Error creating job:', err);
+      console.error('❌ Error name:', err.name);
+      console.error('❌ Error message:', err.message);
+      
+      let errorMessage = 'नौकरी बनाने में विफल / Failed to create job';
+      
+      if (err.message.includes('fetch')) {
+        errorMessage = '⚠️ सर्वर से कनेक्ट नहीं हो पा रहा / Cannot connect to server. Please make sure the jobs server is running on port 3003.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -12,16 +12,14 @@ import LanguageSwitcher from '../LanguageSwitcher';
 import NotificationBell from '../notifications/NotificationBell';
 
 // Import feature components
-import VoiceRecorder from '../voice/VoiceRecorder';
-import JobSearch from '../jobs/JobSearch';
 import SessionStart from '../attendance/SessionStart';
 import TOTPDisplay from '../attendance/TOTPDisplay';
-import EKhataLedger from '../ledger/EKhataLedger';
 import GrievanceForm from '../grievance/GrievanceForm';
 import RatingForm from '../ratings/RatingForm';
 import OfflineSync from '../sync/OfflineSync';
-import AIAssistant from '../ai/AIAssistant';
-import WorkerFeed from '../feeds/WorkerFeed';
+import EmployerAIAssistant from '../ai/EmployerAIAssistant';
+import EmployerFloatingAIButton from '../ai/EmployerFloatingAIButton';
+import PostedJobs from '../jobs/PostedJobs';
 import ApplicationsPanel from '../applications/ApplicationsPanel';
 
 /**
@@ -57,13 +55,7 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
    */
   const renderContent = () => {
     switch (activeSection) {
-      case 'voice':
-        return <VoiceRecorder />;
-      
-      case 'talent-search':
-        return <JobSearch userRole="employer" />;
-      
-      case 'session-start':
+      case 'post-job':
         return (
           <SessionStart
             contractorId="employer_demo_123"
@@ -80,14 +72,11 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
         ) : (
           <div className="employer-dashboard__message">
             <p>{t('common:messages.noData')}</p>
-            <button onClick={() => setActiveSection('session-start')}>
-              {t('dashboard:sessionStart')}
+            <button onClick={() => setActiveSection('post-job')}>
+              {t('dashboard:postJob', 'Post a Job')}
             </button>
           </div>
         );
-      
-      case 'ledger':
-        return <EKhataLedger userRole="employer" />;
       
       case 'grievance':
         return <GrievanceForm />;
@@ -111,7 +100,7 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
         return <OfflineSync />;
       
       case 'ai-assistant':
-        return <AIAssistant />;
+        return <EmployerAIAssistant />;
 
       case 'applications':
         return <ApplicationsPanel />;
@@ -121,13 +110,10 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
 
       case 'settings':
         return <EmployerSettings />;
-
-      case 'help':
-        return <EmployerHelp />;
       
       case 'home':
       default:
-        return <WorkerFeed />;
+        return <PostedJobs contractorId="employer_demo_123" />;
     }
   };
 
@@ -144,23 +130,27 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
 
   // Navigation items for employer
   const navigationItems = [
-    { id: 'home', label: t('nav:home', 'Home'), icon: '🏠' },
-    { id: 'voice', label: t('common:labels.voice', 'Voice Assistant'), icon: '🎤' },
-    { id: 'talent-search', label: t('dashboard:talentSearch', 'Talent Search'), icon: '🔍' },
-    { id: 'applications', label: t('dashboard:applications', 'Applications'), icon: '📋' },
-    { id: 'session-start', label: t('dashboard:sessionStart', 'Start Session'), icon: '📅' },
-    { id: 'ledger', label: t('dashboard:ledger', 'E-Khata'), icon: '💰' },
+    { id: 'home', label: t('dashboard:postedJobs', 'Posted Jobs'), icon: '📋' },
+    { id: 'applications', label: t('dashboard:applications', 'Applications'), icon: '📝' },
+    { id: 'post-job', label: t('dashboard:postJob', 'Post a Job'), icon: '➕' },
     { id: 'grievance', label: t('dashboard:grievance', 'Grievance'), icon: '🛡️' },
     { id: 'rating', label: t('dashboard:rating', 'Rating'), icon: '⭐' },
     { id: 'sync', label: t('dashboard:sync', 'Sync'), icon: '📱' },
     { id: 'ai-assistant', label: t('common:labels.ai', 'AI Assistant'), icon: '🤖' },
     { id: 'profile', label: t('nav:profile', 'Profile'), icon: '👤' },
-    { id: 'settings', label: t('nav:settings', 'Settings'), icon: '⚙️' },
-    { id: 'help', label: t('nav:help', 'Help & Support'), icon: '❓' }
+    { id: 'settings', label: t('nav:settings', 'Settings'), icon: '⚙️' }
   ];
 
   return (
     <div className="employer-dashboard">
+      {/* Floating AI Button - Available on all pages EXCEPT ai-assistant page */}
+      {activeSection !== 'ai-assistant' && (
+        <EmployerFloatingAIButton 
+          onTabChange={handleNavigate}
+          currentPage={activeSection}
+        />
+      )}
+
       {/* Left Sidebar Navigation */}
       <aside className="employer-dashboard__sidebar">
         <div className="employer-dashboard__sidebar-header">
@@ -195,7 +185,7 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
                 {t('dashboard:hello', 'Hello')}, {getDisplayName()}! 👋
               </h1>
               <p className="employer-dashboard__tagline">
-                {t('dashboard:employerSubtitle', 'Find the right talent for your needs')}
+                {t('dashboard:employerSubtitle', 'Manage your jobs and find the right talent')}
               </p>
             </div>
             <div className="employer-dashboard__header-actions">

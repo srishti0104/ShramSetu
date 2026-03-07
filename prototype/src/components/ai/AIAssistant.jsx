@@ -10,7 +10,7 @@ import groqService from '../../services/ai/groqService';
 import geminiService from '../../services/ai/geminiService';
 import pollyService from '../../services/aws/pollyService';
 
-export default function AIAssistant({ onTabChange, contextPage, contextPrompt }) {
+export default function AIAssistant({ onTabChange, contextPage, contextPrompt, onSpeakingChange, onStopSpeakingCallback }) {
   console.log('🤖 AIAssistant rendering, onTabChange:', typeof onTabChange);
   console.log('📍 Context page:', contextPage);
   
@@ -61,6 +61,20 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
   // Ref for chat messages container to enable auto-scroll
   const messagesEndRef = useRef(null);
   const chatMessagesRef = useRef(null);
+  
+  // Notify parent when speaking state changes
+  useEffect(() => {
+    if (onSpeakingChange) {
+      onSpeakingChange(isSpeaking);
+    }
+  }, [isSpeaking, onSpeakingChange]);
+  
+  // Pass stop speaking callback to parent
+  useEffect(() => {
+    if (onStopSpeakingCallback) {
+      onStopSpeakingCallback(stopSpeaking);
+    }
+  }, [onStopSpeakingCallback]);
   
   // Save chat history to sessionStorage whenever messages change
   useEffect(() => {
@@ -714,10 +728,16 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
       // Small delay to ensure cleanup
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      setIsSpeaking(true);
-      console.log('🔊 Speaking with AWS Polly (Hindi):', text);
+      // FILTER OUT EMOJIS - Remove all emoji characters before speaking
+      const textWithoutEmojis = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2B55}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]/gu, '');
       
-      await pollyService.speak(text, 'hi-IN', {
+      console.log('🔊 Original text:', text.substring(0, 50));
+      console.log('🔊 Text without emojis:', textWithoutEmojis.substring(0, 50));
+      
+      setIsSpeaking(true);
+      console.log('🔊 Speaking with AWS Polly (Hindi):', textWithoutEmojis);
+      
+      await pollyService.speak(textWithoutEmojis, 'hi-IN', {
         rate: 0.8, // Slower for Hindi clarity
         volume: 1,
         onStart: () => {
@@ -730,14 +750,15 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
           console.error('🔊 Polly error:', error);
           setIsSpeaking(false);
           // Fallback to browser TTS with Hindi
-          fallbackToWebSpeech(text);
+          fallbackToWebSpeech(textWithoutEmojis);
         }
       });
     } catch (error) {
       console.error('🔊 Speech error:', error);
       setIsSpeaking(false);
-      // Fallback to browser TTS with Hindi
-      fallbackToWebSpeech(text);
+      // Fallback to browser TTS with Hindi - filter emojis first
+      const textWithoutEmojis = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2B55}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]/gu, '');
+      fallbackToWebSpeech(textWithoutEmojis);
     }
   };
 
@@ -753,7 +774,9 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt })
     
     // Additional delay to ensure complete cancellation
     setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Filter emojis from text before speaking
+      const textWithoutEmojis = text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{2300}-\u{23FF}]|[\u{2B50}]|[\u{2B55}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23EC}]|[\u{23F0}]|[\u{23F3}]|[\u{25FD}-\u{25FE}]|[\u{2614}-\u{2615}]|[\u{2648}-\u{2653}]|[\u{267F}]|[\u{2693}]|[\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26CE}]|[\u{26D4}]|[\u{26EA}]|[\u{26F2}-\u{26F3}]|[\u{26F5}]|[\u{26FA}]|[\u{26FD}]|[\u{2705}]|[\u{270A}-\u{270B}]|[\u{2728}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2795}-\u{2797}]|[\u{27B0}]|[\u{27BF}]|[\u{2B1B}-\u{2B1C}]/gu, '');
+      const utterance = new SpeechSynthesisUtterance(textWithoutEmojis);
       utterance.lang = 'hi-IN'; // Hindi (India) as primary
       utterance.rate = 0.8; // Slower for Hindi clarity
       utterance.pitch = 1;
@@ -1430,6 +1453,15 @@ Please be more specific about what you need help with, or use the quick action b
                 >
                   {isLoading ? '⏳' : '📤'}
                 </button>
+                {isSpeaking && (
+                  <button
+                    onClick={stopSpeaking}
+                    className="voice-stop-btn"
+                    title="Stop voice output"
+                  >
+                    🔇 Stop
+                  </button>
+                )}
               </>
             )}
           </div>

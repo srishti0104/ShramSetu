@@ -1,32 +1,31 @@
 /**
- * Floating AI Assistant Button
+ * Floating AI Assistant Button for Employers
  * 
- * Appears on every page for instant AI help
+ * Appears on every page for instant AI help - Employer version
  */
 
 import { useState, useEffect } from 'react';
 import './FloatingAIButton.css';
-import AIAssistant from './AIAssistant';
+import EmployerAIAssistant from './EmployerAIAssistant';
 
-export default function FloatingAIButton({ onTabChange, currentPage }) {
+export default function EmployerFloatingAIButton({ onTabChange, currentPage }) {
   const [isOpen, setIsOpen] = useState(false);
   const [contextPrompt, setContextPrompt] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [stopSpeakingCallback, setStopSpeakingCallback] = useState(null);
 
-  // Set context-aware prompts based on current page
+  // Set context-aware prompts based on current page for employers
   useEffect(() => {
     const prompts = {
-      'home': 'नमस्ते! Looking for jobs? Need help with anything?',
-      'jobs': 'Need help finding the right job? Ask me about job types, locations, or wages!',
-      'payslip': 'Upload your payslip and I\'ll check if your wages are correct!',
-      'grievance': 'Having workplace issues? I\'ll help you write a strong complaint!',
-      'attendance': 'Need help marking attendance? Ask me anything!',
-      'ledger': 'Questions about your payments? I can help track your earnings!',
-      'rating': 'Want to rate your employer or check your worker rating?',
+      'home': 'नमस्ते! Looking for workers? Need help with anything?',
+      'talent-search': 'Need help finding the right talent? Ask me about skills, locations, or experience!',
+      'applications': 'Need help managing applications? I can help you review and shortlist candidates!',
+      'attendance': 'Need help tracking attendance? Ask me anything!',
+      'ledger': 'Questions about payments? I can help track your expenses!',
+      'rating': 'Want to rate workers or check your employer rating?',
       'voice': 'Use voice commands! Just speak and I\'ll help you navigate.',
       'sync': 'Having sync issues? I can help troubleshoot!',
-      'profile': 'Need to update your profile or skills?',
+      'profile': 'Need to update your business profile?',
       'settings': 'Need help with app settings?',
       'help': 'I\'m here to help! Ask me anything about ShramSetu.'
     };
@@ -85,17 +84,17 @@ export default function FloatingAIButton({ onTabChange, currentPage }) {
       {isOpen && (
         <div className="floating-ai-modal">
           <div className="floating-ai-modal__content">
-            <AIAssistant 
+            <EmployerAIAssistant 
               onTabChange={(tab) => {
-                console.log('🎯 FloatingAIButton: onTabChange called with tab:', tab);
-                setIsOpen(false); // Close modal FIRST
+                console.log('🎯 EmployerFloatingAIButton: onTabChange called with tab:', tab);
+                setIsOpen(false);
                 if (onTabChange) {
-                  console.log('🎯 FloatingAIButton: Calling parent onTabChange');
+                  console.log('🎯 EmployerFloatingAIButton: Calling parent onTabChange');
                   setTimeout(() => {
                     onTabChange(tab);
-                  }, 100); // Small delay to ensure modal closes first
+                  }, 100);
                 } else {
-                  console.warn('⚠️ FloatingAIButton: onTabChange prop not provided');
+                  console.warn('⚠️ EmployerFloatingAIButton: onTabChange prop not provided');
                 }
               }}
               contextPage={currentPage}
