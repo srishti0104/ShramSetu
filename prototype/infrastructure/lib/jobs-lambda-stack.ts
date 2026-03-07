@@ -11,48 +11,13 @@ export class JobsLambdaStack extends cdk.Stack {
     super(scope, id, props);
 
     // ============================================
-    // DynamoDB Table for Jobs
+    // DynamoDB Table for Jobs (Use existing table)
     // ============================================
-    const jobsTable = new dynamodb.Table(this, 'JobsTable', {
-      tableName: 'Shram-setu-jobs',
-      partitionKey: {
-        name: 'jobId',
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.RETAIN, // Keep table on stack deletion
-      pointInTimeRecovery: true,
-      encryption: dynamodb.TableEncryption.AWS_MANAGED,
-      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
-    });
-
-    // Global Secondary Index: contractorId-index
-    jobsTable.addGlobalSecondaryIndex({
-      indexName: 'contractorId-index',
-      partitionKey: {
-        name: 'contractorId',
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: 'postedAt',
-        type: dynamodb.AttributeType.NUMBER,
-      },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
-
-    // Global Secondary Index: city-status-index
-    jobsTable.addGlobalSecondaryIndex({
-      indexName: 'city-status-index',
-      partitionKey: {
-        name: 'city',
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: 'status',
-        type: dynamodb.AttributeType.STRING,
-      },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
+    const jobsTable = dynamodb.Table.fromTableName(
+      this,
+      'JobsTable',
+      'Shram-setu-jobs'
+    );
 
     // ============================================
     // Lambda Function: Create Job
