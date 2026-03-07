@@ -1,27 +1,40 @@
 /**
- * Lambda Function: Create Job
- * Creates a new job posting in DynamoDB
- * 
- * @param {Object} event - API Gateway event
- * @returns {Object} Job details with job ID
+ * Create Job Lambda Function
+ * Handles job creation in DynamoDB
  */
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const crypto = require('crypto');
 
-// Initialize DynamoDB client
-const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'ap-south-1' });
+// AWS SDK automatically uses the Lambda execution environment's region
+const client = new DynamoDBClient({});
 const dynamodb = DynamoDBDocumentClient.from(client);
 
-// Table name from environment variable
 const JOBS_TABLE = process.env.JOBS_TABLE || 'Shram-setu-jobs';
 
 exports.handler = async (event) => {
-  console.log('Create Job Lambda - Event:', JSON.stringify(event, null, 2));
+  console.log('Create Job Event:', JSON.stringify(event, null, 2));
+
+  // CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'POST,OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle OPTIONS request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
 
   try {
-    const body = JSON.parse(event.body);
+    const body = JSON.parse(event.body || '{}');
     const {
       contractorId,
       title,
@@ -39,12 +52,7 @@ exports.handler = async (event) => {
     if (!contractorId || !title || !description || !location || !wageRate || !wageType || !duration || !workersNeeded || !startDate) {
       return {
         statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        },
+        headers,
         body: JSON.stringify({
           success: false,
           error: 'Missing required fields',
@@ -57,10 +65,7 @@ exports.handler = async (event) => {
     if (!location.city || !location.state) {
       return {
         statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
+        headers,
         body: JSON.stringify({
           success: false,
           error: 'Location must include city and state'
@@ -84,8 +89,8 @@ exports.handler = async (event) => {
         state: location.state,
         coordinates: location.coordinates || null
       },
-      city: location.city, // Add city at root level for GSI
-      status: 'open', // Add status at root level for GSI
+      city: location.city,
+      status: 'open',
       wageRate: parseFloat(wageRate),
       wageType,
       duration,
@@ -104,76 +109,57 @@ exports.handler = async (event) => {
     };
 
     // Store job in DynamoDB
-    try {
-      const params = {
-        TableName: JOBS_TABLE,
-        Item: job,
-        ConditionExpression: 'attribute_not_exists(jobId)' // Prevent duplicate jobs
-      };
+    const params = {
+      TableName: JOBS_TABLE,
+      Item: job,
+      ConditionExpression: 'attribute_not_exists(jobId)'
+    };
 
-      await dynamodb.send(new PutCommand(params));
+    await dynamodb.send(new PutCommand(params));
 
-      console.log('Job created successfully:', jobId);
+    console.log('Job created successfully:', jobId);
 
-      return {
-        statusCode: 201,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    return {
+      statusCode: 201,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        job: {
+          jobId: job.jobId,
+          contractorId: job.contractorId,
+          title: job.title,
+          description: job.description,
+          location: job.location,
+          wageRate: job.wageRate,
+          wageType: job.wageType,
+          duration: job.duration,
+          skillsRequired: job.skillsRequired,
+          workersNeeded: job.workersNeeded,
+          startDate: job.startDate,
+          status: job.status,
+          postedAt: job.postedAt
         },
-        body: JSON.stringify({
-          success: true,
-          job: {
-            jobId: job.jobId,
-            contractorId: job.contractorId,
-            title: job.title,
-            description: job.description,
-            location: job.location,
-            wageRate: job.wageRate,
-            wageType: job.wageType,
-            duration: job.duration,
-            skillsRequired: job.skillsRequired,
-            workersNeeded: job.workersNeeded,
-            startDate: job.startDate,
-            status: job.status,
-            postedAt: job.postedAt
-          },
-          message: 'Job created successfully'
-        })
-      };
-
-    } catch (dbError) {
-      console.error('DynamoDB error:', dbError);
-
-      // Check if it's a conditional check failure (duplicate job)
-      if (dbError.name === 'ConditionalCheckFailedException') {
-        return {
-          statusCode: 409,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          },
-          body: JSON.stringify({
-            success: false,
-            error: 'Job already exists',
-            message: 'A job with this ID already exists'
-          })
-        };
-      }
-
-      throw dbError;
-    }
+        message: 'Job created successfully'
+      })
+    };
 
   } catch (error) {
     console.error('Error creating job:', error);
+
+    if (error.name === 'ConditionalCheckFailedException') {
+      return {
+        statusCode: 409,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: 'Job already exists'
+        })
+      };
+    }
+
     return {
       statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
+      headers,
       body: JSON.stringify({
         success: false,
         error: 'Failed to create job',
