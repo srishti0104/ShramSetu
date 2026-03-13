@@ -529,67 +529,57 @@ class AuthService {
     // Mock mode for testing
     if (this.useMockMode) {
       // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Check if user exists in mock users storage
       const mockUsersKey = 'mock_registered_users';
       const mockUsersData = localStorage.getItem(mockUsersKey);
       const mockUsers = mockUsersData ? JSON.parse(mockUsersData) : {};
       
-      if (mockUsers[formattedPhone]) {
-        // User exists, log them in (in mock mode, we don't verify password)
-        const user = mockUsers[formattedPhone];
-        this.clearLoginAttempts(formattedPhone);
-        const mockToken = 'mock_jwt_token_' + Date.now();
-        this.setToken(mockToken);
-        this.setUser(user);
-        this._secureLog('🔧 Mock Mode: User logged in from registry', { phoneNumber: formattedPhone });
-        
-        return {
-          success: true,
-          message: 'Login successful (Mock Mode)',
-          token: mockToken,
-          user: user
+      // Always allow login in mock mode - create user if doesn't exist
+      let user = mockUsers[formattedPhone];
+      
+      if (!user) {
+        // User not found - create a default mock user for testing
+        this._secureLog('🔧 Mock Mode: Creating default user for login', { phoneNumber: formattedPhone });
+        user = {
+          userId: 'user_mock_' + Date.now(),
+          phoneNumber: formattedPhone,
+          role: 'worker', // Default role
+          language: 'en',
+          profile: {
+            name: 'Test User',
+            age: 25,
+            gender: 'male'
+          },
+          location: {
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            pincode: '400001',
+            address: 'Mumbai, Maharashtra'
+          },
+          skills: ['construction', 'mason'],
+          createdAt: new Date().toISOString(),
+          isActive: true
         };
+        
+        // Store user in mock registry for future logins
+        mockUsers[formattedPhone] = user;
+        localStorage.setItem(mockUsersKey, JSON.stringify(mockUsers));
+      } else {
+        this._secureLog('🔧 Mock Mode: User logged in from registry', { phoneNumber: formattedPhone });
       }
-      
-      // User not found - create a default mock user for testing
-      this._secureLog('🔧 Mock Mode: Creating default user for login', { phoneNumber: formattedPhone });
-      const defaultMockUser = {
-        userId: 'user_mock_' + Date.now(),
-        phoneNumber: formattedPhone,
-        role: 'worker', // Default role
-        language: 'en',
-        profile: {
-          name: 'Test User',
-          age: 25,
-          gender: 'male'
-        },
-        location: {
-          city: 'Mumbai',
-          state: 'Maharashtra',
-          pincode: '400001',
-          address: 'Mumbai, Maharashtra'
-        },
-        skills: ['construction', 'mason'],
-        createdAt: new Date().toISOString(),
-        isActive: true
-      };
-      
-      // Store user in mock registry for future logins
-      mockUsers[formattedPhone] = defaultMockUser;
-      localStorage.setItem(mockUsersKey, JSON.stringify(mockUsers));
       
       this.clearLoginAttempts(formattedPhone);
       const mockToken = 'mock_jwt_token_' + Date.now();
       this.setToken(mockToken);
-      this.setUser(defaultMockUser);
+      this.setUser(user);
       
       return {
         success: true,
-        message: 'Login successful (Mock Mode - Default User Created)',
+        message: 'Login successful (Mock Mode)',
         token: mockToken,
-        user: defaultMockUser
+        user: user
       };
     }
 
