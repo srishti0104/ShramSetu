@@ -116,6 +116,48 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) to view the app locally, or visit the deployed version at [https://main.dzsokk69d2hk5.amplifyapp.com](https://main.dzsokk69d2hk5.amplifyapp.com).
 
+### Environment Configuration
+
+Create a `.env` file in the `prototype` directory with the following variables:
+
+```bash
+# AWS Configuration
+VITE_AWS_REGION=ap-south-1
+
+# Authentication
+VITE_AUTH_API_URL=https://your-auth-api.execute-api.ap-south-1.amazonaws.com/prod
+VITE_USE_MOCK_AUTH=true  # Set to 'false' for real AWS authentication
+
+# AI Services
+VITE_BEDROCK_API_URL=https://your-bedrock-api.execute-api.ap-south-1.amazonaws.com/prod
+VITE_TRANSCRIBE_API_URL=https://your-transcribe-api.execute-api.ap-south-1.amazonaws.com/prod
+VITE_TEXTRACT_API_URL=https://your-textract-api.execute-api.ap-south-1.amazonaws.com/prod
+
+# Other Services
+VITE_RATINGS_API_URL=https://your-ratings-api.execute-api.ap-south-1.amazonaws.com/prod
+VITE_GRIEVANCE_API_URL=https://your-grievance-api.execute-api.ap-south-1.amazonaws.com/prod
+VITE_SYNC_API_URL=https://your-sync-api.execute-api.ap-south-1.amazonaws.com/prod
+
+# Storage
+VITE_S3_BUCKET_NAME=your-bucket-name
+
+# Optional: Fallback AI Services
+VITE_GROQ_API_KEY=your-groq-api-key
+VITE_GEMINI_API_KEY=your-gemini-api-key
+```
+
+**Important Notes:**
+- Set `VITE_USE_MOCK_AUTH=true` for local development without AWS
+- Mock mode uses OTP `123456` for testing
+- All API URLs must use HTTPS in production
+- See `.env.example` for complete configuration
+
+**⚠️ Security Warning:**
+- NEVER commit your `.env` file to GitHub
+- NEVER commit real AWS credentials, API keys, or bucket names
+- Always use placeholder values in README examples
+- Keep your `.env` file in `.gitignore`
+
 ### Environment Variables
 
 Create a `.env` file in the `prototype/` directory:
