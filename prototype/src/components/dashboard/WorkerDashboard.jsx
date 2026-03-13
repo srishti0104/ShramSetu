@@ -107,7 +107,7 @@ export default function WorkerDashboard({ onRestartOnboarding }) {
         return <AIAssistant onTabChange={handleNavigate} />;
 
       case 'jobs':
-        return <JobSearch />;
+        return <JobSearch onBack={() => handleNavigate('home')} />;
 
       case 'profile':
         return <WorkerProfile userProfile={userProfile} />;

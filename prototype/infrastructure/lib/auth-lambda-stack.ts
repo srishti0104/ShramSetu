@@ -33,7 +33,8 @@ export class AuthLambdaStack extends cdk.Stack {
       memorySize: 256,
       environment: {
         REGION: this.region,
-        OTP_TABLE_NAME: otpTable.tableName
+        OTP_TABLE_NAME: otpTable.tableName,
+        USERS_TABLE_NAME: usersTable.tableName
       }
     });
 
@@ -79,6 +80,7 @@ export class AuthLambdaStack extends cdk.Stack {
     otpTable.grantReadWriteData(verifyOTPLambda);
     usersTable.grantReadWriteData(registerLambda);
     usersTable.grantReadData(loginLambda);
+    usersTable.grantReadData(sendOTPLambda); // Need to check if user exists
 
     // Grant SNS permissions for sending SMS
     sendOTPLambda.addToRolePolicy(new iam.PolicyStatement({

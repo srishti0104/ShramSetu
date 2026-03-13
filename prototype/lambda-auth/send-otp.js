@@ -1,6 +1,6 @@
 const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, PutCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 
 const sns = new SNSClient({ region: process.env.REGION || 'ap-south-1' });
 const dynamoClient = new DynamoDBClient({ region: process.env.REGION || 'ap-south-1' });
@@ -28,6 +28,27 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           success: false,
           error: 'Phone number is required'
+        })
+      };
+    }
+
+    // Check if user already exists in DynamoDB
+    const userCheck = await docClient.send(new GetCommand({
+      TableName: process.env.USERS_TABLE_NAME,
+      Key: { phoneNumber }
+    }));
+
+    if (userCheck.Item) {
+      return {
+        statusCode: 409,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          success: false,
+          error: 'PHONE_ALREADY_REGISTERED',
+          message: 'This phone number is already registered. Please login instead.'
         })
       };
     }

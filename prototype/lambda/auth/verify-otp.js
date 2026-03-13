@@ -1,57 +1,85 @@
 /**
  * Lambda function to verify OTP
  * 
- * @fileoverview Validates OTP against stored value in Redis with 60-second window,
+ * @fileoverview Validates OTP against stored value in DynamoDB with 60-second window,
  * implements attempt limiting (max 3 attempts)
  */
 
 import crypto from 'crypto';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+
+// Initialize DynamoDB client
+const client = new DynamoDBClient({ region: process.env.REGION || 'ap-south-1' });
+const dynamodb = DynamoDBDocumentClient.from(client);
+
+const OTP_TABLE = process.env.OTP_TABLE_NAME;
 
 /**
- * Retrieve OTP from Redis (MOCK - will use ElastiCache Redis)
+ * Retrieve OTP from DynamoDB
  * @param {string} phoneNumber - Phone number
- * @returns {Promise<{otp: string, attempts: number, createdAt: number} | null>}
+ * @returns {Promise<{otp: string, attempts: number, createdAt: number, expiresAt: number} | null>}
  */
-async function getOTPFromRedis(phoneNumber) {
-  // MOCK: In production, this will use AWS ElastiCache Redis
-  console.log(`[MOCK Redis] Retrieving OTP for ${phoneNumber}`);
+async function getOTPFromDynamoDB(phoneNumber) {
+  console.log(`[DynamoDB] Retrieving OTP for ${phoneNumber}`);
   
-  // Mock implementation - in production:
-  // const data = await redisClient.get(`otp:${phoneNumber}`);
-  // if (!data) return null;
-  // return JSON.parse(data);
-  
-  // For testing, return mock data
-  return null;
+  try {
+    const params = {
+      TableName: OTP_TABLE,
+      Key: { phoneNumber }
+    };
+    
+    const result = await dynamodb.send(new GetCommand(params));
+    return result.Item || null;
+  } catch (error) {
+    console.error('[ERROR] Failed to retrieve OTP:', error);
+    throw error;
+  }
 }
 
 /**
- * Update OTP attempts in Redis (MOCK)
+ * Update OTP attempts in DynamoDB
  * @param {string} phoneNumber - Phone number
  * @param {number} attempts - Current attempt count
  */
 async function updateOTPAttempts(phoneNumber, attempts) {
-  console.log(`[MOCK Redis] Updating OTP attempts for ${phoneNumber}: ${attempts}`);
+  console.log(`[DynamoDB] Updating OTP attempts for ${phoneNumber}: ${attempts}`);
   
-  // Mock implementation - in production:
-  // const data = await redisClient.get(`otp:${phoneNumber}`);
-  // if (data) {
-  //   const otpData = JSON.parse(data);
-  //   otpData.attempts = attempts;
-  //   const ttl = await redisClient.ttl(`otp:${phoneNumber}`);
-  //   await redisClient.setex(`otp:${phoneNumber}`, ttl, JSON.stringify(otpData));
-  // }
+  try {
+    const params = {
+      TableName: OTP_TABLE,
+      Key: { phoneNumber },
+      UpdateExpression: 'SET attempts = :attempts',
+      ExpressionAttributeValues: {
+        ':attempts': attempts
+      }
+    };
+    
+    await dynamodb.send(new UpdateCommand(params));
+  } catch (error) {
+    console.error('[ERROR] Failed to update OTP attempts:', error);
+    throw error;
+  }
 }
 
 /**
- * Delete OTP from Redis (MOCK)
+ * Delete OTP from DynamoDB
  * @param {string} phoneNumber - Phone number
  */
-async function deleteOTPFromRedis(phoneNumber) {
-  console.log(`[MOCK Redis] Deleting OTP for ${phoneNumber}`);
+async function deleteOTPFromDynamoDB(phoneNumber) {
+  console.log(`[DynamoDB] Deleting OTP for ${phoneNumber}`);
   
-  // Mock implementation - in production:
-  // await redisClient.del(`otp:${phoneNumber}`);
+  try {
+    const params = {
+      TableName: OTP_TABLE,
+      Key: { phoneNumber }
+    };
+    
+    await dynamodb.send(new DeleteCommand(params));
+  } catch (error) {
+    console.error('[ERROR] Failed to delete OTP:', error);
+    throw error;
+  }
 }
 
 /**
@@ -107,8 +135,8 @@ export async function handler(event) {
       };
     }
     
-    // Retrieve OTP from Redis
-    const storedOTPData = await getOTPFromRedis(phoneNumber);
+    // Retrieve OTP from DynamoDB
+    const storedOTPData = await getOTPFromDynamoDB(phoneNumber);
     
     if (!storedOTPData) {
       return {
@@ -130,11 +158,11 @@ export async function handler(event) {
     }
     
     // Check if OTP has expired (60-second window)
-    const currentTime = Date.now();
-    const otpAge = (currentTime - storedOTPData.createdAt) / 1000; // in seconds
+    const currentTime = Math.floor(Date.now() / 1000);
+    const otpAge = currentTime - storedOTPData.createdAt; // in seconds
     
-    if (otpAge > 60) {
-      await deleteOTPFromRedis(phoneNumber);
+    if (otpAge > 60 || currentTime > storedOTPData.expiresAt) {
+      await deleteOTPFromDynamoDB(phoneNumber);
       return {
         statusCode: 400,
         headers: {
@@ -149,7 +177,7 @@ export async function handler(event) {
           severity: 'warning',
           details: {
             expiresIn: 60,
-            ageSeconds: Math.floor(otpAge)
+            ageSeconds: otpAge
           },
           requestId,
           timestamp: new Date().toISOString()
@@ -159,7 +187,7 @@ export async function handler(event) {
     
     // Check attempt limit (max 3 attempts)
     if (storedOTPData.attempts >= 3) {
-      await deleteOTPFromRedis(phoneNumber);
+      await deleteOTPFromDynamoDB(phoneNumber);
       return {
         statusCode: 429,
         headers: {
@@ -208,8 +236,8 @@ export async function handler(event) {
       };
     }
     
-    // OTP verified successfully - delete from Redis
-    await deleteOTPFromRedis(phoneNumber);
+    // OTP verified successfully - delete from DynamoDB
+    await deleteOTPFromDynamoDB(phoneNumber);
     
     // Log audit trail
     console.log(`[AUDIT] OTP verified successfully for ${phoneNumber} at ${new Date().toISOString()}`);

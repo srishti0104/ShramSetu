@@ -528,26 +528,8 @@ class AuthService {
     
     // Mock mode for testing
     if (this.useMockMode) {
-      // In mock mode, we need to check if user was registered
-      // First check if there's a currently logged in user
-      const mockUser = this.getUser();
-      
-      // Check if this phone number matches the registered user
-      if (mockUser && mockUser.phoneNumber === formattedPhone) {
-        // In mock mode, we don't actually verify password, just check if user exists
-        // Successful login
-        this.clearLoginAttempts(formattedPhone);
-        const mockToken = 'mock_jwt_token_' + Date.now();
-        this.setToken(mockToken);
-        this._secureLog('🔧 Mock Mode: User logged in', { phoneNumber: formattedPhone });
-        
-        return {
-          success: true,
-          message: 'Login successful (Mock Mode)',
-          token: mockToken,
-          user: mockUser
-        };
-      }
+      // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if user exists in mock users storage
       const mockUsersKey = 'mock_registered_users';
@@ -555,7 +537,7 @@ class AuthService {
       const mockUsers = mockUsersData ? JSON.parse(mockUsersData) : {};
       
       if (mockUsers[formattedPhone]) {
-        // User exists, log them in
+        // User exists, log them in (in mock mode, we don't verify password)
         const user = mockUsers[formattedPhone];
         this.clearLoginAttempts(formattedPhone);
         const mockToken = 'mock_jwt_token_' + Date.now();
@@ -571,9 +553,44 @@ class AuthService {
         };
       }
       
-      // User not found
-      this.recordLoginAttempt(formattedPhone, false);
-      throw new Error('Invalid phone number or password (Mock Mode)');
+      // User not found - create a default mock user for testing
+      this._secureLog('🔧 Mock Mode: Creating default user for login', { phoneNumber: formattedPhone });
+      const defaultMockUser = {
+        userId: 'user_mock_' + Date.now(),
+        phoneNumber: formattedPhone,
+        role: 'worker', // Default role
+        language: 'en',
+        profile: {
+          name: 'Test User',
+          age: 25,
+          gender: 'male'
+        },
+        location: {
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          pincode: '400001',
+          address: 'Mumbai, Maharashtra'
+        },
+        skills: ['construction', 'mason'],
+        createdAt: new Date().toISOString(),
+        isActive: true
+      };
+      
+      // Store user in mock registry for future logins
+      mockUsers[formattedPhone] = defaultMockUser;
+      localStorage.setItem(mockUsersKey, JSON.stringify(mockUsers));
+      
+      this.clearLoginAttempts(formattedPhone);
+      const mockToken = 'mock_jwt_token_' + Date.now();
+      this.setToken(mockToken);
+      this.setUser(defaultMockUser);
+      
+      return {
+        success: true,
+        message: 'Login successful (Mock Mode - Default User Created)',
+        token: mockToken,
+        user: defaultMockUser
+      };
     }
 
     try {
@@ -804,13 +821,14 @@ class AuthService {
     const cleaned = phoneNumber.replace(/\D/g, '');
     
     // Add +91 prefix if not present
-    if (cleaned.startsWith('91')) {
+    if (cleaned.startsWith('91') && cleaned.length === 12) {
       return `+${cleaned}`;
     } else if (cleaned.length === 10) {
       return `+91${cleaned}`;
     }
     
-    return `+${cleaned}`;
+    // Fallback: assume it's a 10-digit number without country code
+    return `+91${cleaned}`;
   }
 
   /**

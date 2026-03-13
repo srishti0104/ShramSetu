@@ -6,42 +6,61 @@
  */
 
 import crypto from 'crypto';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+
+// Initialize DynamoDB client
+const client = new DynamoDBClient({ region: process.env.REGION || 'ap-south-1' });
+const dynamodb = DynamoDBDocumentClient.from(client);
+
+const USERS_TABLE = process.env.USERS_TABLE_NAME;
 
 /**
- * Check if user exists in DynamoDB (MOCK)
+ * Check if user exists in DynamoDB
  * @param {string} phoneNumber - Phone number
  * @returns {Promise<boolean>}
  */
 async function userExists(phoneNumber) {
-  console.log(`[MOCK DynamoDB] Checking if user exists: ${phoneNumber}`);
+  console.log(`[DynamoDB] Checking if user exists: ${phoneNumber}`);
   
-  // Mock implementation - in production:
-  // const params = {
-  //   TableName: 'shram-setu-users',
-  //   Key: { userId: phoneNumber }
-  // };
-  // const result = await dynamodb.get(params).promise();
-  // return !!result.Item;
-  
-  return false;
+  try {
+    const params = {
+      TableName: USERS_TABLE,
+      Key: { phoneNumber }
+    };
+    
+    const result = await dynamodb.send(new GetCommand(params));
+    return !!result.Item;
+  } catch (error) {
+    console.error('[ERROR] Failed to check user existence:', error);
+    throw error;
+  }
 }
 
 /**
- * Create user in DynamoDB (MOCK)
+ * Create user in DynamoDB
  * @param {Object} userData - User data
  * @returns {Promise<Object>}
  */
 async function createUser(userData) {
-  console.log(`[MOCK DynamoDB] Creating user:`, userData);
+  console.log(`[DynamoDB] Creating user:`, { phoneNumber: userData.phoneNumber, role: userData.role });
   
-  // Mock implementation - in production:
-  // const params = {
-  //   TableName: 'shram-setu-users',
-  //   Item: userData
-  // };
-  // await dynamodb.put(params).promise();
-  
-  return userData;
+  try {
+    const params = {
+      TableName: USERS_TABLE,
+      Item: userData,
+      ConditionExpression: 'attribute_not_exists(phoneNumber)' // Prevent overwriting
+    };
+    
+    await dynamodb.send(new PutCommand(params));
+    return userData;
+  } catch (error) {
+    if (error.name === 'ConditionalCheckFailedException') {
+      throw new Error('USER_EXISTS');
+    }
+    console.error('[ERROR] Failed to create user:', error);
+    throw error;
+  }
 }
 
 /**
