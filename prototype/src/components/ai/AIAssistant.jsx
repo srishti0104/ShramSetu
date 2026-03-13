@@ -863,6 +863,16 @@ export default function AIAssistant({ onTabChange, contextPage, contextPrompt, o
           const lowerMessage = message.toLowerCase();
           console.log('🔍 Analyzing message:', lowerMessage);
           
+          // CRITICAL POST-PROCESSING: Override AI response for job queries
+          // Check if this is a job query with specific keywords
+          const jobKeywords = ['construction', 'plumbing', 'electrical', 'painting', 'carpentry', 'mason', 'plumber', 'electrician', 'painter', 'carpenter', 'मिस्त्री', 'mistri', 'mistry', 'राजमिस्त्री', 'rajmistri', 'प्लंबर', 'बिजली', 'bijli', 'bijlee', 'पेंटर', 'pentar', 'बढ़ई', 'badhai', 'barhai', 'निर्माण', 'nirman', 'nirmaan', 'builder', 'welding', 'welder', 'delivery', 'security', 'housekeeping', 'cleaner', 'manufacturing', 'factory'];
+          const hasJobKeyword = jobKeywords.some(keyword => lowerMessage.includes(keyword));
+          
+          if (hasJobKeyword) {
+            console.log('🚨 POST-PROCESSING: Detected job keyword, overriding AI response');
+            response = 'यहाँ नौकरियां हैं';
+          }
+          
           // CRITICAL: Check grievance FIRST to avoid false positives with job detection
           // Grievance detection - extensive keywords (including Roman Hindi)
           const isGrievanceIntent = lowerMessage.includes('grievance') || lowerMessage.includes('complaint') || lowerMessage.includes('complain') || lowerMessage.includes('शिकायत') || lowerMessage.includes('shikayat') || lowerMessage.includes('shikaayat') || lowerMessage.includes('dispute') || lowerMessage.includes('conflict') || lowerMessage.includes('harassment') || lowerMessage.includes('unfair') || lowerMessage.includes('injustice') || lowerMessage.includes('wrong') || lowerMessage.includes('abuse') || lowerMessage.includes('exploitation') || lowerMessage.includes('परेशानी') || lowerMessage.includes('pareshani') || lowerMessage.includes('दिक्कत') || lowerMessage.includes('dikkat') || lowerMessage.includes('विवाद') || lowerMessage.includes('vivad') || lowerMessage.includes('झगड़ा') || lowerMessage.includes('jhagda') || lowerMessage.includes('उत्पीड़न') || lowerMessage.includes('utpidan') || lowerMessage.includes('अन्याय') || lowerMessage.includes('anyay') || lowerMessage.includes('गलत') || lowerMessage.includes('galat') || lowerMessage.includes('शोषण') || lowerMessage.includes('shoshan') || lowerMessage.includes('धोखा') || lowerMessage.includes('dhokha') || lowerMessage.includes('ठगी') || lowerMessage.includes('thagi') || lowerMessage.includes('अत्याचार') || lowerMessage.includes('atyachar') || lowerMessage.includes('दुर्व्यवहार') || lowerMessage.includes('durvyavahar') || lowerMessage.includes('मारपीट') || lowerMessage.includes('marpeet') || lowerMessage.includes('गाली') || lowerMessage.includes('gali') || lowerMessage.includes('gaali') || lowerMessage.includes('अपमान') || lowerMessage.includes('apman') || lowerMessage.includes('भेदभाव') || lowerMessage.includes('bhedbhav') || lowerMessage.includes('discrimination') || lowerMessage.includes('violence') || lowerMessage.includes('threat') || lowerMessage.includes('unsafe') || lowerMessage.includes('danger') || lowerMessage.includes('खतरा') || lowerMessage.includes('khatra') || lowerMessage.includes('असुरक्षित') || lowerMessage.includes('asurakshit') || lowerMessage.includes('धमकी') || lowerMessage.includes('dhamki');

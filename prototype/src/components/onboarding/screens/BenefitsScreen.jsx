@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useOnboarding } from '../../../contexts/OnboardingContext';
 import ProgressIndicator from '../shared/ProgressIndicator';
 import VoiceInteraction from '../shared/VoiceInteraction';
+import BackButton from '../shared/BackButton';
 import './BenefitsScreen.css';
 
 /**
@@ -52,7 +53,7 @@ const BENEFITS = [
  * Benefits Screen Component
  */
 export default function BenefitsScreen() {
-  const { state, updateState, nextStep } = useOnboarding();
+  const { state, updateState, nextStep, previousStep } = useOnboarding();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
@@ -138,6 +139,7 @@ export default function BenefitsScreen() {
         language={state.language || 'en'}
         showMicrophone={false}
       />
+      <BackButton onClick={previousStep} />
       <ProgressIndicator step={9} total={10} />
 
       <div className="benefits-screen__content">

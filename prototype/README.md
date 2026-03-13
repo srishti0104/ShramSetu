@@ -7,6 +7,8 @@
 ![PWA](https://img.shields.io/badge/PWA-Ready-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+**🌐 Live Demo:** [https://main.dzsokk69d2hk5.amplifyapp.com](https://main.dzsokk69d2hk5.amplifyapp.com)
+
 ## 🌟 Overview
 
 Shram-Setu addresses critical challenges faced by daily wage workers and contractors in India: job discovery, wage compliance, attendance tracking, and labor rights enforcement through a voice-first, offline-capable platform.
@@ -48,7 +50,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to view the app.
+Open [http://localhost:5173](http://localhost:5173) to view the app locally, or visit the deployed version at [https://main.dzsokk69d2hk5.amplifyapp.com](https://main.dzsokk69d2hk5.amplifyapp.com).
 
 ### Environment Configuration
 
@@ -85,6 +87,12 @@ VITE_GEMINI_API_KEY=your-gemini-api-key
 - Mock mode uses OTP `123456` for testing
 - All API URLs must use HTTPS in production
 - See `.env.example` for complete configuration
+
+**⚠️ Security Warning:**
+- NEVER commit your `.env` file to GitHub
+- NEVER commit real AWS credentials, API keys, or bucket names
+- Always use placeholder values in README examples
+- Keep your `.env` file in `.gitignore`
 
 ## 🏗️ Tech Stack
 

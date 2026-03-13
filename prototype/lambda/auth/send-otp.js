@@ -1,11 +1,42 @@
 /**
  * Lambda function to generate and send OTP via SMS
  * 
- * @fileoverview Generates 6-digit OTP, stores in Redis with 60-second validity,
+ * @fileoverview Generates 6-digit OTP, stores in DynamoDB with TTL,
  * and sends via SMS (currently mocked, will integrate with AWS SNS)
  */
 
 import crypto from 'crypto';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+
+// Initialize DynamoDB client
+const client = new DynamoDBClient({ region: process.env.REGION || 'ap-south-1' });
+const dynamodb = DynamoDBDocumentClient.from(client);
+
+const OTP_TABLE = process.env.OTP_TABLE_NAME;
+const USERS_TABLE = process.env.USERS_TABLE_NAME;
+
+/**
+ * Check if user already exists in DynamoDB
+ * @param {string} phoneNumber - Phone number
+ * @returns {Promise<boolean>}
+ */
+async function userExists(phoneNumber) {
+  console.log(`[DynamoDB] Checking if user exists: ${phoneNumber}`);
+  
+  try {
+    const params = {
+      TableName: USERS_TABLE,
+      Key: { phoneNumber }
+    };
+    
+    const result = await dynamodb.send(new GetCommand(params));
+    return !!result.Item;
+  } catch (error) {
+    console.error('[ERROR] Failed to check user existence:', error);
+    throw error;
+  }
+}
 
 /**
  * Generate a 6-digit OTP
@@ -16,26 +47,35 @@ function generateOTP() {
 }
 
 /**
- * Store OTP in Redis with TTL (MOCK - will use ElastiCache Redis)
+ * Store OTP in DynamoDB with TTL
  * @param {string} phoneNumber - Phone number
  * @param {string} otp - OTP code
  * @param {number} ttlSeconds - Time to live in seconds
  */
-async function storeOTPInRedis(phoneNumber, otp, ttlSeconds = 60) {
-  // MOCK: In production, this will use AWS ElastiCache Redis
-  // Key format: otp:{phoneNumber}
-  // Value: {otp, attempts: 0, createdAt: timestamp}
+async function storeOTPInDynamoDB(phoneNumber, otp, ttlSeconds = 60) {
+  console.log(`[DynamoDB] Storing OTP for ${phoneNumber} (TTL: ${ttlSeconds}s)`);
   
-  console.log(`[MOCK Redis] Storing OTP for ${phoneNumber}: ${otp} (TTL: ${ttlSeconds}s)`);
-  
-  // Mock implementation - in production:
-  // await redisClient.setex(`otp:${phoneNumber}`, ttlSeconds, JSON.stringify({
-  //   otp,
-  //   attempts: 0,
-  //   createdAt: Date.now()
-  // }));
-  
-  return true;
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = now + ttlSeconds;
+    
+    const params = {
+      TableName: OTP_TABLE,
+      Item: {
+        phoneNumber,
+        otp,
+        attempts: 0,
+        createdAt: now,
+        expiresAt // DynamoDB TTL attribute
+      }
+    };
+    
+    await dynamodb.send(new PutCommand(params));
+    return true;
+  } catch (error) {
+    console.error('[ERROR] Failed to store OTP:', error);
+    throw error;
+  }
 }
 
 /**
@@ -143,6 +183,27 @@ export async function handler(event) {
       };
     }
     
+    // Check if user already exists (for signup flow)
+    const exists = await userExists(phoneNumber);
+    if (exists) {
+      return {
+        statusCode: 409,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          success: false,
+          error: 'PHONE_ALREADY_REGISTERED',
+          message: 'This phone number is already registered. Please login instead.',
+          category: 'conflict',
+          severity: 'warning',
+          requestId,
+          timestamp: new Date().toISOString()
+        })
+      };
+    }
+    
     // Check rate limiting
     const rateLimitCheck = await checkRateLimit(phoneNumber);
     if (!rateLimitCheck.allowed) {
@@ -171,8 +232,8 @@ export async function handler(event) {
     // Generate OTP
     const otp = generateOTP();
     
-    // Store OTP in Redis with 60-second TTL
-    await storeOTPInRedis(phoneNumber, otp, 60);
+    // Store OTP in DynamoDB with 60-second TTL
+    await storeOTPInDynamoDB(phoneNumber, otp, 60);
     
     // Send OTP via SMS
     await sendSMS(phoneNumber, otp);

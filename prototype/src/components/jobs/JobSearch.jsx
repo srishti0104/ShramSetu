@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import './JobSearch.css';
 import locationService from '../../services/aws/locationService';
 import applicationService from '../../services/aws/applicationService';
+import BackButton from '../onboarding/shared/BackButton';
 
 // Mock job data
 const MOCK_JOBS = [
@@ -127,8 +128,10 @@ const CATEGORIES = [
 
 /**
  * Job Search Component
+ * @param {Object} props
+ * @param {Function} [props.onBack] - Callback to navigate back
  */
-export default function JobSearch() {
+export default function JobSearch({ onBack }) {
   const [jobs, setJobs] = useState(MOCK_JOBS);
   const [filteredJobs, setFilteredJobs] = useState(MOCK_JOBS);
   const [searchQuery, setSearchQuery] = useState('');
@@ -337,6 +340,9 @@ export default function JobSearch() {
 
   return (
     <div className="job-search">
+      {/* Back Button */}
+      {onBack && <BackButton onClick={onBack} />}
+      
       <div className="job-search__header">
         <h2>🔍 Job Marketplace</h2>
         <p>Find work opportunities near you</p>

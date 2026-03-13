@@ -20,6 +20,7 @@ export default function PhoneNumberEntry() {
   const [phoneNumber, setPhoneNumber] = useState(state.phoneNumber?.replace('+91', '') || '');
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const isHindi = state.language === 'hi';
 
@@ -58,17 +59,44 @@ export default function PhoneNumberEntry() {
   };
 
   /**
-   * Handle continue (skip OTP)
+   * Handle continue (send OTP to verify phone number)
    */
-  const handleContinue = () => {
-    if (!isValid) return;
+  const handleContinue = async () => {
+    if (!isValid || isLoading) return;
 
-    // Skip OTP verification - go directly to password creation
-    updateState({ 
-      phoneNumber: `+91${phoneNumber}`,
-      otpVerified: true // Mark as verified to skip OTP screen
-    });
-    nextStep();
+    const formattedPhone = `+91${phoneNumber}`;
+
+    try {
+      setError('');
+      setIsLoading(true);
+      
+      // Send OTP - this will check if phone is already registered
+      await authService.sendOTP(formattedPhone);
+      
+      // If successful, proceed to OTP verification
+      updateState({ 
+        phoneNumber: formattedPhone,
+        otpVerified: false // Need to verify OTP
+      });
+      nextStep();
+    } catch (err) {
+      console.error('Error sending OTP:', err);
+      
+      // Handle specific errors
+      if (err.message.includes('already registered')) {
+        setError(isHindi 
+          ? 'यह नंबर पहले से पंजीकृत है। कृपया लॉगिन करें।' 
+          : 'This phone number is already registered. Please login instead.');
+      } else if (err.message.includes('Too many')) {
+        setError(err.message);
+      } else {
+        setError(isHindi 
+          ? 'OTP भेजने में विफल। कृपया पुनः प्रयास करें।' 
+          : 'Failed to send OTP. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   /**
@@ -148,10 +176,17 @@ export default function PhoneNumberEntry() {
           <button
             type="button"
             onClick={handleContinue}
-            disabled={!isValid}
+            disabled={!isValid || isLoading}
             className="phone-number-entry__button"
           >
-            {isHindi ? 'जारी रखें' : 'Continue'}
+            {isLoading ? (
+              <>
+                <span className="spinner" aria-hidden="true"></span>
+                {isHindi ? 'OTP भेजा जा रहा है...' : 'Sending OTP...'}
+              </>
+            ) : (
+              isHindi ? 'जारी रखें' : 'Continue'
+            )}
           </button>
         </div>
       </div>

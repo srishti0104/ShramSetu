@@ -7,51 +7,64 @@
 
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+
+// Initialize DynamoDB client
+const client = new DynamoDBClient({ region: process.env.REGION || 'ap-south-1' });
+const dynamodb = DynamoDBDocumentClient.from(client);
+
+const USERS_TABLE = process.env.USERS_TABLE_NAME;
 
 // JWT secret (in production, use AWS Secrets Manager)
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-change-in-production';
 
 /**
- * Get user from DynamoDB (MOCK)
+ * Get user from DynamoDB
  * @param {string} phoneNumber - Phone number
  * @returns {Promise<Object | null>}
  */
 async function getUserByPhone(phoneNumber) {
-  console.log(`[MOCK DynamoDB] Getting user by phone: ${phoneNumber}`);
+  console.log(`[DynamoDB] Getting user by phone: ${phoneNumber}`);
   
-  // Mock implementation - in production:
-  // const params = {
-  //   TableName: 'shram-setu-users',
-  //   IndexName: 'phoneNumber-index',
-  //   KeyConditionExpression: 'phoneNumber = :phone',
-  //   ExpressionAttributeValues: {
-  //     ':phone': phoneNumber
-  //   }
-  // };
-  // const result = await dynamodb.query(params).promise();
-  // return result.Items?.[0] || null;
-  
-  return null;
+  try {
+    const params = {
+      TableName: USERS_TABLE,
+      Key: { phoneNumber }
+    };
+    
+    const result = await dynamodb.send(new GetCommand(params));
+    return result.Item || null;
+  } catch (error) {
+    console.error('[ERROR] Failed to get user:', error);
+    throw error;
+  }
 }
 
 /**
- * Update user last login timestamp (MOCK)
- * @param {string} userId - User ID
+ * Update user last login timestamp
+ * @param {string} phoneNumber - Phone number
  */
-async function updateLastLogin(userId) {
-  console.log(`[MOCK DynamoDB] Updating last login for user: ${userId}`);
+async function updateLastLogin(phoneNumber) {
+  console.log(`[DynamoDB] Updating last login for user: ${phoneNumber}`);
   
-  // Mock implementation - in production:
-  // const params = {
-  //   TableName: 'shram-setu-users',
-  //   Key: { userId },
-  //   UpdateExpression: 'SET lastLoginAt = :now, updatedAt = :now',
-  //   ExpressionAttributeValues: {
-  //     ':now': new Date().toISOString()
-  //   }
-  // };
-  // await dynamodb.update(params).promise();
+  try {
+    const now = new Date().toISOString();
+    const params = {
+      TableName: USERS_TABLE,
+      Key: { phoneNumber },
+      UpdateExpression: 'SET lastLoginAt = :now, updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':now': now
+      }
+    };
+    
+    await dynamodb.send(new UpdateCommand(params));
+  } catch (error) {
+    console.error('[ERROR] Failed to update last login:', error);
+    // Don't throw - this is not critical
+  }
 }
 
 /**
@@ -189,7 +202,7 @@ export async function handler(event) {
     await storeRefreshToken(user.userId, refreshToken);
     
     // Update last login timestamp
-    await updateLastLogin(user.userId);
+    await updateLastLogin(user.phoneNumber);
     
     // Log audit trail
     console.log(`[AUDIT] User logged in: ${user.userId} at ${new Date().toISOString()}`);
