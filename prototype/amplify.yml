@@ -1,18 +1,17 @@
 version: 1
-applications:
-  - appRoot: prototype
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            - npm ci
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: dist
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd prototype
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: prototype/dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - prototype/node_modules/**/*
