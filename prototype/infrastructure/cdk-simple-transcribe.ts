@@ -62,9 +62,9 @@ export class SimpleTranscribeStack extends cdk.Stack {
     // API Gateway with CORS
     const api = new apigateway.RestApi(this, 'TranscribeApi', {
       restApiName: 'Simple Transcribe API',
-      description: 'Simple transcribe API with CORS for localhost',
+      description: 'Simple transcribe API with CORS for localhost and production',
       defaultCorsPreflightOptions: {
-        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'https://main.dzsokk69d2hk5.amplifyapp.com'],
         allowMethods: ['POST', 'OPTIONS'],
         allowHeaders: ['Content-Type'],
         allowCredentials: false,

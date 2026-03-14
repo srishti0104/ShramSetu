@@ -139,7 +139,7 @@ export class RatingsLambdaStack extends cdk.Stack {
       restApiName: 'Shram Setu Ratings API',
       description: 'API for rating system with employer/employee evaluation',
       defaultCorsPreflightOptions: {
-        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'https://your-domain.com'],
+        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'https://main.dzsokk69d2hk5.amplifyapp.com'],
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token'],
         allowCredentials: false,

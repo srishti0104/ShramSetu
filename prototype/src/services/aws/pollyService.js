@@ -37,15 +37,25 @@ class PollyService {
     const region = config.region || awsConfig.region;
     const credentials = config.credentials || awsConfig.credentials;
     
+    // Force credentials check
+    if (!credentials) {
+      console.error('❌ AWS credentials not available for Polly');
+      throw new Error('AWS credentials are required for Polly service');
+    }
+    
+    console.log('🔑 Initializing Polly with credentials:', {
+      region,
+      hasAccessKey: !!credentials.accessKeyId,
+      hasSecretKey: !!credentials.secretAccessKey,
+      accessKeyPrefix: credentials.accessKeyId ? credentials.accessKeyId.substring(0, 8) + '...' : 'missing'
+    });
+    
     this.client = new PollyClient({
       region,
       credentials
     });
     
-    console.log('Polly client initialized:', { 
-      region, 
-      hasCredentials: !!credentials 
-    });
+    console.log('✅ Polly client initialized successfully');
   }
 
   /**

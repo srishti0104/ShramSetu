@@ -165,7 +165,7 @@ export class GrievanceLambdaStack extends cdk.Stack {
       restApiName: 'Shram Setu Grievance API',
       description: 'API for voice-based grievance reporting system',
       defaultCorsPreflightOptions: {
-        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'https://your-domain.com'],
+        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'https://main.dzsokk69d2hk5.amplifyapp.com'],
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token'],
         allowCredentials: false,

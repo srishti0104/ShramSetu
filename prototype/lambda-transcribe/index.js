@@ -159,6 +159,19 @@ export async function handler(event) {
   
   console.log('🎤 Transcribe Lambda invoked:', requestId);
   
+  // Handle OPTIONS preflight request
+  if (event.httpMethod === 'OPTIONS' || event.requestContext?.http?.method === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+  
   try {
     // Parse request body
     const body = JSON.parse(event.body || '{}');
