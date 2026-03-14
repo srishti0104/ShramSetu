@@ -90,9 +90,9 @@ export class SimpleGrievanceStack extends cdk.Stack {
     // API Gateway with CORS
     const api = new apigateway.RestApi(this, 'GrievanceApi', {
       restApiName: 'Simple Grievance API',
-      description: 'Simple grievance API with CORS for localhost',
+      description: 'Simple grievance API with CORS for localhost and production',
       defaultCorsPreflightOptions: {
-        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+        allowOrigins: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'https://main.dzsokk69d2hk5.amplifyapp.com'],
         allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'X-Amz-Date', 'Authorization', 'X-Api-Key', 'X-Amz-Security-Token'],
         allowCredentials: false,

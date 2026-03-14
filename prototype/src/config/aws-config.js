@@ -14,6 +14,12 @@ const getCredentials = () => {
   const accessKeyId = import.meta.env.VITE_AWS_ACCESS_KEY_ID;
   const secretAccessKey = import.meta.env.VITE_AWS_SECRET_ACCESS_KEY;
 
+  console.log('🔑 AWS Credentials check:', {
+    hasAccessKey: !!accessKeyId,
+    hasSecretKey: !!secretAccessKey,
+    accessKeyPrefix: accessKeyId ? accessKeyId.substring(0, 8) + '...' : 'missing'
+  });
+
   if (accessKeyId && secretAccessKey) {
     return {
       accessKeyId,
@@ -22,6 +28,7 @@ const getCredentials = () => {
   }
 
   // Return undefined to let SDK auto-detect (works in Node.js/Lambda)
+  console.warn('⚠️ AWS credentials not found in environment variables');
   return undefined;
 };
 
