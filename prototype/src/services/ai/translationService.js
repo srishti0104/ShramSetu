@@ -8,7 +8,7 @@
 class TranslationService {
   constructor() {
     this.geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     
     console.log('🌐 Translation Service initialized');
     console.log('🔑 Gemini API available:', !!this.geminiApiKey);

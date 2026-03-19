@@ -87,6 +87,8 @@ exports.handler = async (event) => {
         address: location.address || '',
         city: location.city,
         state: location.state,
+        latitude: location.latitude || null,
+        longitude: location.longitude || null,
         coordinates: location.coordinates || null
       },
       city: location.city,

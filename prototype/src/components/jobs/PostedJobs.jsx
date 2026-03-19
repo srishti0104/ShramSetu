@@ -82,7 +82,12 @@ export default function PostedJobs({ contractorId = 'employer_demo_123' }) {
       <div className="posted-jobs__header">
         <h2>📋 मेरी नौकरियां / My Posted Jobs</h2>
         <button onClick={fetchJobs} className="btn-refresh">
-          🔄 ताज़ा करें / Refresh
+          <span className="btn-refresh__icon">🔄</span>
+          <span className="btn-refresh__text">
+            <span className="btn-refresh__hindi">ताज़ा करें</span>
+            <span className="btn-refresh__divider">/</span>
+            <span className="btn-refresh__english">Refresh</span>
+          </span>
         </button>
       </div>
 
@@ -144,44 +149,79 @@ function JobCard({ job, onStatusChange }) {
   const statusBadge = getStatusBadge(job.status);
   const postedDate = new Date(job.postedAt).toLocaleDateString('en-IN');
 
+  // Extract location - handle different formats
+  const getLocation = () => {
+    if (job.location) {
+      if (typeof job.location === 'string') {
+        return job.location;
+      }
+      if (job.location.city && job.location.state) {
+        return `${job.location.city}, ${job.location.state}`;
+      }
+      if (job.location.city) {
+        return job.location.city;
+      }
+    }
+    return 'Location not specified';
+  };
+
+  // Extract wage - handle different formats
+  const getWage = () => {
+    if (job.wageRate && job.wageType) {
+      return `₹${job.wageRate} / ${job.wageType}`;
+    }
+    if (job.wage && job.wageType) {
+      return `₹${job.wage} / ${job.wageType}`;
+    }
+    if (job.wageRate) {
+      return `₹${job.wageRate}`;
+    }
+    if (job.wage) {
+      return `₹${job.wage}`;
+    }
+    return 'Wage not specified';
+  };
+
   return (
     <div className="job-card">
       <div className="job-card__header">
-        <h3 className="job-card__title">{job.title}</h3>
+        <h3 className="job-card__title">{job.title || 'Untitled Job'}</h3>
         <span className={`job-card__status ${statusBadge.class}`}>
           {statusBadge.icon} {statusBadge.label}
         </span>
       </div>
 
       <div className="job-card__body">
-        <p className="job-card__description">{job.description}</p>
+        {job.description && (
+          <p className="job-card__description">{job.description}</p>
+        )}
 
         <div className="job-card__details">
           <div className="detail-item">
             <span className="detail-icon">📍</span>
-            <span className="detail-text">
-              {job.location?.city}, {job.location?.state}
-            </span>
+            <span className="detail-text">{getLocation()}</span>
           </div>
 
           <div className="detail-item">
             <span className="detail-icon">💰</span>
-            <span className="detail-text">
-              ₹{job.wageRate} / {job.wageType}
-            </span>
+            <span className="detail-text">{getWage()}</span>
           </div>
 
-          <div className="detail-item">
-            <span className="detail-icon">⏱️</span>
-            <span className="detail-text">{job.duration}</span>
-          </div>
+          {job.duration && (
+            <div className="detail-item">
+              <span className="detail-icon">⏱️</span>
+              <span className="detail-text">{job.duration}</span>
+            </div>
+          )}
 
-          <div className="detail-item">
-            <span className="detail-icon">👥</span>
-            <span className="detail-text">
-              {job.workersNeeded} workers needed
-            </span>
-          </div>
+          {job.workersNeeded && (
+            <div className="detail-item">
+              <span className="detail-icon">👥</span>
+              <span className="detail-text">
+                {job.workersNeeded} {job.workersNeeded === 1 ? 'worker' : 'workers'} needed
+              </span>
+            </div>
+          )}
 
           <div className="detail-item">
             <span className="detail-icon">📅</span>

@@ -93,6 +93,8 @@ app.post('/jobs', async (req, res) => {
         address: location.address || '',
         city: location.city,
         state: location.state,
+        latitude: location.latitude || null,
+        longitude: location.longitude || null,
         coordinates: location.coordinates || null
       },
       city: location.city, // Add city at root level for GSI

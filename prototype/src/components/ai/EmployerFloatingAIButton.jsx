@@ -87,14 +87,17 @@ export default function EmployerFloatingAIButton({ onTabChange, currentPage }) {
             <EmployerAIAssistant 
               onTabChange={(tab) => {
                 console.log('🎯 EmployerFloatingAIButton: onTabChange called with tab:', tab);
+                console.log('🎯 EmployerFloatingAIButton: Parent onTabChange exists?', !!onTabChange);
                 setIsOpen(false);
                 if (onTabChange) {
-                  console.log('🎯 EmployerFloatingAIButton: Calling parent onTabChange');
+                  console.log('🎯 EmployerFloatingAIButton: Calling parent onTabChange with:', tab);
                   setTimeout(() => {
+                    console.log('🎯 EmployerFloatingAIButton: EXECUTING parent onTabChange NOW');
                     onTabChange(tab);
+                    console.log('🎯 EmployerFloatingAIButton: Parent onTabChange executed');
                   }, 100);
                 } else {
-                  console.warn('⚠️ EmployerFloatingAIButton: onTabChange prop not provided');
+                  console.error('❌ EmployerFloatingAIButton: onTabChange prop not provided!');
                 }
               }}
               contextPage={currentPage}

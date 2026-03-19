@@ -103,7 +103,7 @@ export default function EmployerDashboard({ onRestartOnboarding }) {
         return <OfflineSync />;
       
       case 'ai-assistant':
-        return <EmployerAIAssistant />;
+        return <EmployerAIAssistant onTabChange={handleNavigate} />;
 
       case 'applications':
         return <ApplicationsPanel />;
