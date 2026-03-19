@@ -38,7 +38,9 @@ class JobsAPI {
       if (!response.ok) {
         const error = await response.json();
         console.error('🔴 Server error:', error);
-        throw new Error(error.message || 'Failed to create job');
+        console.error('🔴 Error details:', JSON.stringify(error, null, 2));
+        console.error('🔴 Sent data:', JSON.stringify(jobData, null, 2));
+        throw new Error(error.error || error.message || 'Failed to create job');
       }
 
       const result = await response.json();

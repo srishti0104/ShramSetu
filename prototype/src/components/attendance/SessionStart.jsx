@@ -16,6 +16,8 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
     location: '',
     city: '',
     state: '',
+    latitude: null,
+    longitude: null,
     wageRate: '',
     wageType: 'daily',
     duration: '',
@@ -63,7 +65,9 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
               ...prev,
               location: data.display_name || '',
               city: data.address.city || data.address.town || data.address.village || '',
-              state: data.address.state || ''
+              state: data.address.state || '',
+              latitude: latitude,
+              longitude: longitude
             }));
           }
         } catch (err) {
@@ -113,31 +117,66 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
     setSuccess(null);
 
     try {
+      // Validate required fields
+      if (!formData.title || !formData.title.trim()) {
+        throw new Error('Job title is required / नौकरी का शीर्षक आवश्यक है');
+      }
+      if (!formData.description || !formData.description.trim()) {
+        throw new Error('Job description is required / नौकरी का विवरण आवश्यक है');
+      }
+      if (!formData.city || !formData.city.trim()) {
+        throw new Error('City is required / शहर आवश्यक है');
+      }
+      if (!formData.state || !formData.state.trim()) {
+        throw new Error('State is required / राज्य आवश्यक है');
+      }
+      if (!formData.wageRate || parseFloat(formData.wageRate) <= 0) {
+        throw new Error('Valid wage rate is required / मान्य वेतन दर आवश्यक है');
+      }
+      if (!formData.duration || !formData.duration.trim()) {
+        throw new Error('Duration is required / अवधि आवश्यक है');
+      }
+      if (!formData.workersNeeded || parseInt(formData.workersNeeded) <= 0) {
+        throw new Error('Number of workers needed is required / आवश्यक कर्मचारियों की संख्या आवश्यक है');
+      }
+      if (!formData.startDate) {
+        throw new Error('Start date is required / प्रारंभ तिथि आवश्यक है');
+      }
+      if (!formData.latitude || !formData.longitude) {
+        throw new Error('Location coordinates are required. Please use "Get Location" button / स्थान निर्देशांक आवश्यक हैं। कृपया "स्थान प्राप्त करें" बटन का उपयोग करें');
+      }
+
       // Prepare job data
       const jobData = {
         contractorId,
-        title: formData.title,
-        description: formData.description,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         location: {
-          address: formData.location,
-          city: formData.city,
-          state: formData.state
+          address: formData.location?.trim() || '',
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          latitude: formData.latitude,
+          longitude: formData.longitude
         },
-        city: formData.city, // Add city at root level for GSI
-        status: 'open', // Add status at root level for GSI
         wageRate: parseFloat(formData.wageRate),
         wageType: formData.wageType,
-        duration: formData.duration,
-        skillsRequired: formData.skillsRequired,
+        duration: formData.duration.trim(),
+        skillsRequired: formData.skillsRequired || [],
         workersNeeded: parseInt(formData.workersNeeded),
         startDate: formData.startDate
       };
+
+      console.log('📝 Submitting job data:', jobData);
 
       // Create job in DynamoDB
       const response = await jobsAPI.createJob(jobData);
 
       if (response.success) {
-        setSuccess(`नौकरी सफलतापूर्वक बनाई गई! / Job created successfully! Job ID: ${response.job.jobId}`);
+        const successMessage = `नौकरी सफलतापूर्वक बनाई गई! / Job created successfully! Job ID: ${response.job.jobId}`;
+        setSuccess(successMessage);
+        
+        // Show browser alert popup
+        alert('✅ Job Posted Successfully!\n\nनौकरी सफलतापूर्वक पोस्ट की गई!\n\nJob ID: ' + response.job.jobId);
         
         // Reset form
         setFormData({
@@ -146,6 +185,8 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
           location: '',
           city: '',
           state: '',
+          latitude: null,
+          longitude: null,
           wageRate: '',
           wageType: 'daily',
           duration: '',
@@ -165,8 +206,7 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
 
     } catch (err) {
       console.error('❌ Error creating job:', err);
-      console.error('❌ Error name:', err.name);
-      console.error('❌ Error message:', err.message);
+      setError(err.message || 'Failed to create job / नौकरी बनाने में विफल');
       
       let errorMessage = 'नौकरी बनाने में विफल / Failed to create job';
       
@@ -241,15 +281,6 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
             >
               {loadingLocation ? '⏳' : '📍'} {loadingLocation ? 'Getting...' : 'Get Location'}
             </button>
-            <div className="voice-input-inline">
-              <VoiceInput
-                onTranscription={(text) => {
-                  setFormData(prev => ({ ...prev, location: text }));
-                }}
-                language="hi-IN"
-                placeholder="Speak address"
-              />
-            </div>
           </div>
         </div>
 
@@ -300,10 +331,10 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
               <div className="voice-input-inline">
                 <VoiceInput
                   onTranscription={(text) => {
-                    // Extract numbers from voice input
-                    const numbers = text.match(/\d+/g);
-                    if (numbers && numbers.length > 0) {
-                      setFormData(prev => ({ ...prev, wageRate: numbers[0] }));
+                    // Extract complete number from voice input
+                    const cleanText = text.replace(/[^\d]/g, '');
+                    if (cleanText) {
+                      setFormData(prev => ({ ...prev, wageRate: cleanText }));
                     }
                   }}
                   language="hi-IN"
@@ -371,10 +402,10 @@ const SessionStart = ({ contractorId, onSessionCreated }) => {
               <div className="voice-input-inline">
                 <VoiceInput
                   onTranscription={(text) => {
-                    // Extract numbers from voice input
-                    const numbers = text.match(/\d+/g);
-                    if (numbers && numbers.length > 0) {
-                      setFormData(prev => ({ ...prev, workersNeeded: numbers[0] }));
+                    // Extract complete number from voice input
+                    const cleanText = text.replace(/[^\d]/g, '');
+                    if (cleanText) {
+                      setFormData(prev => ({ ...prev, workersNeeded: cleanText }));
                     }
                   }}
                   language="hi-IN"
